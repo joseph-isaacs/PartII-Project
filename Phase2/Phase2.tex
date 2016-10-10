@@ -1,0 +1,204 @@
+\documentclass[a4paper,12pt]{article}
+ 
+\begin{document}
+
+\section*{Introduction and Description of Work}
+
+  I propose to write a compiler for a subset of Haskell98 in GHC Haskell. I will target JVM bytecode as the output from
+  the compiler. I will from now on using Haskell to mean Haskell98, unless specified otherwise.
+
+  Haskell is a pure and lazy functional programming language with strong static typing. Pure meaning that
+  if a function is given the same input twice then the output will always be the same. Lazy meaning that Haskell has a 
+  call-by-need evaluation scheme (a function argument is only evaluated if the function uses that expression in its body
+  and if the expression is used then it is memoized [cached] and any subsequent uses are looked up in the cache).
+  The JVM on the other hand was  written as a platform independent interpreter designed 
+  primarily to support the constructs of Java (object-oriented programming and reflection). 
+  Therefore the JVM has a C-like class stack and object as first-class citizens, this means
+  the proposed compiler must bridge the gap between the two providing mapping between the functions from Haskell to primitives
+  the JVM will be able to work with.
+
+  The subset of Haskell used in the compiler will contain Type Classes, ADTs, Modules, Case expressions, 
+  functions and a small part of the Haskell prelude defined in Haskell \cite{haskell98-spec}. 
+
+  The extensions I propose would be a `Java Monad' that would allow Java code to be evaluated from Haskell code in a
+  purely function way very similar to the IO monad in Haskell currently (this is in the spec under basic input/output \cite{haskell98-spec}), using this Java Monad
+  I would them implement IO. Another proposed extension is function inlining discussed below.
+
+
+\section*{Starting Point}
+  I have taken the Compiler Construction in Part IB and am currently taking the Part II course Types. I have spent the summer
+  learning Haskell from various places including CIS 194 University of Pennsylvania \cite{cis194} and Real World Haskell \cite{realwordhaskell}.
+  I plan to use a library \textit{codec-jvm} to generate JVM bytecode from an expression I will build up from the AST that exists after type checking.
+
+\section*{Project Description}
+  I propose to write a compiler for a subset of Haskell in GHC Haskell. I will use Java to implement a number of classes which will be used in the 
+  code generation phase of the compiler.
+
+  \subsection*{Core Project}
+
+  The core part of the project will involve implementing a subset of Haskell which include the following language features:
+  \begin{itemize}
+    \item Type classes
+      
+      Haskell allows \textit{ad hoc} polymorphism, which means we can say that parameters to a function can be of a type class (\texttt{f :: (Num a) => a}).
+      Parameters of this type class have operations that are defined for each instance of the type class, this allows more abstract code to be written.
+      In ML if we have the expression \texttt{1+1} we know this must be of type \texttt{int} since the \texttt{+} operator is defined \texttt{int -> int -> int}.
+      In Haskell we can have \texttt{(+)} defined for all instances of \texttt{Num}, meaning the type checker can infer a more general type.
+
+    \item Algebraic Data Types 
+
+    \item Functions 
+      \begin{verbatim}
+        f a = 1 + a
+      \end{verbatim}
+      and anonymous functions (\texttt{\textbackslash a -> 1 + a})
+
+    \item White-space insensitive
+
+      Haskell98 specifies that the grammar is white-space sensitive, however this requires complicated parsing and is not the focus of the project so instead I will
+      use the tokens \texttt{\{} and \texttt{\}} and \texttt{;} to indicate blocks. This white-space insensitive form is still valid Haskell.
+      For example 
+      \begin{verbatim}
+        f :: (Foldable t, Num b) => t a -> b
+        f = foldr driver 0
+          where
+            driver _ = (1+)
+      \end{verbatim} 
+      would be written as
+      \begin{verbatim}
+       {f :: (Foldable t, Num b) => t a -> b
+       ;f = foldr driver 0
+         where {
+           driver _ = (1+)
+         }
+       }
+      \end{verbatim}
+      therefore not being white-space sensitive.
+
+    \item Modules 
+
+    \item Case expressions 
+      
+      Without the guard syntax.
+
+    \item Int
+
+      The compiler will support 32 bit integers which will map directly to the JVM's primitive type of \texttt{int} \cite{jvm-spec8}.
+
+      The compiler will not implement arbitrary precision integers (the \texttt{Integer} type in Haskell).
+
+    \item Char
+
+      The compiler will support 16-bit unsigned integers, this is similar to the Int support mentioned above. The char construct will be implemented as a 
+      primitive JVM char type \cite{jvm-spec8}.
+
+    \item Prelude
+
+      The compiler will support a subset of the Haskell Prelude (which will be modified removing parts not supported by the researchers compiler 
+      and also applying the white-space insensitive transformation manually).
+
+  \end{itemize}
+  For the purposes of this dissertation neither other primitive data types such as float or double will be supported nor the syntactic sugar for lists or strings.
+
+  \subsection*{Compiler Pipeline}
+  The implementation of the compiler will follow a pipeline structure:
+
+  \begin{itemize}
+    \item Lexing and Parsing.
+
+      This will be implemented using the Alex and Happy lexer and parser generators.
+    \item Variable renaming.
+
+      This will be implemented using the notion of $\alpha$-equivalence to rename variables, such that variables bound in different scopes have different names.
+    \item Syntactic desugaring.
+
+      This stage of the pipeline will apply many rewrite rules to translate from this subset of Haskell to a core language \cite{typedcorelink}, defined in GHC.
+    \item Type checking.
+
+     This stage of the pipeline will type check the core language.
+    \item Code generation.
+
+     The final stage will generate JVM bytecode using codec-jvm \cite{codec-jvm-link}
+  \end{itemize}
+
+  The input to the stage $i$ is the output of the stage $i-1$, the input to the lexer/parser is Haskell source encoded as ASCII text and the 
+  output from code generation is a \texttt{.class} or \texttt{.jar} file.
+
+  \subsection*{Extensions}
+
+  I propose the following extensions:
+
+  \begin{itemize}
+    \item A Java monad, that would allow the compiled Haskell to interact with compiled Java classes in a pure way (without side effects).
+
+    \item Function Inlining
+
+      Function Inlining works by replacing function calls with the body of the function being called \cite{ghc-inliner}.  
+      This requires heuristics to yield a performance increase, and will allow a comparison between execution speed before and after this optimisation.
+  \end{itemize}
+
+  \section*{Success Criteria}
+
+  The following criteria should be achieved:
+
+  \begin{itemize}
+    \item
+      Running units which include valid and invalid Haskell programmes, making sure valid programs compile and produce the correct result and invalid
+      programs will not compile and produce errors.
+
+      I will not test for efficiency in these tests, just correctness. I will have to create my own tests since my subset of Haskell will not support white-space.
+
+    \item
+      [Extension] Support for Haskell calling Java functions via a `Java Monad'.
+      
+      I could implement this with a type class for each class in Java.
+      
+      I could implement it with specific data-like keyword along with functions
+      maybe specific with a keyword which will take Java Monad parametrized by this type and return another Java Monad.
+
+      \texttt{getX :: JavaMonad s SomeClass -> JavaMonad s (Maybe X)}, this will take a JavaMonad, a state s and a Java classes called SomeClass with a
+      getX operation defined on it. Then this will return new monad which contains a (Maybe X) which means we can operate on a JavaClass. Then monad
+      would be passed all the way to the top level at which point the monad would be evaluated and a result can be extracted.
+
+      I have also found this which I can take inspiration from (https://github.com/Frege/frege-native-gen). This is implemented using GADT, which means
+      I would have to implement those first.
+
+    \item [Extension] Support for function inlining. This would be result in a comparison between code compiled with and without inlining enabled.
+      
+
+  \end{itemize}
+
+  \section*{Timetable}
+
+  \subsection{}
+
+  \begin{thebibliography}{}
+    \bibitem{cis194}
+    CIS 194 University of Pennsylvania
+    http://cis.upenn.edu/~cis194/spring15/
+
+    \bibitem{realwordhaskell}
+    Real World Haskell 
+    http://book.realworldhaskell.org/read/
+
+    \bibitem{typedcorelink}
+    https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/CoreSynType
+
+    \bibitem{codec-jvm-link}
+    https://github.com/rahulmutt/codec-jvm
+
+    \bibitem{ghc-inliner}
+    Secrets of the Glasgow Haskell Compiler Inliner
+    https://www.cambridge.org/core/journals/journal-of-functional-programming/article/secrets-of-the-glasgow-haskell-compiler-inliner/8DD9A82FF4189A0093B7672193246E22
+
+    \bibitem{haskell98-spec}
+    Haskell98 Revised Report December (2002) https://www.haskell.org/onlinereport/
+
+    \bibitem{jvm-spec8}
+    Lindholm, Tim et al,
+    The Java Virtual Machine Specification, Java SE 8 Edition (2015-02-13)
+    https://docs.oracle.com/javase/specs/jvms/se8/jvms8.pdf
+
+
+  \end{thebibliography}
+\end{document}

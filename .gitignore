@@ -1,0 +1,7 @@
+.dropbox
+*.pdf
+*.fls
+*.fdb_latexmk
+*.log
+*.aux
+

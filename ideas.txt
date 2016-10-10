@@ -1,0 +1,9 @@
+The language I would like to create would be statically typed. I would like create a functional language multiple threads which can communicate over typed channels using a Communicating sequential processes model. Could be ML/Haskell like. I would like this to run this on a VM. Continuation-passing style to implement the communicating sequential processes.
+
+Maybe define coroutines. This means we can program in a seemingly sequential way, but each blocking operating will yield control to the scheduler where another process can be run. Then scheduler can start this function from the place that the function yielded from.
+
+
+Could use a formally defined operational/denotational semantics  (I have not studied denotational semantics but it looks interesting). I also really enjoyed the semantics of programming languages course and would like to use some of the material in that course. Would also like the use some material from the types course (again I have not studied it yet).
+
+
+The project would involve creating a simple parser, type checker syntactic analyzer and VM. Also maybe an optimizer for certain parts of the computation tree if possible. I would like to feature network sockets (or another blocking operation) in the VM maybe with function in the language or a very simple standard library. I create then create a simple server and the performance could be analysed.

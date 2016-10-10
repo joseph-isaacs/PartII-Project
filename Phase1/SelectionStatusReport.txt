@@ -1,0 +1,54 @@
+Subject: Phase 1 - Isaacs: Haskell to JVM bytecode compiler
+
+Phase 1 Project Selection Status Report
+
+Name: Joe Isaacs
+
+College: Sidney Sussex College (SID)
+
+User Identifier: josi2
+
+Director of Studies: John Fawcett (jkf21)
+
+1. Please write 100 words on your current project ideas.
+In this project I will be implementing a compiler for a subset of Haskell98.
+I will output JVM bytecode (.class files) from Haskell source files.
+I will use a pipeline compiler architecture, the parts of the pipeline will include:
+  - Lexer/Parser.
+  - Variable renamer.
+  - Type checking.
+  - Syntactic desugaring.
+  - Typed core (https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/CoreSynType).
+  - Code generation.
+This is very similar to how GHC compiles Haskell (https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/HscMain).
+
+I will include in my subset of Haskell98:
+   - Type classes.
+   - ADTs.
+   - Type inference.
+   - Integers.
+   - Functions (including lambda).
+   - Case expression.
+   - Modules.
+
+Extensions could include: IO (using monads), a Java monad that would allow Java Haskell interop. A GHCi like REPL using
+the JVM as a backend. Implementation some intermediate optimisations in the typed core language.
+
+
+2. Please list names of potential project supervisors.
+Robert Kovacsics (rmk35)
+
+3. Is there any chance that your project will involve any
+computing resources other than the Computing Service's MCS and
+software that is already installed there, for example: your own
+machine, machines in College, special peripherals, imported
+software packages, special hardware, network access, substantial
+extra disc space on the MCS.
+
+If so indicate below what, and what it is needed for.
+I will use my own personal laptop (late 2013 MacBook Pro).
+I will use Github for source control and backup. I will also backup
+to Dropbox.
+I will use Haskell, which means I will use the GHC and associated libraries.
+I will use the already existing libraries including Alex (lexer generator similar to lex),
+Happy (parser generator similar to yacc), codec-jvm (a JVM bytecode generator).

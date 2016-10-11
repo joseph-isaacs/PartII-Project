@@ -1,6 +1,72 @@
-\documentclass[a4paper,12pt]{article}
- 
+\documentclass[a4paper]{article}
+
+\usepackage{a4wide}
+
+\newcommand{\al}{$<$}
+\newcommand{\ar}{$>$}
+
+
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+
+\parindent 0pt
+\parskip 6pt
+
 \begin{document}
+
+\thispagestyle{empty}
+
+\rightline{\large Joe Isaacs}
+\medskip
+\rightline{\large Sidney Sussex (Sid)}
+\medskip
+\rightline{\large josi2}
+
+\vfil
+
+\centerline{\large Part II Computer Science Project Proposal}
+\vspace{0.4in}
+\centerline{\Large\bf Haskell to JVM bytecode compiler}
+\vspace{0.3in}
+\centerline{\large 12/10/16}
+
+\vfil
+
+{\bf Project Originator:} ??? 
+
+\vspace{0.1in}
+
+{\bf Resources Required:} See attached Project Resource Form
+
+\vspace{0.5in}
+
+{\bf Project Supervisor:} Robert Kovacsics
+
+\vspace{0.2in}
+
+{\bf Signature:}
+
+\vspace{0.5in}
+
+{\bf Director of Studies:}  John Fawcett
+
+\vspace{0.2in}
+
+{\bf Signature:}
+
+\vspace{0.5in}
+
+{\bf Overseers:} Sean Holden and Simone Teufel 
+
+\vspace{0.2in}
+
+{\bf Signatures:} 
+
+\vfil
+\eject
+
+
 
 \section*{Introduction and Description of Work}
 
@@ -12,23 +78,34 @@
   call-by-need evaluation scheme (a function argument is only evaluated if the function uses that expression in its body
   and if the expression is used then it is memoized [cached] and any subsequent uses are looked up in the cache).
   The JVM on the other hand was  written as a platform independent interpreter designed 
-  primarily to support the constructs of Java (object-oriented programming and reflection). 
+  primarily to support the constructs of Java (an object-oriented programming language). 
   Therefore the JVM has a C-like class stack and object as first-class citizens, this means
   the proposed compiler must bridge the gap between the two providing mapping between the functions from Haskell to primitives
   the JVM will be able to work with.
 
-  The subset of Haskell used in the compiler will contain Type Classes, ADTs, Modules, Case expressions, 
-  functions and a small part of the Haskell prelude defined in Haskell \cite{haskell98-spec}. 
+  The subset of Haskell used in the compiler will contain Type Classes, ADTs, Case expressions, 
+  functions and a small part of the Haskell prelude defined in the Haskell98 Report  \cite{haskell98-spec}. 
 
-  The extensions I propose would be a `Java Monad' that would allow Java code to be evaluated from Haskell code in a
-  purely function way very similar to the IO monad in Haskell currently (this is in the spec under basic input/output \cite{haskell98-spec}), using this Java Monad
-  I would them implement IO. Another proposed extension is function inlining discussed below.
+  One of the extensions I propose would be a construct that would allow Haskell function to run a static and pure function defined in JVM bytecode. 
+  The next extension I propose would allow IO in Haskell using the IO monad in the defined in the Haskell spec part 7. I would only implement reading from stdin
+  and writing to stdout. Another proposed extension is function inlining discussed below.
+  The final extension I propose would be a `Java Monad' that would allow Java code to be evaluated from Haskell code in a
+  purely function way very similar to the IO monad in Haskell currently. 
 
+\section*{Resources Required}
+  I will use my own personal laptop (late 2013 MacBook Pro).
+  I will use Github for source control and backup. I will also backup to Dropbox.
+  I will use the Haskell programming language, which means I will use the GHC and associated libraries.
+  I will use the already existing libraries including Alex (lexer generator similar to lex),
+  Happy (parser generator similar to yacc) and codec-jvm (a JVM bytecode generator) this is under the Apache 2.0 licence I would be happy to release my
+  compiler under the same licence.
 
 \section*{Starting Point}
   I have taken the Compiler Construction in Part IB and am currently taking the Part II course Types. I have spent the summer
   learning Haskell from various places including CIS 194 University of Pennsylvania \cite{cis194} and Real World Haskell \cite{realwordhaskell}.
-  I plan to use a library \textit{codec-jvm} to generate JVM bytecode from an expression I will build up from the AST that exists after type checking.
+  I plan to use a library \textit{codec-jvm} to generate JVM bytecode from an expression I will build up from the core language generated after 
+  syntactic desugaring.
+
 
 \section*{Project Description}
   I propose to write a compiler for a subset of Haskell in GHC Haskell. I will use Java to implement a number of classes which will be used in the 
@@ -48,10 +125,12 @@
     \item Algebraic Data Types 
 
     \item Functions 
-      \begin{verbatim}
-        f a = 1 + a
-      \end{verbatim}
-      and anonymous functions (\texttt{\textbackslash a -> 1 + a})
+
+      Named functions
+      \texttt{f a = 1 + a}
+      and anonymous functions 
+      
+      \texttt{\textbackslash a -> 1 + a}
 
     \item White-space insensitive
 
@@ -75,22 +154,20 @@
       \end{verbatim}
       therefore not being white-space sensitive.
 
-    \item Modules 
-
     \item Case expressions 
       
       Without the guard syntax.
 
-    \item Int
+    \item Ints
 
       The compiler will support 32 bit integers which will map directly to the JVM's primitive type of \texttt{int} \cite{jvm-spec8}.
 
       The compiler will not implement arbitrary precision integers (the \texttt{Integer} type in Haskell).
 
-    \item Char
+    \item Chars
 
       The compiler will support 16-bit unsigned integers, this is similar to the Int support mentioned above. The char construct will be implemented as a 
-      primitive JVM char type \cite{jvm-spec8}.
+      primitive JVM \texttt{char} type \cite{jvm-spec8}.
 
     \item Prelude
 
@@ -98,7 +175,8 @@
       and also applying the white-space insensitive transformation manually).
 
   \end{itemize}
-  For the purposes of this dissertation neither other primitive data types such as float or double will be supported nor the syntactic sugar for lists or strings.
+  For the purposes of this dissertation neither other primitive data types such as float or double will be supported nor the syntactic sugar for list comprehensions.
+  Modules will not be implemented, this means when compiling a single file the prelude will be included by the compiler and we cannot have multi-file programs.
 
   \subsection*{Compiler Pipeline}
   The implementation of the compiler will follow a pipeline structure:
@@ -110,9 +188,11 @@
     \item Variable renaming.
 
       This will be implemented using the notion of $\alpha$-equivalence to rename variables, such that variables bound in different scopes have different names.
+      This will make the syntactic desugaring to be done in a more simple.
     \item Syntactic desugaring.
 
       This stage of the pipeline will apply many rewrite rules to translate from this subset of Haskell to a core language \cite{typedcorelink}, defined in GHC.
+      The core language is simple enough that code generation will be made easier.
     \item Type checking.
 
      This stage of the pipeline will type check the core language.
@@ -129,12 +209,20 @@
   I propose the following extensions:
 
   \begin{itemize}
-    \item A Java monad, that would allow the compiled Haskell to interact with compiled Java classes in a pure way (without side effects).
-
     \item Function Inlining
 
       Function Inlining works by replacing function calls with the body of the function being called \cite{ghc-inliner}.  
       This requires heuristics to yield a performance increase, and will allow a comparison between execution speed before and after this optimisation.
+    
+    \item A construction to allow pure and static class functions to be invoked from Haskell code in a type safe manor.
+
+      The purity is a guarantee that the programmer will make about the bytecode function being executed.
+      There will also be no compiler checking that the type in the Haskell source match up with the JVM bytecode since this would require inspecting the bytecode which 
+      would be time consuming and not the purpose of this project. I will also only support input and output of the \texttt{int} and \texttt{char} types since
+      marshalling of types between Haskell and JVM bytecode will not be implemented.
+
+    \item A Java monad, that would allow the compiled Haskell to interact with compiled Java classes in a pure way (without side effects).
+
   \end{itemize}
 
   \section*{Success Criteria}
@@ -142,95 +230,137 @@
   The following criteria should be achieved:
 
   \begin{itemize}
+
     \item
       Running unit tests which include valid and invalid Haskell programmes, making sure valid programs compile and produce the correct result and invalid
-      programs will not compile and produce errors.
+      programs will not compile and produce errors. I will also have unit test for individual stages in the compiler to test the implement of these part in
+      isolation.
 
       I will not test for efficiency in these tests, just correctness. I will have to create my own tests since my subset of Haskell will not support white-space.
 
+    \item 
+      
+      [Extension] Support for function inlining. This would be result in a comparison between code compiled with and without inlining enabled.
+      
+
+    \item 
+
+      [Extension] Support for the IO .
+
+      This would be support for reading from and writing to stdin/stdout in Haskell using an IO monad. This would allow me to use the \texttt{invoke} features
+      of the JVM to invoke part of the Java standard library for IO.
+
+    \item 
+
+      [Extension]
+
+      Support for Haskell calling pure Java functions. 
+
+      I be able to call static functions defined in a separate \texttt{.class} files from Haskell code where the bytecode defined function will
+      only taking the types \texttt{int} and \texttt{char}.
+
     \item
+      
       [Extension] Support for Haskell calling Java functions via a `Java Monad'.
-      
-      I could implement this with a type class for each class in Java.
-      
-      I could implement it with specific data-like keyword along with functions
-      maybe specific with a keyword which will take Java Monad parametrized by this type and return another Java Monad.
-
-      \texttt{getX :: JavaMonad s SomeClass -> JavaMonad s (Maybe X)}, this will take a JavaMonad, a state s and a Java classes called SomeClass with a
-      getX operation defined on it. Then this will return new monad which contains a (Maybe X) which means we can operate on a JavaClass. Then monad
-      would be passed all the way to the top level at which point the monad would be evaluated and a result can be extracted.
-
-      I have also found this which I can take inspiration from (https://github.com/Frege/frege-native-gen). This is implemented using GADT, which means
-      I would have to implement those first.
-
-    \item [Extension] Support for function inlining. This would be result in a comparison between code compiled with and without inlining enabled.
-      
+       
+      This would allow Haskell to interact specific Java classes in a type safe manor with no side effects.
 
   \end{itemize}
 
   \section*{Timetable}
 
-    \subsection*{06/10/16 - 19/10/16  \hfill Michaelmas Term Week 1,2}
-
-      \begin{itemize}
-        \item[] \textbf{Milestone:} Send Phase 1 100-word report to overseers (Monday 10th Oct 3pm) - COMPLETED.
-
-        \item[] \textbf{Milestone:} Send Draft Project Proposal to overseers (Friday 14th Oct Noon).
-
-        \item[] \textbf{Milestone:} Hand in Final Project Proposal to Student Admin, signed by supervisor and DoS (Friday 21st Oct Noon).
-    \end{itemize}
 
     \subsection*{20/10/16 - 02/11/16 \hfill Michaelmas Term Week 3,4}
 
+      Familiarise myself with the Haskell98 report, especially the sections 2,6 inclusive.
+      Then using Alex create a lexer for the subset of the Haskell being considered.
+
+
+      \textbf{Milestone:} Have units test for tokenizing Haskell source into a stream of tokens that run successfully.
+
+
     \subsection*{03/11/16 - 16/11/16 \hfill Michaelmas Term Week 5,6}
+
+      Using Happy create a parser using the output from the lexer to create an AST of the Haskell tokens generated from the lexer.
+
+      \textbf{Milestone:} Have units test for parsing Haskell source into a AST that run successfully.
+
 
 
     \subsection*{17/11/16 - 30/11/16 \hfill Michaelmas Term  Week 7,8}
 
+      Create the variable renaming part of the pipeline. This should be simple to implement, but will allow me some slack from the previous week since 
+      the parser could take longer than expected. If I finish this quickly I will move on to implementing the desugaring stage in the pipeline.
+
 
     \subsection*{01/12/16 - 14/12/16 \hfill Christmas Holiday Week 1,2}
 
+      Create the syntactic desugaring part of the pipeline. This will go from the parsed syntax tree to the typed core language 
 
     \subsection*{15/12/16 - 04/01/17 \hfill Christmas Holiday Week  3,4,5}
 
+      Implement a type inference algorithm.
 
     \subsection*{05/01/16 - 18/01/17 \hfill Christmas Holiday Week 6,7}
 
+      Starting looking at the code generation part of the pipeline.
+
 
     \subsection*{19/01/17 - 01/02/17 \hfill Lent Term Week 1,2}
+
+      Continue with the code generation, finish this time.
 
 
     \subsection*{02/02/17 - 15/02/17 \hfill Lent Term Week 3,4}
 
 
+      Write the progress report.
+
+      Write a subset of the prelude in the language accepted by my compiler
+
+      Start implementing the function inlining. Create a testing frame work that will allow benchmarking the runtime with and without the 
+      inlining of functions.
+
+
+      \textbf{Milestone:} Write and hand in Progress Report (due Friday 3rd Feb at Noon).
+
     \subsection*{16/02/17 - 01/03/17 \hfill Lent Term Week 5,6}
 
-      \begin{itemize}
-        \item[]     \textbf{Milestone:} Write and hand in Progress Report (due Friday 3rd Feb at Noon).
-      \end{itemize}
+      Start writing the introduction part of the dissertation. Implement support for IO using the IO monad.
 
     \subsection*{02/03/17 - 15/03/17 \hfill Lent Term Week 7,8}
+
+      Write the implementation of the dissertation. Implement the simple pure and static Haskell invoking of Java code.
 
 
     \subsection*{16/03/17 - 29/03/17 \hfill Easter Holiday Week 1,2}
 
+      Finish writing the implementation part of the dissertation.
+      Slack to catch up with previous weeks work if not done.
+      Start gathering data from function inlining vs no function inlining.
+
 
     \subsection*{30/03/17 - 12/04/17 \hfill Easter Holiday Week 3,4}
+
+      Write the evaluation of the dissertation.
 
 
     \subsection*{13/04/17 - 26/04/17 \hfill Easter Holiday Week 5,6}
 
+      Get feedback from supervisor and make changes to the dissertation.
+
 
     \subsection*{27/04/17 - 10/05/17 \hfill Easter Term Week 1,2}
 
+      Finish the dissertation. Correct any simple mistakes and incorporate any changes suggested from my supervisor.
+
 
     \subsection*{11/05/17 - 17/05/17 \hfill Easter Term Week 3}
+      Hand in the dissertation.
 
-      \begin{itemize}
-        \item[] \textbf{Milestone:} Hand in dissertation (deadline noon on Friday 19th May at Noon).
+     \textbf{Milestone:} Hand in dissertation (deadline noon on Friday 19th May at 12pm).
 
-        \item[] \textbf{Milestone:} Sort out and get Supervisor’s form in by Wed 24th May (4pm).
-      \end{itemize}
+     \textbf{Milestone:} Hand in supervisor's form in by Wed 24th May (4pm).
 
 
   \begin{thebibliography}{}

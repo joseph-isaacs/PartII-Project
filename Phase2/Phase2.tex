@@ -81,8 +81,8 @@
   and if the expression is used then it is memoized [cached] and any subsequent uses are looked up in the cache.
   The JVM on the other hand was  written as a platform independent interpreter designed
   primarily to support the constructs of Java (an object-oriented programming language).
-  Therefore the JVM has a C-like class stack (in that when a method is called on a called a new stack frame is created, and object are first-class citizens, this means
-  the proposed compiler must bridge the gap between the two providing mapping between the functions from Haskell to primitives
+  Therefore the JVM has a C-like call stack (in that when a method is called a new stack frame is created). In the JVM objects are also first-class citizens, this means
+  the proposed compiler must bridge the gap between the two, providing mapping between the functions from Haskell to primitives
   the JVM will be able to work with.
 
   This compiler would allow Haskell to be compiled for a portable platform, the JVM. This allows the programmer to
@@ -112,7 +112,7 @@
   I have taken the Compiler Construction course in Part IB and am currently taking the Part II course Types. I have spent the summer
   learning Haskell from various places including CIS 194 University of Pennsylvania \cite{cis194} and Real World Haskell \cite{realwordhaskell}.
   I plan to use a library called \textit{codec-jvm} to generate JVM bytecode from an expression I will build up from the core language generated after
-  syntactic desugaring. The \textit{codec-jvm} is a library that allow me to build up a typed expression which will map directly
+  syntactic desugaring. The \textit{codec-jvm} is a library that will allow me to build up a typed expression which will map directly
   to JVM bytecode. This library is just an assembler, I will still need to generate code to implement all of the 
   programming language constructs in JVM bytecode myself.
 
@@ -130,9 +130,9 @@
     \item Named Functions
 
 
-    \item White-space insensitive
+    \item White-space Insensitive
 
-      Haskell98 specifies that the grammar is white-space sensitive, however this requires complicated parsing and is not the focus of the project so instead I will
+      Haskell98 specifies that the grammar is white-space sensitive, however this requires complicated parsing and is not the focus of my project so instead I will
       use the tokens \texttt{\{} and \texttt{\}} and \texttt{;} to indicate blocks. This white-space insensitive form is still valid Haskell.
       For example
       \begin{verbatim}
@@ -150,7 +150,7 @@
       \end{verbatim}
       therefore not being white-space sensitive.
 
-    \item Case expressions
+    \item Case Expressions
 
       Without the guard syntax.
 
@@ -170,7 +170,7 @@
   For the purposes of this dissertation neither of the other primitive data types such as float or double will be supported nor will the syntactic sugar for lists 
   or list comprehensions.
   Haskell modules will not be implemented, this means when compiling a single file the prelude will be included by the compiler as we cannot have multi-file programs.
-  I will not be implementing record types or type classes. I also require all variable and function names to be unique, this means there will be no need to apply 
+  I will not be implementing record types or type classes. I also require all variable and function names to be unique, which means there will be no need to apply 
   variable renaming, this allows me to ignore this simple task and focus on more challenging problems of code generation and type inference.
 
   This is an example program that my compiler will accept:
@@ -201,7 +201,7 @@
       This will be implemented using the Alex and Happy lexer and parser generators.
     \item Syntactic desugaring.
 
-      This stage of the pipeline will apply many rewrite rules to the translation of from this subset of Haskell to a core language inspired by\cite{typedcorelink}.
+      This stage of the pipeline will apply many rewrite rules to translation this subset of Haskell to a core language inspired by Haskell core \cite{typedcorelink}.
       The core language is simple enough that code generation will be made easier.
     \item Type checking.
 
@@ -229,7 +229,7 @@
       The purity is a guarantee that the programmer will make about the bytecode function being executed.
       There will also be no compiler checking that the type in the Haskell source matches up with the JVM bytecode since this would require inspecting the bytecode which
       would be time consuming and not the purpose of this project. I will also only support input and output of the \texttt{int} and \texttt{char} types since
-      marshalling of types between Haskell and JVM bytecode will not be implemented. Will not implement any other type marshalling since it will show no new
+      marshalling of types between Haskell and JVM bytecode will not be implemented. I Will not implement any other type marshalling since it will show no new
       skills, but take time I could spend implementing different concepts.
 
     \item Implement the functions allowing reading from stdin and writing to stdout, this tree of computation would be sequenced by the IO monad.
@@ -246,7 +246,7 @@
 
     \item
       I will run unit tests which include valid and invalid Haskell programs, making sure valid programs compile and produce the correct result and invalid
-      programs will not compile and produce errors. I will also develop unit tests for individual stages in the compiler to test the implementation of these stage
+      programs will not compile and produce errors. I will also develop unit tests for individual stages in the compiler to test the implementation of these stages
       in isolation.
 
       I will create my own tests since my subset of Haskell is not a fixed form language.
@@ -259,7 +259,7 @@
 
     \item
 
-      I will compare the performance (both the speed of compilation and speed of generated code) between both my compiler both GHC.
+      I will compare the performance (the speed of compilation and speed of generated code) between both my compiler and GHC.
 
     \item
 
@@ -274,19 +274,20 @@
 
     \item
 
-      [Extension] Support for IO.
-
-      This would be support for reading from and writing to stdin/stdout in Haskell using an IO monad. This would allow me to use the \texttt{invoke} features
-      of the JVM to invoke part of the Java standard library for IO.
+      [Extension] Support for IO. This would be support for reading from and writing to stdin/stdout in Haskell using an IO monad.
+      This would allow me to use the \texttt{invoke} features of the JVM to invoke part of the Java standard library for IO.
 
     \item
 
-      [Extension]
-
-      Support for Haskell calling pure Java functions.
-
-      I will be able to call static functions defined in a separate \texttt{.class} files from Haskell code where the bytecode defined function will
-      only taking the types \texttt{int} and \texttt{char}.
+      [Extension] Support for Haskell calling pure Java functions.
+      My compiler will allow Haskell programs the ability to call static functions defined in \texttt{.class} files separately. 
+      The functions defined in the bytecode file will only have the type:
+      
+      \begin{verbatim}
+       t ::=  t -> t
+            | char 
+            | int
+      \end{verbatim}
 
     \item
 
@@ -306,10 +307,10 @@
       Then using Alex to create a lexer and parser for the subset of the Haskell being considered.
 
 
-      \textbf{Milestone:} Have unit tests for tokenizing Haskell source into a stream of tokens and create an AST from these tokens that both that run successfully.
+      \textbf{Milestone:} Have unit tests for tokenizing Haskell source into a stream of tokens and create an AST from these tokens. All units tests must pass.
 
       \textbf{Milestone:}
-      Create a document show these mappings from core language to JVM bytecode and discuss this document with my supervisor.
+      Create a document that show mappings from core language to JVM bytecode and discuss this document with my supervisor.
 
 
     \subsection*{03/11/16 - 16/11/16 \hfill Michaelmas Term Week 5,6}
@@ -332,7 +333,7 @@
 
     Finish implementing the type inference algorithm. This will require typing the following constructs: ADT and case.
     
-    \textbf{Milestone:} Have unit tests show the correctness of the typing algorithm. 
+    \textbf{Milestone:} Implement unit tests that show the correctness of the typing algorithm. 
 
     \subsection*{15/12/16 - 04/01/17 \hfill Christmas Holiday Week  3,4,5}
 
@@ -387,7 +388,7 @@
       Finish writing the implementation part of the dissertation.
       Allowing time to catch up with previous weeks work if not done.
 
-      \textbf{Milestone:} Sent implementing part of the dissertation to supervisor for feedback.
+      \textbf{Milestone:} Have sent implementing part of the dissertation to supervisor for feedback.
 
     \subsection*{30/03/17 - 12/04/17 \hfill Easter Holiday Week 3,4}
 
@@ -398,7 +399,7 @@
 
     \subsection*{13/04/17 - 26/04/17 \hfill Easter Holiday Week 5,6}
 
-      Slack to finish any loose end. Get feedback from supervisor and make changes to the dissertation.
+      Slack to finish any loose ends. Get feedback from supervisor and make changes to the dissertation.
 
 
     \subsection*{27/04/17 - 10/05/17 \hfill Easter Term Week 1,2}
@@ -411,41 +412,46 @@
 
      \textbf{Milestone:} Hand in dissertation (deadline noon on Friday 19th May at 12pm).
 
-     \textbf{Milestone:} Hand in supervisor's form in by Wed 24th May (4pm).
+     \textbf{Milestone:} Hand in supervisor's form by Wed 24th May (4pm).
 
 
   \begin{thebibliography}{}
     \bibitem{cis194}
     CIS 194 University of Pennsylvania
-    http://cis.upenn.edu/~cis194/spring15/
+    http://cis.upenn.edu/~cis194/spring15/  
+    \hbox{[Accessed: 16 October 2016]}
 
     \bibitem{realwordhaskell}
     Real World Haskell
-    http://book.realworldhaskell.org/read/
+    http://book.realworldhaskell.org/read/ 
+    \hbox{[Accessed: 16 October 2016]}
 
     \bibitem{typedcorelink}
     GHC Haskell Core
     https://ghc.haskell.org/trac/ghc/wiki/Commentary/Compiler/CoreSynType
+    \hbox{[Accessed: 16 October 2016]}
+
 
     \bibitem{codec-jvm-link}
     Codec JVM Library
-    https://github.com/rahulmutt/codec-jvm
+    https://github.com/rahulmutt/codec-jvm  
+    \hbox{[Accessed: 16 October 2016]}
 
     \bibitem{ghc-inliner}
-    Secrets of the Glasgow Haskell Compiler Inliner
-
-    https://www.cambridge.org/core/journals/journal-of-functional-programming/article/secrets-of-the-glasgow-haskell-compiler-inliner/8DD9A82FF4189A0093B7672193246E22
+    Secrets of the Glasgow Haskell Compiler Inliner,
+    https://www.cambridge.org/core/journals/journal-of-functional-programming/article/secrets-of-the-glasgow-haskell-compiler-inliner/8DD9A82FF4189A0093B7672193246E22   
+    \hbox{[Accessed: 16 October 2016]}
 
     \bibitem{haskell98-spec}
     Haskell98 Revised Report December (2002)
     https://www.haskell.org/onlinereport/
+    \hbox{[Accessed: 16 October 2016]}
 
     \bibitem{jvm-spec8}
-    \begin{flushleft}
-      Lindholm, Tim et al,
-      The Java Virtual Machine Specification, Java SE 8 Edition (2015-02-13)
-      https://docs.oracle.com/javase/specs/jvms/se8/jvms8.pdf
-    \end{flushleft}
+    Lindholm, Tim et al.
+    The Java Virtual Machine Specification, Java SE 8 Edition (2015-02-13)
+    https://docs.oracle.com/javase/specs/jvms/se8/jvms8.pdf 
+    \hbox{[Accessed: 16 October 2016]}
 
 
   \end{thebibliography}

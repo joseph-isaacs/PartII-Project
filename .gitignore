@@ -1,7 +1,15 @@
 .dropbox
+
+
+
+# Latex files
 *.pdf
 *.fls
 *.fdb_latexmk
 *.log
 *.aux
-
+*.bbl
+*.bcf
+*.blg
+*.out
+*.run.xml

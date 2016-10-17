@@ -7,8 +7,8 @@
 \usepackage[T1]{fontenc}
 \usepackage{parskip}
 \usepackage{verbatim}
-
-\usepackage[backend=biber]{biblatex}
+\usepackage{amsfonts}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
 
 \bibliography{refs.bib}
 
@@ -35,7 +35,7 @@
 
 \textbf{Director of Studies:} Dr J.~Fawcett 
 
-\textbf{Project Overseers:} Sean Holden and Simone Teufel
+\textbf{Project Overseers:} S.~Holden and S.~Teufel
 
 
 
@@ -50,7 +50,7 @@
   if a function is given the same input twice then the output will always be the same. Lazy meaning that Haskell has a
   call-by-need evaluation scheme, a function argument is only evaluated if the function uses that expression in its body
   and if the expression is used then it is memoized [cached] and any subsequent uses are looked up in the cache.
-  The JVM on the other hand was  written as a platform independent interpreter designed
+  The JVM, on the other hand, was written as a platform independent interpreter designed
   primarily to support the constructs of Java (an object-oriented programming language).
   Therefore the JVM has a C-like call stack (in that when a method is called a new stack frame is created). In the JVM objects are also first-class citizens, this means
   the proposed compiler must bridge the gap between the two, providing mapping between the functions from Haskell to primitives
@@ -81,7 +81,7 @@
 
 \section*{Starting Point}
   I have taken the Compiler Construction course in Part IB and am currently taking the Part II course Types. I have spent the summer
-  learning Haskell from various places including CIS 194 University of Pennsylvania \cite{cis194} and Real World Haskell \cite{realwordhaskell}.
+  learning Haskell from various places including CIS 194 University of Pennsylvania \cite{cis194} and Real World Haskell \cite{realworldhaskell}.
   I plan to use a library called \textit{codec-jvm} to generate JVM bytecode from an expression I will build up from the core language generated after
   syntactic desugaring. The \textit{codec-jvm} is a library that will allow me to build up a typed expression which will map directly
   to JVM bytecode. However, this library is just an assembler, I will still need to generate code to implement all of the
@@ -236,7 +236,7 @@
 
       [Extension] Support for function inlining. This would result in a comparison between code compiled with and without inlining enabled. I can also
       compare the size of the outputted code with and without this optimisation. I will generate graphs looking at number of passes of the inlining
-      optimization against speed of outputted code and size of outputted code.
+      optimisation against speed of outputted code and size of outputted code.
 
     \item
 
@@ -333,7 +333,7 @@
 
       Evaluate the asymptotic performance of my compiler against GHC.
 
-      Start implementing the function inlining. Create a testing frame work that will allow benchmarking the runtime with and without the
+      Start implementing the function inlining. Create a testing framework that will allow benchmarking the runtime with and without the
       inlining of functions.
 
 

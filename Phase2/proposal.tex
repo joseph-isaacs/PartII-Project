@@ -10,6 +10,13 @@
 \usepackage{amsfonts}
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
 
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\def\comment#1\done{{\color{blue}#1}}
+\def\add#1\done{{\color{red}#1}}
+\def\remove#1\done{{\sout{#1}}}
+\def\change#1\to#2\done{{\sout{#1}\color{red}#2}}
+
 \bibliography{refs.bib}
 
 \begin{document}
@@ -24,9 +31,9 @@
   \large
   J.~Isaacs, Sidney Sussex
 
-  Originator: Joe Isaacs 
+  Originator: J.~Isaacs 
 
-  18 October 2016
+  \today
 \end{center}
 
 \vspace{5mm}
@@ -50,9 +57,9 @@
   if a function is given the same input twice then the output will always be the same. Lazy meaning that Haskell has a
   call-by-need evaluation scheme, a function argument is only evaluated if the function uses that expression in its body
   and if the expression is used then it is memoized [cached] and any subsequent uses are looked up in the cache.
-  The JVM, on the other hand, was written as a platform independent interpreter designed
+  Whereas the JVM was written as a platform independent interpreter designed
   primarily to support the constructs of Java (an object-oriented programming language).
-  Therefore the JVM has a C-like call stack (in that when a method is called a new stack frame is created). In the JVM objects are also first-class citizens, this means
+  Therefore the JVM has a C-like call stack, in that when a method is called a new stack frame is created. In the JVM objects are also first-class citizens, this means
   the proposed compiler must bridge the gap between the two, providing mapping between the functions from Haskell to primitives
   the JVM will be able to work with.
 
@@ -68,7 +75,7 @@
   The next extension I propose would allow IO in Haskell; using the IO monad as defined in the Haskell spec (part 7) \cite{haskell98-spec}.
   I would only implement reading from stdin and writing to stdout. Another proposed extension is function inlining discussed below.
   The final extension I propose would be to extend the IO monad such that it would allow Java code to be evaluated from Haskell. The side effect of the codes
-  will be packaged  up such that the computation is ordered even with call-by-need (defined below) evaluation semantics.
+  will be packaged up such that the computation is ordered, even with call-by-need (defined below) evaluation semantics.
   This will then be compatible with the Haskell type system.
 
 \section*{Resources Required}
@@ -345,6 +352,8 @@
 
       \textbf{Milestone:} Have generated graphs of asymptotic performance of my compiler against GHC.
 
+      \textbf{Milestone:} Have sent a first draft of the introduction chapter to my supervisor.
+
     \subsection*{02/03/17 - 15/03/17 \hfill Lent Term Week 7,8}
 
       Write the implementation chapter of the dissertation.
@@ -352,17 +361,18 @@
       Gather data comparing function inlining vs no function inlining.
 
      \textbf{Milestone:} Have generated graphs comparing function inlining vs no function inlining.
+      
 
     \subsection*{16/03/17 - 29/03/17 \hfill Easter Holiday Week 1,2}
 
-      Finish writing the implementation part of the dissertation.
+      Finish writing the implementation chapter of the dissertation.
       Allow time to catch up with previous weeks work if not done.
 
-      \textbf{Milestone:} Have sent implementing part of the dissertation to supervisor for feedback.
+     \textbf{Milestone:} Have sent a first draft of the implementation chapter to my supervisor.
 
     \subsection*{30/03/17 - 12/04/17 \hfill Easter Holiday Week 3,4}
 
-      Write the evaluation of the dissertation.
+      Write the evaluation and conclusion chapters of the dissertation.
 
       \textbf{Milestone:} Have finished writing dissertation and sent to supervisor for review.
 

@@ -1,0 +1,15 @@
+{data Unit = Unit;
+        f :: Int -> Int -> Int
+        f = let driver a = plus1 in {
+           foldr driver 0
+           }
+       }
+
+    {data Unit = Unit
+    ;e c = let { a = \b -> b } in a c
+    ;f x y = Tuple (plus y 1) (Cons x "Hello")
+    ;g z = case z of {
+      Just f -> 'y';
+      Nothing -> 'n'
+      }
+    }

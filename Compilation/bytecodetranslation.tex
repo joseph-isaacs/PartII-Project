@@ -1,0 +1,138 @@
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{parskip}
+\usepackage{verbatim}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\def\comment#1\done{{\color{blue}#1}}
+\def\add#1\done{{\color{red}#1}}
+\def\remove#1\done{{\sout{#1}}}
+\def\change#1\to#2\done{{\sout{#1}\color{red}#2}}
+
+
+\begin{document}
+
+
+\begin{center}
+  \Large
+  Core to JVM bytecode translation\\[4mm]
+
+  J.~Isaacs
+
+  Originator: J.~Isaacs 
+
+  \today
+\end{center}
+
+\section{Expressions}
+
+An expression $E$ in this compiler can be:
+
+\begin{align*}
+E ::&= \lambda\ \texttt{id}\ E . E' \\
+   &|\ \texttt{let } E_1 \ E_2\\ 
+   &| \texttt{ case}\ E \ \texttt{of} \ (A_1 \rightarrow E_1, A_2 \rightarrow E_2, \mathellipsis, A_n \rightarrow E_n)\\
+   &|\ E\ E'\\
+   &|\ x &&\text{variable}\\
+   &|\ (\textit{Constructor}\ E_1, \mathellipsis, E_n )\\
+   &|\ \textit{literal}
+\end{align*}
+
+where $A_i$ is the alternative type constructors for the of the expression $E$ with a type $\tau$
+(e.g. if $\Gamma \vdash E : \texttt{bool}$, then $A \in \{ \texttt{True},  \texttt{False} \}$).
+
+
+An expression will be contained inside a thunk, such that the expression is only reduce when needed.
+
+\subsection{Thunk}
+
+A thunk can be though of semantically as a nullary function (one which takes no arguments) and when required will 
+perform a computation. If we have an expression $E$ we can wrap it inside a thunk \[ \lambda (). E \] then 
+only when we apply $()$ to this thunk does the computation take place, this allow simulation of call-by-name semantics
+when the program is being run with call-by-value operation semantics. 
+
+Haskell and my compiler will use an optimization of this, call-by-need (CBNe), where the value in the thunk is only evaluated once and the 
+result cached so if the thunk is evaluated a second time the result of the computation is return without need to compute the value again.
+
+
+\subsection{JVM Bytecode}
+
+Thunks will be implemented as object, one object for each thunk needed (that is for each expression there will be a thunk for that expression).
+I will have a interface for a thunk before as:
+
+\begin{verbatim}
+public interface Thunk {
+  Object unwrap();
+}
+\end{verbatim}
+(Should this instead be a abstract class since then I can store the code for memorization in this superclass, also should I have different thunks for different types,
+e.g. specialise have a thunk for \texttt{int} (\texttt{int unwrap()}) and for \texttt{char}). Should I use \texttt{instanceof} instead of a table lookup
+Should functions be inside thunks (I don't think they should since the $\lambda$ will stop the body being evaluated)?
+
+\subsubsection{Constructor}
+
+There will be an interface created for each user defined type. 
+For each defined type there will be a class for each type constructor. The class will contain a tag which will be unique for each type constructor of this type,
+then the class will contain any parameters (wrapped in a thunk) that exists in there definition.
+
+For example \texttt{data T = A a | B | C int} will generate one interface and three classes:
+
+\begin{verbatim}
+interface T {
+  int getTag();
+}
+class A {
+  private Thunk a;
+  int getTag() {
+    return 0;
+  }
+  Thunk getA() {
+    a;
+  }
+}
+...
+class C {
+  private int a;
+  int getTag() {
+    return 2;
+  }
+  Thunk getInt() {
+    return new Thunk(a);
+  }
+\end{verbatim}
+
+\subsubsection{literal}
+Should C return a thunk or an int? 
+
+\subsubsection{case}
+
+Case will be compiled using a \texttt{tableswitch} statement where the indices will be the tag of type being switched on. For \texttt{int} and \texttt{char} at lookup 
+switch will need to be used since the patterns matched on in the case statement could be sparse, consider
+
+\begin{verbatim}
+case 42 of
+  2  -> 0
+  45 -> 1
+  x  -> 2
+\end{verbatim}
+
+\subsubsection{let} 
+
+I will translate the expression (\texttt{let x = E1 in E2}) to (\texttt{E2' E1}) where all free occurrences of \texttt{x} in \texttt{E2} will be replaced 
+by the first argument of \texttt{E2'}, which will necessarily be \texttt{E1}
+
+\subsubsection{application}
+
+I will create a thunk for an application where the result of calling unwrap will be 
+
+
+
+
+\end{document}

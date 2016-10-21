@@ -52,7 +52,6 @@
   in GHC Haskell. I will target JVM bytecode as the output from the compiler.
 
 
-
   Haskell is a pure and lazy functional programming language with strong static typing. Pure meaning that
   if a function is given the same input twice then the output will always be the same. Lazy meaning that Haskell has a
   call-by-need evaluation scheme, a function argument is only evaluated if the function uses that expression in its body
@@ -76,7 +75,6 @@
   I would only implement reading from stdin and writing to stdout. Another proposed extension is function inlining discussed below.
   The final extension I propose would be to extend the IO monad such that it would allow Java code to be evaluated from Haskell. The side effect of the codes
   will be packaged up such that the computation is ordered, even with call-by-need (defined below) evaluation semantics.
-  This will then be compatible with the Haskell type system.
 
 \section*{Resources Required}
   I will use my own personal laptop (late 2013 MacBook Pro).
@@ -84,7 +82,7 @@
   I will use Github for source control and a second backup.
   I will use the Haskell programming language, which means I will use the GHC and associated libraries.
   I will use the already existing libraries including Alex (lexer generator similar to lex),
-  Happy (parser generator similar to yacc) and codec-jvm (a JVM bytecode generator),which is under the Apache 2.0. I am also considering using the same licence.
+  Happy (parser generator similar to yacc) and codec-jvm (a JVM bytecode generator), which is under the Apache 2.0. I am also considering using the same licence.
 
 \section*{Starting Point}
   I have taken the Compiler Construction course in Part IB and am currently taking the Part II course Types. I have spent the summer
@@ -96,12 +94,12 @@
 
 
 \section*{Project Description}
-  I propose to write a compiler for a subset of Haskell in GHC Haskell. I will use Java to implement a number of classes which will be used in the
+  I propose to write a compiler for a subset of Haskell in GHC Haskell. I will use Java to implement classes which will be used in the
   code generation phase of the compiler.
 
   \subsection*{Core}
 
-  The core part of the project will involve implementing a subset of Haskell which includes the following language features:
+  The core part of the project will involve implementing a compiler for a subset of Haskell which has the following language features:
   \begin{itemize}
     \item Algebraic Data Types
 
@@ -149,7 +147,18 @@
   or list comprehensions.
   Haskell modules will not be implemented, this means when compiling a single file the prelude will be included by the compiler as we cannot have multi-file programs.
   I will not be implementing record types or type classes. I also require all variable and function names to be unique, which means there will be no need to apply
-  variable renaming, this allows me to ignore this simple task and focus on more challenging problems of code generation and type inference.
+  variable renaming, this allows me to ignore this simple task and focus on more challenging problems of code generation and type inference. I will also not be including type classes in my compiler.
+
+  The main area of interest in this project will be type inference and code generation. The type inference will result in 
+  a type being assigned 
+  every expression in the language. This can be achieved by walking the AST and using typing rules at each stage to derive 
+  a set of constraints between types, then finding the most general type that satisfies all the constraints. 
+  The task of type inference will be completed once every construct in the language can have its type inferred 
+  and fail only when the program cannot be given a correct type.
+  The code generation phase of the compiler will involve mapping expression to sequences of JVM bytecode instructions.
+  Of most interest in this process will be implementing the call-by-need semantics of Haskell on the JVM and also allowing Haskell 
+  and Java code to interact correctly. I will have achieved the process of code generation when every construct in the language
+  can be mapped to a semantically equivalent list of JVM bytecodes.
 
   This is an example program that my compiler will accept:
 
@@ -183,7 +192,7 @@
       The core language is simple enough that code generation will be made easier.
     \item Type checking.
 
-     This stage of the pipeline will type check the core language.
+     This stage of the pipeline will type check the core language. I will not be type checking type classes.
     \item Code generation.
 
      The final stage will generate JVM bytecode using codec-jvm \cite{codec-jvm-link}
@@ -282,7 +291,7 @@
 
       Consider the core language which will be generated part way through the pipeline and come up with
       a translation from this core language to JVM bytecode.
-      I will then use Alex to create a lexer and parser for the subset of the Haskell being considered.
+      I will then use Alex to create a lexer and Happy to create a parser for the subset of the Haskell being considered.
 
 
       \textbf{Milestone:} Have unit tests for tokenizing Haskell source into a stream of tokens and create an AST from these tokens. All unit tests must pass.
@@ -310,7 +319,7 @@
 
     Finish implementing the type inference algorithm. This will require typing the following constructs: ADT and case.
 
-    \textbf{Milestone:} Implement unit tests that show the correctness of the typing algorithm.
+    \textbf{Milestone:} Implement unit tests to check for corner cases of the typing algorithm.
 
     \subsection*{15/12/16 - 04/01/17 \hfill Christmas Holiday Week  3,4,5}
 
@@ -332,7 +341,7 @@
 
     \textbf{Milestone:} Can generate bytecode for ADTs and case expressions.
 
-    \textbf{Milestone:} Be able to compile more complex programs to JVM bytecode.
+    \textbf{Milestone:} Be able to compile all programs to JVM bytecode, that should be accepted by my compiler.
 
     \textbf{Milestone:} Have finished progress report.
 
@@ -352,6 +361,8 @@
 
       \textbf{Milestone:} Have generated graphs of asymptotic performance of my compiler against GHC.
 
+      \textbf{Milestone:} [Extension] Can invoke pure and statuc JVM bytecode functions from Haskell.
+
       \textbf{Milestone:} Have sent a first draft of the introduction chapter to my supervisor.
 
     \subsection*{02/03/17 - 15/03/17 \hfill Lent Term Week 7,8}
@@ -360,7 +371,7 @@
 
       Gather data comparing function inlining vs no function inlining.
 
-     \textbf{Milestone:} Have generated graphs comparing function inlining vs no function inlining.
+     \textbf{Milestone:} [Extension] Have generated graphs comparing function inlining vs no function inlining.
       
 
     \subsection*{16/03/17 - 29/03/17 \hfill Easter Holiday Week 1,2}
@@ -376,11 +387,9 @@
 
       \textbf{Milestone:} Have finished writing dissertation and sent to supervisor for review.
 
-
     \subsection*{13/04/17 - 26/04/17 \hfill Easter Holiday Week 5,6}
 
       Slack to finish any loose ends. Get feedback from supervisor and make changes to the dissertation.
-
 
     \subsection*{27/04/17 - 10/05/17 \hfill Easter Term Week 1,2}
 

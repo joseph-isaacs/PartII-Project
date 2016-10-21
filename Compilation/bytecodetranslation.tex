@@ -169,24 +169,29 @@ by the first argument of \texttt{E2'}, which will necessarily be \texttt{E1}
 If we have a function then this will take a single argument and return a single expression. This would be implemented as follows:
 
 \begin{verbatim}
-x a = y b = plus a b
+x a = \b -> plus a b
 
 class Function_x implements Function {
-  Function_y apply(A a) {
-    return new Function_y(a);
+  Function_y apply(ThunkA a) {
+    return new Lambda_001(a);
   }
 }
 
-class Function_y implements Function {
-  private A a = null;
-  Function_y (A a) {
+class Lambda_001 implements Function {
+  private ThunkA a = null;
+  Lambda_001 (ThunkA a) {
     this.a = a;
   }
-  Function_plus apply(B a) {
-    return new Function_plus (a,b);
+  Function_plus2 apply(ThunkB a) {
+    return new Function_plus2(new Function_plus1(a), b);
   }
 }
 \end{verbatim}
+
+\textcolor{red}{I would like to only implement function with a single argument, this means I will have two functions for plus above. Is this OK?,
+I also implement free variables using arguments to the constructor of the thunk or function which capture the free variable, do you think it would
+be worth wrapping in the environment (another class) I am allowed 255 arguments to a function \\(https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html\#jvms-4.3.3)
+I could pass an array of object instead? Would there be a better way to implement currying apart from the way implemented in Function\_plus2::apply}
 
 Another example which will return a case expression
 

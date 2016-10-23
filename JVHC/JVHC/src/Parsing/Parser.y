@@ -22,14 +22,14 @@ import AST
   '::'   { L.ReservedOP L.DColon }
   '\\'   { L.ReservedOP L.BSlash }
   ';'    { L.Special L.SemiColon } 
-  data   { L.ReserveID  L.Data   }
+  data   { L.ReservedID  L.Data   }
   tycon  { L.Conid      $$       }
   tyvar  { L.Varid      $$       }
   qtycon { L.Conid      $$       }
-  let    { L.ReserveID  L.Let    }
-  in     { L.ReserveID  L.In    }
-  case   { L.ReserveID  L.Case    }
-  of     { L.ReserveID  L.Of    }
+  let    { L.ReservedID  L.Let    }
+  in     { L.ReservedID  L.In    }
+  case   { L.ReservedID  L.Case    }
+  of     { L.ReservedID  L.Of    }
   lit    { L.Literal    $$     }
 
 %left '::'

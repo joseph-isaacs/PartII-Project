@@ -105,7 +105,7 @@ tokens :-
   @integer      { mkInteger }
   $special      { mkSpecial }
 
-  $small @sldq* { createVaridOrReserveID  }
+  $small @sldq* { createVaridOrReservedID  }
 
   $large @sldq* { Conid }
 
@@ -120,7 +120,7 @@ data LToken = Comment String
             | Literal Literal
             | Varid   String
             | Conid   String
-            | ReserveID RID
+            | ReservedID RID
             | Varsym String
             | Consym String
             | ReservedOP ROP
@@ -178,30 +178,30 @@ data RID = Case
          | Underscore
          deriving (Eq,Show)
 
-createVaridOrReserveID :: String -> LToken
-createVaridOrReserveID s = case s of
-            "case" -> ReserveID Case
-            "class" -> ReserveID Class
-            "data" -> ReserveID Data
-            "default" -> ReserveID Default
-            "deriving" -> ReserveID Deriving
-            "do" -> ReserveID Do
-            "else" -> ReserveID Else
-            "if" -> ReserveID If
-            "import" -> ReserveID Import
-            "in" -> ReserveID In
-            "infix" -> ReserveID Infix
-            "infixl" -> ReserveID Infixl
-            "infixr" -> ReserveID Infixr
-            "instance" -> ReserveID Instance
-            "let" -> ReserveID Let
-            "module" -> ReserveID Module
-            "newtype" -> ReserveID Newtype
-            "of" -> ReserveID Of
-            "then" -> ReserveID  Then
-            "type" -> ReserveID Type
-            "where" -> ReserveID Where
-            "_" -> ReserveID Underscore
+createVaridOrReservedID :: String -> LToken
+createVaridOrReservedID s = case s of
+            "case" -> ReservedID Case
+            "class" -> ReservedID Class
+            "data" -> ReservedID Data
+            "default" -> ReservedID Default
+            "deriving" -> ReservedID Deriving
+            "do" -> ReservedID Do
+            "else" -> ReservedID Else
+            "if" -> ReservedID If
+            "import" -> ReservedID Import
+            "in" -> ReservedID In
+            "infix" -> ReservedID Infix
+            "infixl" -> ReservedID Infixl
+            "infixr" -> ReservedID Infixr
+            "instance" -> ReservedID Instance
+            "let" -> ReservedID Let
+            "module" -> ReservedID Module
+            "newtype" -> ReservedID Newtype
+            "of" -> ReservedID Of
+            "then" -> ReservedID  Then
+            "type" -> ReservedID Type
+            "where" -> ReservedID Where
+            "_" -> ReservedID Underscore
             _      -> Varid     s
 
 

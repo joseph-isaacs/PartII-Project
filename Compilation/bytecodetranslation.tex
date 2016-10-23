@@ -36,45 +36,64 @@
 An expression $E$ in this compiler can be:
 
 \begin{align*}
-E ::&= \lambda\ \texttt{id}\ E . E' \\
-   &|\ \texttt{let } E_1 \ E_2\\ 
-   &| \texttt{ case}\ E \ \texttt{of} \ (A_1 \rightarrow E_1, A_2 \rightarrow E_2, \mathellipsis, A_n \rightarrow E_n)\\
+E ::&= \lambda\ V . E' \\
+   &|\ \texttt{let } x = E_1 \texttt{ in} \ E_2\\ 
+   &|\ \texttt{case}\ E \ \texttt{of} \ (A_1 \rightarrow E_1, A_2 \rightarrow E_2, \mathellipsis, A_n \rightarrow E_n)\\
    &|\ E\ E'\\
-   &|\ x &&\text{variable}\\
+   &|\ V\\\\
+V ::&=\ x &&\text{(variable)}\\
    &|\ (\textit{Constructor}\ E_1, \mathellipsis, E_n )\\
    &|\ \textit{literal}
 \end{align*}
 
 where $A_i$ is the alternative type constructors for the of the expression $E$ with a type $\tau$
-(e.g. if $\Gamma \vdash E : \texttt{bool}$, then $A \in \{ \texttt{True},  \texttt{False} \}$).
+(e.g. if $\Gamma \vdash E : \texttt{bool}$, then $A_i \in \{ \texttt{True},  \texttt{False} \}$).
 
 
-An expression will be contained inside a thunk, such that the expression is only reduce when needed.
+Variables will be contained inside thunks, such that the expression the variable points to is only reduced 
+when needed.
 
 \subsection{Thunk}
 
-A thunk can be though of semantically as a nullary function (one which takes no arguments) and when required will 
+A thunk can be thought of as a nullary function (one which takes no arguments) and when required will 
 perform a computation. If we have an expression $E$ we can wrap it inside a thunk \[ \lambda (). E \] then 
-only when we apply $()$ to this thunk does the computation take place, this allow simulation of call-by-name semantics
+only when we apply $()$ to this thunk does the computation take place, this allows the
+simulation of call-by-name semantics
 when the program is being run with call-by-value operation semantics. 
 
 Haskell and my compiler will use an optimization of this, call-by-need (CBNe), where the value in the thunk is only evaluated once and the 
-result cached so if the thunk is evaluated a second time the result of the computation is return without need to compute the value again.
+result is cached. When the thunk is evaluated a second time the result of the computation is return without need to compute the value again.
 
 
 \subsection{JVM Bytecode}
 
-Thunks will be implemented as object, one object for each thunk needed (that is for each expression there will be a thunk for that expression).
-I will have a interface for a thunk before as:
+Thunks will be implemented as objects, one object for each thunk needed 
+(that is for each variable there will be a thunk that will wrap each variable).
+I will use the Java 8 supplier interface have a interface for a thunk before as:
+
+\textcolor{red}{Should I insist on functions only taking thunks (e.g. if we have \texttt{plus x 1} should I 
+create a thunk for \texttt{1} or pass the value 1 to plus, creating a thunk is more uniform. I think creating 
+a thunk would be better. That is to say treat function argument as variables.}
 
 \begin{verbatim}
-public interface Thunk {
-  Object unwrap();
+public interface Supplier<T> {
+  T get();
+}
+
+public abstract class Thunk<T> implements Supplier<T> {
+    private T cache;
+    public abstract T eval();
+    public T get() {
+        if( value == null ) {
+            return cache = force();
+        }
+        return cache;
+    }
 }
 \end{verbatim}
-\textcolor{red}{(Should this instead be a abstract class since then I can store the code for memorization in this superclass, also should I have different thunks for different types,
-e.g. specialise have a thunk for \texttt{int} (\texttt{int unwrap()}) and for \texttt{char}).
-Should functions be inside thunks (I don't think they should since the $\lambda$ will stop the body being evaluated)?}
+
+Variable is created using the \texttt{let} construct and in the example \texttt{x a = plus a 1} we have
+the lambda \texttt{\textbackslash a -> plus a 1} is bound to the variable \texttt{x}.
 
 \subsubsection{Constructor}
 
@@ -82,7 +101,8 @@ There will be an interface created for each user defined type.
 For each defined type there will be a class for each type constructor. The class will contain a tag which will be unique for each type constructor of this type,
 then the class will contain any parameters (wrapped in a thunk) that exists in there definition.
 
-\textcolor{red}{Should I use \texttt{instanceof} instead of a table lookup}
+\textcolor{red}{I will leave the stuff about tags until I have researched the JVM more (likely I will go with 
+instanceof instead of a table lookup)}
 
 For example \texttt{data T = A a | B | C int} will generate one interface and three classes:
 
@@ -111,11 +131,12 @@ class C {
 \end{verbatim}
 
 \subsubsection{literal}
-Should return a thunk or an int? A thunk would be uniform in that every expression is a function or thunk, but the thunk is not stopping a computation since
-a literal cannot be reduced.
+
+Literal will be represented as primitive type (int and char).
 
 \subsubsection{case}
 
+\textcolor{red}{same as for constructor will decide between instanceof and tag later}
 Case will be compiled using a \texttt{tableswitch} statement where the indices will be the tag of type being switched on. For \texttt{int} and \texttt{char} at lookup 
 switch will need to be used since the patterns matched on in the case statement could be sparse, consider
 
@@ -161,8 +182,13 @@ The unwrap function contains both JVM bytecode ish instructions and pesudo-code 
 
 \subsubsection{let} 
 
-I will translate the expression (\texttt{let x = E1 in E2}) to (\texttt{E2' E1}) where all free occurrences of \texttt{x} in \texttt{E2} will be replaced 
-by the first argument of \texttt{E2'}, which will necessarily be \texttt{E1}
+I will translate the expression (\texttt{let x = E1 in E2}) to (\texttt{E2' E1}) where all 
+free occurrences of \texttt{x} in \texttt{E2} will be replaced by the first argument of 
+\texttt{E2'}, which will necessarily be \texttt{E1}.
+
+\comment What about (mutually) recursive functions? \done 
+\comment I don't understand the let construct (\texttt{let A in B}) can only have a single function defined in the 
+ \texttt{A} part and \texttt{A} cannot reference \texttt{B}, so where is the problem? \done
 
 \subsection{function}
 
@@ -171,65 +197,75 @@ If we have a function then this will take a single argument and return a single 
 \begin{verbatim}
 x a = \b -> plus a b
 
-class Function_x implements Function {
-  Function_y apply(ThunkA a) {
-    return new Lambda_001(a);
+class Thunk_x implements Thunk<Function<A,Function_b>{
+  private Function<Thunk<A>,Function_b> eval() {
+    return new Function_a();
   }
 }
 
-class Lambda_001 implements Function {
-  private ThunkA a = null;
-  Lambda_001 (ThunkA a) {
+class Function_a implements Function<Thunk<A>, Function_b> {
+  public Function_a apply(Thunk<A> a) {
+    return new Function_b(a);
+  }
+}
+
+class Function_b implements Function<Thunk<B>,Integer> {
+  Thunk<A> a;
+  public Function_b(Thunk<A> a) {
     this.a = a;
   }
-  Function_plus2 apply(ThunkB a) {
-    return new Function_plus2(new Function_plus1(a), b);
+  public Function_y apply(Thunk<B> b) {
+    return plus_1.apply(a.get()).apply(b.get());
   }
 }
 \end{verbatim}
-
-\textcolor{red}{I would like to only implement function with a single argument, this means I will have two functions for plus above. Is this OK?,
-I also implement free variables using arguments to the constructor of the thunk or function which capture the free variable, do you think it would
-be worth wrapping in the environment (another class) I am allowed 255 arguments to a function \\(https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html\#jvms-4.3.3)
-I could pass an array of object instead? Would there be a better way to implement currying apart from the way implemented in Function\_plus2::apply}
-
-Another example which will return a case expression
-
+Above it passing free variables into each successive function call. Below I pass an environment which 
+know how to find each of the free variables.
 \begin{verbatim}
-x a = case 12 of
-  0 -> a
-  1 -> 2
-  x -> 0
-
-class Function_x implements Function {
-  Thunk_case_xyz (A a) {
-    return new Thunk_case_xyz (a); 
+class Function_b implements Function<B,Integer> {
+  EnvFunction_b env;
+  public Function_b(EnvFunction_b env) {
+    this.env = env;
   }
+  public Function_y apply(Thunk<B> b) {
+    return plus_1.apply(env.getA().get()).apply(b.get());
+  }
+}
+
+EnvFunction_b {
+  Function_a funa;
+  EnvFunction_a parent;
+// parent is the environment for any thing outside the scope of x 
+  EnvFunction_b (EnvFunction_a parent, Function_a funa) { ... }
+  Thunk<A> getA() { return funa.getA() } 
+// I assume that Function_a will have a variable A stored.
 }
 \end{verbatim}
 
-I assume that the class for the case expression already exists.
+Here we have two options (show in the two definition of Function\_b) I can either have references passed down
+or a environment pass down (this would be how I would order the chaining).
 
-\textcolor{red}{This means I don't treat function in the same way as all other expression since they are thunks, and this is a thunk with arguments.
- What do you think?}
+\comment You could also do chaining, instead of passing in the closure variables. That is, you pass in parents, then when you have a reference, you just call the correct number of parents. I have ended up using this in my compiler, but forgot why.
+\done
 
-I would like to use the Java 8 functional interface 
+\comment I think I will stick the passing variables into each closure since if I pass parents into a
+function then each function must know the layout of the parent. I could have an environment class which 
+will be passed into each function and will abstract away the about the closure variables are stored. That 
+means this call will be responsible for returning variables in outer scopes and then this variable could 
+know about the parent not the function its self (shown above). \done
+
+
+
+
+
+I will use the Java 8 functional interface 
 
 (https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html)
 
 
-
-\begin{verbatim}
-
-\end{verbatim}
-
 \subsubsection{application}
 
-\textcolor{red}{I have implemented this via function what take in there constructor all the free variables in the expression, this means application is eager. Does this
-violate lazyness properties}
-Otherwise I could create a thunk which when unwrapped will return a function that will set the free variables of the function or thunk and then return that value.
-
-
+An example of this is above in the subsection about how function are treated.
 
 
 

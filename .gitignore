@@ -1,6 +1,8 @@
 .dropbox
 
-
+#Lexer and Parser Haskell files
+Lexer.hs
+Parser.hs
 
 # Latex files
 *.pdf
@@ -14,3 +16,6 @@
 *.out
 *.run.xml
 *.gz
+
+#stack
+.stack-work

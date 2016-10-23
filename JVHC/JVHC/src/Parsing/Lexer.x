@@ -48,7 +48,7 @@ $anyns = $any # $symbol
 
 -- Whitespace
 
-@comment = @dashes ($anyns  $any)? @newline
+@comment = @dashes ($anyns  $any*)? @newline
 
 
 @whitestuff = @whitechar | @comment
@@ -100,7 +100,6 @@ $graphicws = $graphic # [\"\\]
 tokens :-
 
   @whitestuff   ;
-  @comment      { Comment }
   @char         { mkChar }
   @string       { mkString } -- TODO: remove space between gap using function on s.
   @integer      { mkInteger }
@@ -244,11 +243,12 @@ tryBuildingReservedOP s = case s of
             _   -> Nothing
 
 mkChar :: String -> LToken
-mkChar _ = Literal $ TChar 'a'
+mkChar [_,c,_] = Literal $ TChar  c
+mkChar _       = error "Invalid String"
 
 mkString :: String -> LToken
-mkString  s = Literal $ TString s
+mkString (_:r) = Literal $ TString $ take (length r - 1) r
 
 mkInteger :: String -> LToken
-mkInteger  s = Literal $ TInteger 1
+mkInteger    = Literal . TInteger . read
 }

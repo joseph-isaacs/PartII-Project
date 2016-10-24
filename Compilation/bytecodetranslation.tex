@@ -71,9 +71,6 @@ Thunks will be implemented as objects, one object for each thunk needed
 (that is for each variable there will be a thunk that will wrap each variable).
 I will use the Java 8 supplier interface have a interface for a thunk before as:
 
-\textcolor{red}{Should I insist on functions only taking thunks (e.g. if we have \texttt{plus x 1} should I 
-create a thunk for \texttt{1} or pass the value 1 to plus, creating a thunk is more uniform. I think creating 
-a thunk would be better. That is to say treat function argument as variables.}
 
 \begin{verbatim}
 public interface Supplier<T> {
@@ -182,85 +179,70 @@ The unwrap function contains both JVM bytecode ish instructions and pesudo-code 
 
 \subsubsection{let} 
 
-I will translate the expression (\texttt{let x = E1 in E2}) to (\texttt{E2' E1}) where all 
-free occurrences of \texttt{x} in \texttt{E2} will be replaced by the first argument of 
-\texttt{E2'}, which will necessarily be \texttt{E1}.
-
-\comment What about (mutually) recursive functions? \done 
-\comment I don't understand the let construct (\texttt{let A in B}) can only have a single function defined in the 
- \texttt{A} part and \texttt{A} cannot reference \texttt{B}, so where is the problem? \done
+I will translate the expression (\texttt{let x = E1 in E2}) to (\texttt{(\textbackslash x -> E2)E1}), then 
+this can be compiled using the compilation scheme for \textbf{function} (below).
 
 \subsection{function}
 
-If we have a function then this will take a single argument and return a single expression. This would be implemented as follows:
+If we have a function then this will take a single argument which will be a thunk and return a single expression. 
+This would be implemented as follows:
+
+I will use the Java 8 functional interface for all functions.
+
+(https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html)
 
 \begin{verbatim}
-x a = \b -> plus a b
+g y = 2
+  
+x a = \b -> plus (g y) b
+
+class TopLevelEnv {
+  Thunk_y getY();
+  Thunk_x getX();
+}
 
 class Thunk_x implements Thunk<Function<A,Function_b>{
+  private TopLevelEnv tle;
+
+  public TopLevelEnv getTle();
+
+  public Thunk_x(TopLevelEnv tle) { this.tle = tle }
   private Function<Thunk<A>,Function_b> eval() {
-    return new Function_a();
+    return new Function_a(this);
   }
 }
 
 class Function_a implements Function<Thunk<A>, Function_b> {
+  public Thunk_x t; 
+  public Function_a(Thunk_x) {...}
   public Function_a apply(Thunk<A> a) {
-    return new Function_b(a);
+    return new Function_b(this,a);
   }
 }
 
 class Function_b implements Function<Thunk<B>,Integer> {
-  Thunk<A> a;
-  public Function_b(Thunk<A> a) {
+  Function_a funa;
+  Thunk<A>   a
+  public Function_b(Function_a funa, Thunk<A> a) {
+    this.funa = funa
     this.a = a;
   }
   public Function_y apply(Thunk<B> b) {
-    return plus_1.apply(a.get()).apply(b.get());
+    Function_g fung = funa.t.tle.thunkg.get();
+    return plus_1.apply(fung.apply(a.get())).apply(b.get());
   }
 }
 \end{verbatim}
-Above it passing free variables into each successive function call. Below I pass an environment which 
-know how to find each of the free variables.
-\begin{verbatim}
-class Function_b implements Function<B,Integer> {
-  EnvFunction_b env;
-  public Function_b(EnvFunction_b env) {
-    this.env = env;
-  }
-  public Function_y apply(Thunk<B> b) {
-    return plus_1.apply(env.getA().get()).apply(b.get());
-  }
-}
 
-EnvFunction_b {
-  Function_a funa;
-  EnvFunction_a parent;
-// parent is the environment for any thing outside the scope of x 
-  EnvFunction_b (EnvFunction_a parent, Function_a funa) { ... }
-  Thunk<A> getA() { return funa.getA() } 
-// I assume that Function_a will have a variable A stored.
-}
-\end{verbatim}
+\comment The main thing to note is that when a function is passed an argument that function will not store the argument it will be
+passed to any part of the body of the function that requires the argument. Would it be better to have in the above 
+example Function\_a to hold a?\done
 
-Here we have two options (show in the two definition of Function\_b) I can either have references passed down
-or a environment pass down (this would be how I would order the chaining).
+\comment Do you think I need to both with accessors or just allow for example Function\_b to access Function\_a.t\done
 
-\comment You could also do chaining, instead of passing in the closure variables. That is, you pass in parents, then when you have a reference, you just call the correct number of parents. I have ended up using this in my compiler, but forgot why.
-\done
-
-\comment I think I will stick the passing variables into each closure since if I pass parents into a
-function then each function must know the layout of the parent. I could have an environment class which 
-will be passed into each function and will abstract away the about the closure variables are stored. That 
-means this call will be responsible for returning variables in outer scopes and then this variable could 
-know about the parent not the function its self (shown above). \done
-
-
-
-
-
-I will use the Java 8 functional interface 
-
-(https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html)
+The environment will passed down by via chaining, that is the object in a given scope
+having a references to the object in the scope above. If the current scope is $i$ then scope above is
+$i-1$, if the scope is $0$ then the scope above is the top level scope (represented by TopLevelEnv in the above example).
 
 
 \subsubsection{application}

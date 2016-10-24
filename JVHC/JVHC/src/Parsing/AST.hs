@@ -41,18 +41,14 @@ data Decl = TGenDecl [VarID] AType
 data FunLHS = TVarPat Pat [VarID]
   deriving (Show,Eq)
 
-data Exp = TExpTypeSig ExpC AType
-         | TExp        ExpC
-  deriving (Show,Eq)
 
-data ExpC = TELambda VarID Exp
+data Exp = TELambda VarID Exp
           | TELet    Decl  Exp
           | TECase   Exp   [Alt]
           | TEApp    Exp   Exp
           | TEVar    VarID
           | TEConstr ConID
           | TELiteral Literal
-          | TEExp    Exp
   deriving (Show,Eq)
 
 data Alt = TAlt Pat Exp

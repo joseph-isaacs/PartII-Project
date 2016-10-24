@@ -1,12 +1,19 @@
 {
-module Parser (jvhcParse) where
+module Parser (jvhcParse,decl,genDecl,expParser) where
 
 import qualified Lexer as L
 import Lexer (LToken)
 import AST
 }
 
-%name jvhcParse
+%name jvhcParse Body
+
+-- Testing
+%name decl    Decl
+
+%name genDecl Gendecl
+%name expParser     Exp
+
 %tokentype { L.LToken }
 %error { parseError }
 
@@ -32,21 +39,19 @@ import AST
   of     { L.ReservedID  L.Of    }
   lit    { L.Literal    $$     }
 
-%left '::'
-%right '->'
 
 %%
 
 Body :: { Body }
-Body : '{' TopDecls '}'      { TTopDecls $2 }
+Body : '{' TopDecls '}' { TTopDecls $2 }
 
 TopDecls :: { [ TopDecl ] }
-TopDecls : TopDecl ';' TopDecls  { $1 : $3  }
-         | TopDecl               { [$1] }
+TopDecls : TopDecl ';' TopDecls  { $1 : $3 }
+         | TopDecl               { [$1]    }
 
 TopDecl  :: { TopDecl }
-TopDecl  : data SimpleType '=' Constrs { TData $2 $ reverse $4 }
-         | Decl                        { TDecl $1  }
+TopDecl  : data SimpleType '=' Constrs { TData $2 $4 }
+         | Decl                        { TDecl $1    }
 
 SimpleType :: { SimpleType }
 SimpleType :  tycon TyVars    { TSimpleType $1 $ reverse $2 }
@@ -89,6 +94,7 @@ Decl :  Gendecl    { (\(v,t) -> TGenDecl v t)$1   }
 Gendecl :: { ([VarID], AType) }
 Gendecl : Vars '::' Type { ($1,$3) }
 
+
 Vars :: { [VarID] }
 Vars : tyvar ',' Vars { $1 : $3}
      | tyvar          { [$1]   }
@@ -104,25 +110,22 @@ APats : tyvar       { [$1]    }
 RHS :: { Exp }
 RHS : '=' Exp { $2 }
 
-Exp :: { Exp }
---Exp : ExpC '::' Type { TExpTypeSig $1 $3 }
-    Exp : ExpC           { TExp        $1    }
 
-ExpC :: { ExpC }
-ExpC : '\\' tyvar '->' Exp       { TELambda $2 $4 }
+Exp :: { Exp }
+Exp : '\\' tyvar '->' Exp        { TELambda $2 $4 }
      | let '{' Decl '}' in Exp   { TELet $3 $6            }
      | case Exp of '{' Alts  '}' { TECase $2 $5 }
      | FExp                      { $1 } 
 
-FExp :: { ExpC }
+FExp :: { Exp }
 FExp : AExp       { $1 }
-     | AExp FExp  { TEApp (TExp $1) (TExp $2) }
+     | FExp AExp  { TEApp $1 $2 }
 
-AExp :: { ExpC }
+AExp :: { Exp }
 AExp : tyvar                     { TEVar $1               }
      | tycon                     { TEConstr $1 }
      | lit                       { TELiteral $1 }
-     | '(' Exp ')'               { TEExp $2 }
+     | '(' Exp ')'               { $2 }
 
 
 Alts :: { [Alt] }

@@ -2,6 +2,7 @@ module Spec (main)
   where
 
 import qualified TestParser as TP
+import qualified TestLexer   as TL
 import Test.HUnit
 
 main :: IO ()
@@ -11,4 +12,4 @@ main = do
   return ()
 
 
-tests = test [TP.tests]
+tests = test [TL.tests, TP.tests]

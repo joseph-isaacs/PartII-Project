@@ -95,23 +95,19 @@ the lambda \texttt{\textbackslash a -> plus a 1} is bound to the variable \textt
 \subsubsection{Constructor}
 
 There will be an interface created for each user defined type. 
-For each defined type there will be a class for each type constructor. The class will contain a tag which will be unique for each type constructor of this type,
-then the class will contain any parameters (wrapped in a thunk) that exists in there definition.
+For each defined type there will be a class for each type constructor. 
+Then the class will contain any parameters (wrapped in a thunk) that exists in there definition.
 
-\textcolor{red}{I will leave the stuff about tags until I have researched the JVM more (likely I will go with 
-instanceof instead of a table lookup)}
+(If I use the switchtable)
+The class will contain a tag which will be unique for each type constructor of this type.
 
 For example \texttt{data T = A a | B | C int} will generate one interface and three classes:
 
 \begin{verbatim}
 interface T {
-  int getTag();
 }
 class A {
   private Thunk a;
-  int getTag() {
-    return 0;
-  }
   Thunk getA() {
     a;
   }
@@ -119,9 +115,6 @@ class A {
 ...
 class C {
   private int a;
-  int getTag() {
-    return 2;
-  }
   Thunk getInt() {
     return new Thunk(a);
   }
@@ -133,49 +126,54 @@ Literal will be represented as primitive type (int and char).
 
 \subsubsection{case}
 
-\textcolor{red}{same as for constructor will decide between instanceof and tag later}
-Case will be compiled using a \texttt{tableswitch} statement where the indices will be the tag of type being switched on. For \texttt{int} and \texttt{char} at lookup 
-switch will need to be used since the patterns matched on in the case statement could be sparse, consider
+
+
+For user defined types the code would look a bit like this:
 
 \begin{verbatim}
-case 42 of
+y x = case x of
+  True  -> 1
+  False -> 2
+
+public Integer apply() {
+  if(n instanceof True) {
+    return 1;
+  } else (n instanceof False) {
+    return 2;
+  }
+}
+\end{verbatim}
+
+where \texttt{n} is of type \texttt{Boolean} (\texttt{data Bool = True | False}).
+
+
+\begin{verbatim}
+case y of
   2  -> 0
   45 -> 1
   x  -> 2
 \end{verbatim}
 
-For user defined types the code would look a bit like this:
+for build-in types I will use a set of cmp instructions such as
 
 \begin{verbatim}
-case x of
-  True  -> 1
-  False -> 2
-
-class Thunk_case_x {
-  private Boolean x;
-
-  private int i = null
-  Think_case_x(Boolean x) {
-    this.x = x
-  }
-  method int unwrap() {
-    if n != null
-      return i
-  1  invoke x.getTag
-  2  tableswitch 0 to 1:
-  3    0: 5  // True
-  4    1: 7  // False
-  5  set i = 1
-  6  return i
-  7  set i = 2
-  8  return i
-  }
-}
+1  bipush 2       
+2  if_icmpne 5   2 == y
+3  bipush 0      
+4  returni       return 0
+5  bipush 45
+6  pop           remove 2 from stack
+7  if_icmpne 10  45 == y
+8  bipush 1    
+9  returni       return 1
+10 pop
+11 istore_0      x := y
+12 bipush 2      
+13 returni       return 2
 \end{verbatim}
 
-where x is of type \texttt{Boolean} (\texttt{data Bool = True | False}).
-
-The unwrap function contains both JVM bytecode ish instructions and pesudo-code (\textcolor{red}{I will update this later})
+This assumes that y is already on the top of the stack, and will store the value of \texttt{x} in the local
+variable 0.
 
 \subsubsection{let} 
 
@@ -194,17 +192,17 @@ I will use the Java 8 functional interface for all functions.
 \begin{verbatim}
 g y = 2
   
-x a = \b -> plus (g y) b
+x a = \b -> plus (g a) b
 
-class TopLevelEnv {
+main = x 1 2
+
+class Environment {
   Thunk_y getY();
   Thunk_x getX();
 }
 
 class Thunk_x implements Thunk<Function<A,Function_b>{
-  private TopLevelEnv tle;
-
-  public TopLevelEnv getTle();
+  public Enviroment tle;
 
   public Thunk_x(TopLevelEnv tle) { this.tle = tle }
   private Function<Thunk<A>,Function_b> eval() {
@@ -212,24 +210,36 @@ class Thunk_x implements Thunk<Function<A,Function_b>{
   }
 }
 
-class Function_a implements Function<Thunk<A>, Function_b> {
+class Function_a implements Function<Thunk<A>, Function_b>> {
   public Thunk_x t; 
+  Thunk<A>       a;
   public Function_a(Thunk_x) {...}
   public Function_a apply(Thunk<A> a) {
-    return new Function_b(this,a);
+    this.a = a
+    return new Function_b(this);
   }
 }
 
 class Function_b implements Function<Thunk<B>,Integer> {
   Function_a funa;
-  Thunk<A>   a
-  public Function_b(Function_a funa, Thunk<A> a) {
-    this.funa = funa
-    this.a = a;
+  public Function_b(Function_a funa) {
+    this.funa = funa;
   }
   public Function_y apply(Thunk<B> b) {
     Function_g fung = funa.t.tle.thunkg.get();
-    return plus_1.apply(fung.apply(a.get())).apply(b.get());
+    return plus_1.apply(fung.apply(funa.a.get())).apply(b.get());
+  }
+}
+
+class main {
+  main() {
+    Environment e = new Environment();
+    Thunk_y y = new Thunk_y(e);
+    e.setG(y);
+    Thunk_x x = new Thunk_x(e);
+    e.setX(x);
+
+    Integer i = x.get().apply(1).apply(2);
   }
 }
 \end{verbatim}

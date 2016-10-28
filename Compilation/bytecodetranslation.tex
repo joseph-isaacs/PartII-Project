@@ -78,13 +78,13 @@ public interface Supplier<T> {
 }
 
 public abstract class Thunk<T> implements Supplier<T> {
-    private T cache;
-    public abstract T eval();
+    private T value;
+    protected abstract T force();
     public T get() {
         if( value == null ) {
-            return cache = force();
+            return value = force();
         }
-        return cache;
+        return value;
     }
 }
 \end{verbatim}
@@ -196,51 +196,84 @@ x a = \b -> plus (g a) b
 
 main = x 1 2
 
-class Environment {
-  Thunk_y getY();
-  Thunk_x getX();
+public class Environment {
+    Thunk_x x;
+    Thunk_g g;
 }
 
-class Thunk_x implements Thunk<Function<A,Function_b>{
-  public Enviroment tle;
+public class Thunk_x extends Thunk<Function_a>{
+    public Environment env;
 
-  public Thunk_x(TopLevelEnv tle) { this.tle = tle }
-  private Function<Thunk<A>,Function_b> eval() {
-    return new Function_a(this);
-  }
+    public Thunk_x(Environment e) {env=e;}
+
+    @Override
+    protected Function_a force() {
+        return new Function_a(this);
+    }
 }
 
-class Function_a implements Function<Thunk<A>, Function_b>> {
-  public Thunk_x t; 
-  Thunk<A>       a;
-  public Function_a(Thunk_x) {...}
-  public Function_a apply(Thunk<A> a) {
-    this.a = a
-    return new Function_b(this);
-  }
+public class Thunk_g extends Thunk<Function<Object,Integer>> {
+    Environment e;
+
+    Thunk_g(Environment e) {
+        this.e = e;
+    }
+    @Override
+    protected Function<Object, Integer> force() {
+        return (Object x) -> 2;
+    }
 }
 
-class Function_b implements Function<Thunk<B>,Integer> {
-  Function_a funa;
-  public Function_b(Function_a funa) {
-    this.funa = funa;
-  }
-  public Function_y apply(Thunk<B> b) {
-    Function_g fung = funa.t.tle.thunkg.get();
-    return plus_1.apply(fung.apply(funa.a.get())).apply(b.get());
-  }
+public class Function_a implements Function<Thunk<Object>, Function_b> {
+    public Thunk_x t;
+    Thunk<Object>  a;
+    Function_a(Thunk_x x) {
+        this.t = x;
+    }
+    @Override
+    public Function_b apply(Thunk<Object> a) {
+        this.a = a;
+        return new Function_b(this);
+    }
 }
 
-class main {
-  main() {
-    Environment e = new Environment();
-    Thunk_y y = new Thunk_y(e);
-    e.setG(y);
-    Thunk_x x = new Thunk_x(e);
-    e.setX(x);
+public class Function_b implements Function<Thunk<Integer>,Integer>{
+    Function_a a;
+    public Function_b(Function_a a) {
+        this.a = a;
+    }
 
-    Integer i = x.get().apply(1).apply(2);
-  }
+    @Override
+    public Integer apply(Thunk<Integer> bThunk) {
+        Function<Object,Integer> g = a.t.env.g.get();
+        Function_Plus plus = new Function_Plus();
+        return plus.apply(g.apply(a.a.get())).apply(bThunk.get());
+    }
+}
+
+public class main {
+    public static void main(String[] args) {
+        Environment e = new Environment();
+
+        e.g = new Thunk_g(e);
+        e.x = new Thunk_x(e);
+
+        Thunk<Object> a = new Thunk<Object>() {
+            @Override
+            protected Object force() {
+                return null;
+            }
+        };
+
+        Thunk<Integer> b = new Thunk<Integer>() {
+            @Override
+            protected Integer force() {
+                return 2;
+            }
+        };
+        
+        e.x.get().apply(a).apply(b); //main call
+    }
 }
 \end{verbatim}
 

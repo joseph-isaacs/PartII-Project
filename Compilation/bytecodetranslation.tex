@@ -360,6 +360,57 @@ The environment will passed down by via chaining, that is the object in a given 
 having a references to the object in the scope above. If the current scope is $i$ then scope above is
 $i-1$, if the scope is $0$ then the scope above is the top level scope (represented by TopLevelEnv in the above example).
 
+\begin{verbatim}
+f x = g x
+g y = f y
+
+public class Thunk_f extends Thunk<Function_x> {
+    Env e;
+    Thunk_f(Env e) {this.e=e;}
+
+    @Override
+    protected Function_x force() {
+        return new Function_x(this);
+    }
+}
+
+public class Function_x implements Function<Object,Object> {
+    Thunk_f f;
+    Function_x(Thunk_f f){this.f = f;}
+    @Override
+    public Object apply(Object o) {
+        Function_y g = f.e.g.get();
+        return g.apply(o);
+    }
+}
+
+public class Thunk_g extends Thunk<Function_y> {
+    Env e;
+    Thunk_g(Env e) {this.e=e;}
+
+    @Override
+    protected Function_y force() {
+        return new Function_y(this);
+    }
+}
+
+public class Function_y implements Function<Object,Object> {
+    Thunk_g g;
+    Function_y(Thunk_g g){this.g = g;}
+    @Override
+    public Object apply(Object o) {
+        Function_x x = g.e.f.get();
+        return x.apply(o);
+    }
+}
+
+public class Env {
+    Thunk_f f;
+    Thunk_g g;
+}
+\end{verbatim}
+
+This show how recursively defined functions would be compiled
 
 \subsubsection{application}
 

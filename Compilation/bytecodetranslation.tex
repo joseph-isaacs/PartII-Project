@@ -135,13 +135,41 @@ y x = case x of
   True  -> 1
   False -> 2
 
-public Integer apply() {
-  if(n instanceof True) {
-    return 1;
-  } else (n instanceof False) {
-    return 2;
+public Function_x implements Function<HBoolean,Integer> {
+  private Thunk<HBoolean> x;
+  Function_x(Thunk<HBoolean> x) {this.x = x;}
+  public Integer apply() {
+    HBoolean n = x.get();
+    if(n instanceof True) {
+      return 1;
+    } else (n instanceof False) {
+      return 2;
+    }
+    throw new MatchFailedException();
   }
 }
+
+apply():
+0  aload_0
+1  getfield        #2   // this.x
+4  invokevirtual   #3   // x.get()
+5  astore_1             // store to n x.get()
+6  aload_1              // load n
+7  instanceof      #4   // check if n is of type True
+10 ifeq            18   // jump to false branch 
+13 iconst_1 
+14 invokestatic    #10  // Integer.valueOf(1)
+17 areturn
+18 aload_1 
+19 instanceof      #5   // instanceof False
+22 ifeq            30
+25 iconst_2       
+26 invokestatic    #10 // Integer.valueOF(2)
+29 areturn
+30 new             #20 // New MatchFailedException();
+33 dup
+34 invokespecial   #21 // MatchFailedException."<init>"
+37 athrow
 \end{verbatim}
 
 where \texttt{n} is of type \texttt{Boolean} (\texttt{data Bool = True | False}).
@@ -220,7 +248,14 @@ public class Thunk_g extends Thunk<Function<Object,Integer>> {
     }
     @Override
     protected Function<Object, Integer> force() {
-        return (Object x) -> 2;
+        return new Function_g();
+    }
+}
+
+public class Function_g implements Function<Object,Integer> {
+    @Override
+    public Integer apply(Object o) {
+        return 2;
     }
 }
 
@@ -251,6 +286,41 @@ public class Function_b implements Function<Thunk<Integer>,Integer>{
     }
 }
 
+Part of constant pool for Function_b:
+#2 = Fieldref      #20.#40   // Function_b.a:LFunction_a;
+...
+#20= Class         #21
+#21= Uft8          #Function_b
+...
+#40=NameAndType    #41.#42
+#41=Uft8           a
+#42=Utf8           LFunction_a
+
+Integer apply(Thunk<Integer>)
+0  aload_0
+1  getfield #2          // this.a Function_b  -> Function_a
+4  getfield #3          // a.t    Function_a  -> Thunk_x
+7  getfield #4          // t.env  Thunk_x     -> Environment
+10 getfield #5          // env.g  Environment -> Thunk_g
+13 invokevirtual #6     // Thunk_g:get()
+16 astore_2             // save g to 2
+19 new           #8     // new Function_Plus
+20 dup
+21 invokespecial #9     // Function_Plus."<init>":
+24 astore_3             // save plus to 3
+25 aload_3              // load plus
+26 aload_2              // load g
+27 aload_0              // load this
+28 getfield      #2     // get a
+31 getfield      #10    // get Function_a
+34 invokevirtual #11    // get() will return Object
+37 inv.interface #12, 2 // g.apply
+42 invokevirtual #14    // Function_Plus apply
+51 aload_1              // load bThunk
+52 invokevirtual #11    // bThunk.get()
+55 inv.interface #12, 2 // apply
+61 areturn 
+
 public class main {
     public static void main(String[] args) {
         Environment e = new Environment();
@@ -276,6 +346,9 @@ public class main {
     }
 }
 \end{verbatim}
+
+I have included bytecode for one of the function call apply as an example, only part of the constant pool is
+included
 
 \comment The main thing to note is that when a function is passed an argument that function will not store the argument it will be
 passed to any part of the body of the function that requires the argument. Would it be better to have in the above 

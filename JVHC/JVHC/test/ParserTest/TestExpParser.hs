@@ -3,7 +3,7 @@ module TestExpParser(tests)
 
 import Lexer
 import Parser (expParser)
-import AST
+import ParsingAST
 import Test.HUnit
 
 tests = test [test1, test2, test3, test4, test5]

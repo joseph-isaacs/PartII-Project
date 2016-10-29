@@ -3,7 +3,7 @@ module TestTopDeclParser(tests)
 
 import Lexer
 import Parser
-import AST
+import ParsingAST
 import Test.HUnit
 
 test1 = "Simple data decl" ~: jvhcParse [Special LCurly, ReservedID Data, Conid "A", ReservedOP Equal, Conid "B", Special RCurly]  ~=? TTopDecls [TData (TSimpleType "A" []) [TConstr "B" []]]

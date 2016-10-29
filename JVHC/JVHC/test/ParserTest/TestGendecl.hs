@@ -3,7 +3,7 @@ module TestGendecl(tests)
 
 import Lexer
 import Parser
-import AST
+import ParsingAST
 import Test.HUnit
 
 tests = test [test1, test2, test3]

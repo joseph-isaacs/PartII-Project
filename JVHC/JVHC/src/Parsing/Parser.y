@@ -3,7 +3,7 @@ module Parser (jvhcParse,decl,genDecl,expParser) where
 
 import qualified Lexer as L
 import Lexer (LToken)
-import AST
+import ParsingAST
 }
 
 %name jvhcParse Body

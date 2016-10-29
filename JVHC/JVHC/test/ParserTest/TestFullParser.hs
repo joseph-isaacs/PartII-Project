@@ -3,7 +3,7 @@ module TestFullParser(tests)
 
 import Lexer
 import Parser (jvhcParse)
-import AST
+import ParsingAST
 import Test.HUnit
 
 tests = test [test1]

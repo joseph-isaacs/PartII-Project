@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src/Parsing
-  exposed-modules:     AST, Parser, Lexer
+  exposed-modules:     ParsingAST, Parser, Lexer
   build-depends:       base >= 4.7 && < 5
                      , array >= 0.5.1
   default-language:    Haskell2010

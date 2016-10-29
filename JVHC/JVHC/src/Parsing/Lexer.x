@@ -1,7 +1,7 @@
 {
 module Lexer (alexScanTokens, LToken(..), RID(..), ROP(..), ST(..)) where
 
-import AST(Literal(..))
+import ParsingAST(Literal(..))
 }
 
 %wrapper "basic"

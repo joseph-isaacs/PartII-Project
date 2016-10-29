@@ -3,7 +3,7 @@ module TestDeclParser(tests)
 
 import Lexer
 import Parser (decl)
-import AST
+import ParsingAST
 import Test.HUnit
 
 tests = test [test1,test2]

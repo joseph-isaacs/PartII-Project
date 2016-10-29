@@ -4,6 +4,9 @@
 Lexer.hs
 Parser.hs
 
+#Dont include build files
+JVHC/JVHC/dist
+
 # Latex files
 *.pdf
 *.fls

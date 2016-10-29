@@ -342,7 +342,7 @@ public class main {
             }
         };
         
-        e.x.get().apply(a).apply(b); //main call
+        return e.x.get().apply(a).apply(b); //main call
     }
 }
 \end{verbatim}
@@ -350,11 +350,6 @@ public class main {
 I have included bytecode for one of the function call apply as an example, only part of the constant pool is
 included
 
-\comment The main thing to note is that when a function is passed an argument that function will not store the argument it will be
-passed to any part of the body of the function that requires the argument. Would it be better to have in the above 
-example Function\_a to hold a?\done
-
-\comment Do you think I need to both with accessors or just allow for example Function\_b to access Function\_a.t\done
 
 The environment will passed down by via chaining, that is the object in a given scope
 having a references to the object in the scope above. If the current scope is $i$ then scope above is

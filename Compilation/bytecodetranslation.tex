@@ -89,17 +89,15 @@ public abstract class Thunk<T> implements Supplier<T> {
 }
 \end{verbatim}
 
-Variable is created using the \texttt{let} construct and in the example \texttt{x a = plus a 1} we have
-the lambda \texttt{\textbackslash a -> plus a 1} is bound to the variable \texttt{x}.
+Variables are created using the \texttt{let} construct and also with named funtion. If there is a function defined \texttt{x a = plus a 1} then a
+variable \texttt{x} will be created and bound to the following lambda
+\texttt{\textbackslash a -> plus a 1}.
 
 \subsubsection{Constructor}
 
 There will be an interface created for each user defined type. 
 For each defined type there will be a class for each type constructor. 
 Then the class will contain any parameters (wrapped in a thunk) that exists in there definition.
-
-(If I use the switchtable)
-The class will contain a tag which will be unique for each type constructor of this type.
 
 For example \texttt{data T = A a | B | C int} will generate one interface and three classes:
 
@@ -125,8 +123,6 @@ class C {
 Literal will be represented as primitive type (int and char).
 
 \subsubsection{case}
-
-
 
 For user defined types the code would look a bit like this:
 
@@ -172,7 +168,7 @@ apply():
 37 athrow
 \end{verbatim}
 
-where \texttt{n} is of type \texttt{Boolean} (\texttt{data Bool = True | False}).
+where \texttt{n} is of type \texttt{HBoolean} (\texttt{data HBoolean = True | False}).
 
 
 \begin{verbatim}

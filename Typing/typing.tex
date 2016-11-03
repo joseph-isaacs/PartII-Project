@@ -1,0 +1,136 @@
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{parskip}
+\usepackage{verbatim}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\def\comment#1\done{{\color{blue}#1}}
+\def\add#1\done{{\color{red}#1}}
+\def\remove#1\done{{\sout{#1}}}
+\def\change#1\to#2\done{{\sout{#1}\color{red}#2}}
+
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+
+\bibliography{refs.bib}
+
+\begin{document}
+
+
+\begin{center}
+  \Large
+  Typing Core\\[4mm]
+
+  J.~Isaacs
+  \today
+\end{center}
+
+\section{Representation}
+
+\subsection{Kind}
+
+Haskell has the notion of \texttt{Kind}s, I will be supporting:
+
+\begin{align*}
+K =& *\\ 
+  &|\ K \rightarrow K
+\end{align*}
+
+where a types like \texttt{Int} and \texttt{Char} will have a kind \texttt{*}, but type constructors like \texttt{Maybe} and 
+\texttt{IO} will have kind \texttt{* $\rightarrow$ *}.
+
+I will represent kinds using the following type:
+
+\begin{verbatim}
+data Kind = Star | KArrow Kind Kind
+\end{verbatim}
+
+As defined in \cite{jones1999typing}
+
+\subsection{Types}
+
+Haskell type expressions can either be type variables constants or applications of one type to another
+Type can be defined using:
+
+\begin{verbatim}
+data Type = TVar Id   Kind
+          | TCon Id   Kind
+          | TApp Type Type
+          | TGen Int
+\end{verbatim}
+
+Then primitave types can be defined as:
+
+\begin{verbatim}
+tInt   = TCon "Int" Star
+tArrow = TCon "->"  (KArrow Star (KArrow Star Star))
+\end{verbatim}
+
+Then the type $a \rightarrow b$ will be represented as:
+
+\begin{verbatim}
+TApp (TApp tArrow 
+           (TVar "a" Star)) 
+     (TVar "b" Star)
+\end{verbatim}
+
+\subsection{Expressions}
+
+\begin{verbatim}
+data Expr = Var  Var
+          | Lit  Literal
+          | App  Expr    Expr
+          | TApp Expr    Expr
+          | Lam  Var     Expr
+          | BLam Var     Expr
+          | Let  Bind    Expr
+          | Case Expr    Var  Type [(AltCon,[Var],Expr)]
+          | Type Type
+\end{verbatim}
+
+We will first convert from the parsed AST into a System F inspired 
+core language without $\Lambda$ then infer the types of each \texttt{Expr}
+and then finally once we know the type add the type specialization and
+type abstractions (i.e. $\Lambda$).
+
+From \texttt{u = \textbackslash x -> v x} and \texttt{v = \textbackslash y -> y}:
+\begin{verbatim}
+TFunDecl (TVarPat (TVarID "u") []) (TELambda "x" (TEApp (TEVar "v") (TEVar "x")))
+TFunDecl (TVarPat (TVarID "v") []) (TELambda "y" (TEVar "y"))
+\end{verbatim}
+which would desugar to:
+\begin{verbatim}
+Lam "x" (App (Var "v") (Var "x"))
+Lam "y" (Var "y")
+\end{verbatim}
+Then I would inter the types of \texttt{u} and \texttt{v} to be:
+\begin{verbatim}
+u :: forall a. a->a
+v :: forall a. a->a
+\end{verbatim}
+
+We first check to see if the inferred types have \texttt{forall} types in which
+case we must add a $\Lambda$ to be term abstracting over that type.
+
+Then I can rewrite \texttt{u} and \texttt{v} to be bound to:
+\begin{verbatim}
+u => BLam "a" (Lam "x" (App 
+                        (TApp (Var "v") (Var "a")) 
+                        (Var "x")))
+v => BLam "a" (Lam "y" (Var "y"))
+\end{verbatim}
+
+This will require checking that on an application if the function that the 
+argument is being applied to has a $\Lambda$ in front meaning we must first 
+apply a type to this function then the term.
+
+
+\printbibliography
+
+\end{document}

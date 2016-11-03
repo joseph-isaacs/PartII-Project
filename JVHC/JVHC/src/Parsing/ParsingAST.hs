@@ -43,12 +43,12 @@ data FunLHS = TVarPat Pat [VarID]
 
 
 data Exp = TELambda VarID Exp
-          | TELet    Decl  Exp
-          | TECase   Exp   [Alt]
-          | TEApp    Exp   Exp
-          | TEVar    VarID
-          | TEConstr ConID
-          | TELiteral Literal
+         | TELet    Decl  Exp
+         | TECase   Exp   [Alt]
+         | TEApp    Exp   Exp
+         | TEVar    VarID
+         | TEConstr ConID
+         | TELiteral Literal
   deriving (Show,Eq)
 
 data Alt = TAlt Pat Exp

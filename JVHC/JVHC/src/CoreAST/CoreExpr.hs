@@ -1,22 +1,30 @@
-module CoreExpr
+module CoreAST.CoreExpr
   where
 
-import ParsingAST(Literal)
+import Parsing.ParsingAST(Literal)
 
+import CoreAST.Types
+import CoreAST.Var
+import CoreAST.DataCon
 
-data Expr = Var  Var
-          | Lit  Literal
-          | App  Expr    Expr
-          | TApp Expr    Expr
-          | Lam  Var     Expr
-          | BLam Var     Expr
-          | Let  Bind    Expr
-          | Case Expr    Var  Alt
-          | Type Type
+import Infer.Id
 
-type Arg = Expr
-type Alt = (AltCon, [Var], Expr)
+type CoreExpr = Expr Var
+
+data Expr b
+  = Var  Id
+  | Lit  Literal
+  | App  (Expr b) (Arg  b)
+  | Lam  b        (Expr b)
+  | Let  (Bind b) (Expr b)
+  | Case (Expr b) Type    [Alt b]
+  | Type Type
+  deriving Show
+
+type Arg b = Expr b
+type Alt b = (AltCon, [b], Expr b)
 
 data AltCon = DataAlt DataCon | LitAlt Literal | DEFAULT
-
-data Bind b = NonRec Var Expr | Rec [(Var, Expr)]
+  deriving Show
+data Bind b = NonRec b (Expr b) | Rec [(b, Expr b)]
+  deriving Show

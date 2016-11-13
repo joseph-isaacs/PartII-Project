@@ -20,6 +20,9 @@ library
                      , Parsing.Lexer
                      , CoreAST.Types
                      , CoreAST.Kind
+                     , CoreAST.CoreExpr
+                     , CoreAST.Var
+                     , CoreAST.DataCon
                      , Infer.Id
                      , Infer.Subst
                      , Infer.Unify

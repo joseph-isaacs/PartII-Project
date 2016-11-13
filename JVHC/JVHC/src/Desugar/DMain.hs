@@ -30,7 +30,7 @@ dExpr as (PP.TEApp e1 e2) =
 
 dExpr as (PP.TELambda id e) =
   do e' <- dExpr as e
-     return $ TIM.Lam ([TIP.PVar id],e')
+     return $ TIM.Lam id e'
 
 dExpr as (PP.TELet d e) =
   do bg <- dDecl as [d]

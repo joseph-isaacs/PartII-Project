@@ -14,10 +14,36 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  hs-source-dirs:      src/Parsing
-  exposed-modules:     ParsingAST, Parser, Lexer
+  hs-source-dirs:      src
+  exposed-modules:     Parsing.ParsingAST
+                     , Parsing.Parser
+                     , Parsing.Lexer
+                     , CoreAST.Types
+                     , CoreAST.Kind
+                     , Infer.Id
+                     , Infer.Subst
+                     , Infer.Unify
+                     , Infer.Scheme
+                     , Infer.Assumption
+                     , Infer.TIM
+                     , Infer.TILit
+                     , Infer.TIPat
+                     , Infer.TIMain
+                     , Infer.TIProgram
+                     , Infer.KSubst
+                     , Infer.KUnify
+                     , Infer.KAssumption
+                     , Infer.KIMonad
+                     , Infer.KIMain
+                     , Desugar.DTypes
+                     , Desugar.DPat
+                     , Desugar.DAType
+                     , Desugar.DDataDecl
+                     , Desugar.DMain
+                     , Desugar.DTopDecls
   build-depends:       base >= 4.7 && < 5
                      , array >= 0.5.1
+                     , mtl
   default-language:    Haskell2010
   build-tools:         alex, happy
 

@@ -1,9 +1,9 @@
 {
-module Parser (jvhcParse,decl,genDecl,expParser) where
+module Parsing.Parser (jvhcParse,decl,genDecl,expParser) where
 
-import qualified Lexer as L
-import Lexer (LToken)
-import ParsingAST
+import qualified Parsing.Lexer as L
+import Parsing.Lexer (LToken)
+import Parsing.ParsingAST
 }
 
 %name jvhcParse Body
@@ -50,7 +50,7 @@ TopDecls : TopDecl ';' TopDecls  { $1 : $3 }
          | TopDecl               { [$1]    }
 
 TopDecl  :: { TopDecl }
-TopDecl  : data SimpleType '=' Constrs { TData $2 $4 }
+TopDecl  : data SimpleType '=' Constrs { TData (TDatadecl $2 $4) }
          | Decl                        { TDecl $1    }
 
 SimpleType :: { SimpleType }
@@ -78,21 +78,21 @@ AType : tyvar         { TTyVar $1    }
       | '(' Type ')'  { $2           }
 
 
-BType :: { [AType] }
-BType : BType AType   { $2 : $1 }
-      | AType         { [$1]    }
+BType :: { AType }
+BType : BType AType   { TATypeAp $1 $2 }
+      | AType         { $1             }
 
 Type :: { AType }
-Type : BType             { mkNestedT $1 }
-     | BType '->' Type   { TATypeArrow (mkNestedT $1) $3 }
+Type : BType             { $1 }
+     | BType '->' Type   { TATypeArrow $1 $3 }
 
 
 Decl :: { Decl }
-Decl :  Gendecl    { (\(v,t) -> TGenDecl v t)$1   }
-     |  FunLHS RHS { TFunDecl $1 $2 }
+Decl :  Gendecl    { TGenDecl $1   }
+     |  FunLHS RHS { TFunDecl (TFundecl $1 $2) }
 
-Gendecl :: { ([VarID], AType) }
-Gendecl : Vars '::' Type { ($1,$3) }
+Gendecl :: { TGenDecl }
+Gendecl : Vars '::' Type { TGendecl $1 $3 }
 
 
 Vars :: { [VarID] }
@@ -100,8 +100,8 @@ Vars : tyvar ',' Vars { $1 : $3}
      | tyvar          { [$1]   }
 
 FunLHS :: { FunLHS }
-FunLHS :  tyvar APats { TVarPat (TVarID $1) $2 }
-       |  Pat         { TVarPat $1 []                    }
+FunLHS :  tyvar APats { TVarPat $1 $2 }
+       |  tyvar       { TVarPat $1 []                    }
 
 APats :: { [VarID] }
 APats : tyvar       { [$1]    }
@@ -152,8 +152,5 @@ APatWithLiteral : tyvar   { TVarID   $1 }
 {
 parseError :: [LToken] -> a
 parseError t = error $ (show t) ++  "Parse Error"
-
-mkNestedT :: [AType] -> AType
-mkNestedT = TATypeNested . reverse
 
 }

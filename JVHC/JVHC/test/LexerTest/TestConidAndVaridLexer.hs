@@ -1,8 +1,8 @@
 module TestConidAndVaridLexer(tests)
   where
 
-import Lexer
-import ParsingAST
+import Parsing.Lexer
+import Parsing.ParsingAST
 import Test.HUnit
 
 test1 = "Conid" ~: alexScanTokens "Hell1o"  ~=? [Conid "Hell1o"]

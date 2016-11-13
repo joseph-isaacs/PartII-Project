@@ -1,7 +1,7 @@
 {
-module Lexer (alexScanTokens, LToken(..), RID(..), ROP(..), ST(..)) where
+module Parsing.Lexer (alexScanTokens, LToken(..), RID(..), ROP(..), ST(..)) where
 
-import ParsingAST(Literal(..))
+import Parsing.ParsingAST(Literal(..))
 }
 
 %wrapper "basic"
@@ -243,12 +243,12 @@ tryBuildingReservedOP s = case s of
             _   -> Nothing
 
 mkChar :: String -> LToken
-mkChar [_,c,_] = Literal $ TChar  c
+mkChar [_,c,_] = Literal $ LitChar  c
 mkChar _       = error "Invalid String"
 
 mkString :: String -> LToken
-mkString (_:r) = Literal $ TString $ take (length r - 1) r
+mkString (_:r) = Literal $ LitString $ take (length r - 1) r
 
 mkInteger :: String -> LToken
-mkInteger    = Literal . TInteger . read
+mkInteger    = Literal . LitInt . read
 }

@@ -1,4 +1,4 @@
-module ParsingAST(module ParsingAST)
+module Parsing.ParsingAST
   where
 
 
@@ -8,8 +8,11 @@ data Body = TTopDecls [TopDecl]
 data TopDecls = TTopDecl [TopDecl]
   deriving (Show,Eq)
 
-data TopDecl = TData SimpleType [Constr]
+data TopDecl = TData TDataDecl
              | TDecl Decl
+  deriving (Show,Eq)
+
+data TDataDecl = TDatadecl SimpleType [Constr]
   deriving (Show,Eq)
 
 type TVar = String
@@ -18,7 +21,7 @@ type GTCon = String
 
 data AType = TTyVar TVar
            | TGTyCon GTCon
-           | TATypeNested [AType]
+           | TATypeAp AType AType
            | TATypeArrow AType AType
   deriving (Show,Eq)
 
@@ -34,21 +37,30 @@ data Constr = TConstr ConID [AType]
 
 type VarID = String
 
-data Decl = TGenDecl [VarID] AType
-          | TFunDecl FunLHS  Exp
+data Decl = TGenDecl TGenDecl
+          | TFunDecl TFunDecl
   deriving (Show,Eq)
 
-data FunLHS = TVarPat Pat [VarID]
+data TGenDecl = TGendecl [VarID] AType
+  deriving (Show,Eq)
+
+data TSGenDecl = TSGendecl VarID AType
+  deriving (Show,Eq)
+
+data TFunDecl = TFundecl FunLHS Exp
+  deriving (Show,Eq)
+
+data FunLHS = TVarPat VarID [VarID]
   deriving (Show,Eq)
 
 
-data Exp = TELambda VarID Exp
+data Exp = TEVar    VarID
+         | TELiteral Literal
+         | TEConstr ConID
+         | TEApp    Exp   Exp
+         | TELambda VarID Exp
          | TELet    Decl  Exp
          | TECase   Exp   [Alt]
-         | TEApp    Exp   Exp
-         | TEVar    VarID
-         | TEConstr ConID
-         | TELiteral Literal
   deriving (Show,Eq)
 
 data Alt = TAlt Pat Exp
@@ -59,8 +71,8 @@ data Pat = TPat ConID [Pat]
          | TLiteral   Literal
   deriving (Show,Eq)
 
-data Literal = TInteger Integer
-             | TChar    Char
-             | TString  String
+data Literal = LitInt     Integer
+             | LitChar    Char
+             | LitString  String
   deriving (Show,Eq)
 

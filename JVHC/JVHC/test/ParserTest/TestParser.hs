@@ -1,11 +1,11 @@
-module TestParser(tests)
+module ParserTest.TestParser(tests)
   where
 
-import qualified TestDeclParser as TDP
-import qualified TestExpParser as TEP
-import qualified TestFullParser as TFP
-import qualified TestGendecl as TG
-import qualified TestTopDeclParser as TTDP
+import qualified ParserTest.TestDeclParser as TDP
+import qualified ParserTest.TestExpParser as TEP
+import qualified ParserTest.TestFullParser as TFP
+import qualified ParserTest.TestGendecl as TG
+import qualified ParserTest.TestTopDeclParser as TTDP
 
 import Test.HUnit
 

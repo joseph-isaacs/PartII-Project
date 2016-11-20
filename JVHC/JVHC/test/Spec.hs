@@ -1,8 +1,9 @@
 module Spec (main)
   where
 
-import qualified TestParser as TP
-import qualified TestLexer   as TL
+import qualified ParserTest.TestParser as TP
+import qualified LexerTest.TestLexer   as TL
+import qualified Desugar.TestDesugar as TD
 import Test.HUnit
 
 main :: IO ()
@@ -12,4 +13,4 @@ main = do
   return ()
 
 
-tests = test [TL.tests, TP.tests]
+tests = test [TL.tests, TP.tests, TD.tests]

@@ -1,7 +1,7 @@
 {
 module Parsing.Lexer (alexScanTokens, LToken(..), RID(..), ROP(..), ST(..)) where
 
-import Parsing.ParsingAST(Literal(..))
+import CoreAST.Literal
 }
 
 %wrapper "basic"

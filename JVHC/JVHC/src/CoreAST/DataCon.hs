@@ -1,9 +1,11 @@
 module CoreAST.DataCon where
 
 import CoreAST.Types
+import CoreAST.Kind
 
-data TyCon = Unit
+
+data TyCon = MkTyCon { mtyCon :: Tycon }
  deriving Show
 
-data DataCon = MkDataCon { name :: String, conType :: Type, tyCon :: TyCon }
+data DataCon = MkDataCon { dName :: String, conType :: Type }
   deriving Show

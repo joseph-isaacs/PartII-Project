@@ -1,13 +1,14 @@
 module CoreAST.CoreExpr
   where
 
-import Parsing.ParsingAST(Literal)
-
+import CoreAST.Literal
 import CoreAST.Types
 import CoreAST.Var
 import CoreAST.DataCon
 
 import Infer.Id
+
+type CoreExprDefs = [(Id,CoreExpr)]
 
 type CoreExpr = Expr Var
 

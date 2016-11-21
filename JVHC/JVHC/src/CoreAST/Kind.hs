@@ -1,5 +1,4 @@
-module CoreAST.Kind
-  where
+module CoreAST.Kind where
 
 import Infer.Id
 
@@ -10,7 +9,7 @@ data KVar = Kvar Id
   deriving (Show,Eq)
 
 removeVars :: Kind -> Kind
-removeVars (KVar v)     = Star
+removeVars (KVar _)     = Star
 removeVars (Kfun k1 k2) = Kfun (removeVars k1) (removeVars k2)
 removeVars k            = k
 

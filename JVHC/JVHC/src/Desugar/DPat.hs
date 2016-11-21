@@ -1,17 +1,20 @@
 module Desugar.DPat where
 
+import CoreAST.DataCon
+
 import Parsing.ParsingAST as PP
-import Infer.TIPat        as TIP
+import Desugar.DExpr      as DE
 import Infer.Assumption
 import Desugar.DTypes
 
 
 -- takes a list of all data constructors and a ParsingAST Pat
-dPat :: Monad m => (TypeList,[Assumption]) -> PP.Pat -> m TIP.Pat
-dPat _         (PP.TLiteral l)    = return $ TIP.PLit l
-dPat _         (PP.TVarID vid)    = return $ TIP.PVar vid
-dPat as@(_,dc) (PP.TPat cid pats) =
+dPat :: Monad m => (TypeList,[Assumption]) -> PP.Pat -> m DE.Pat
+dPat _         (PP.TLiteral l)    = return $ DE.PLit l
+dPat _         (PP.TVarID vid)    = return $ DE.PVar vid
+dPat as@(tl,dc) (PP.TPat cid pats) =
   do
+    tcon    <- lookupTl cid tl
     cAssump <- find cid dc
     pats'   <- mapM (dPat as) pats
-    return $ TIP.PCon (cid :>: cAssump) pats'
+    return $ DE.PCon (cid :>: cAssump) pats'

@@ -1,6 +1,7 @@
 module Parsing.ParsingAST
   where
 
+import CoreAST.Literal
 
 data Body = TTopDecls [TopDecl]
   deriving (Show,Eq)
@@ -69,10 +70,5 @@ data Alt = TAlt Pat Exp
 data Pat = TPat ConID [Pat]
          | TVarID     VarID
          | TLiteral   Literal
-  deriving (Show,Eq)
-
-data Literal = LitInt     Integer
-             | LitChar    Char
-             | LitString  String
   deriving (Show,Eq)
 

@@ -42,6 +42,9 @@ tArrow = TCon $ Tycon "(->)" (Kfun Star
 tInt   = TCon $ Tycon  "Int"  Star
 
 tList  = TCon $ Tycon "List" (Kfun Star Star)
+tUnit  = TCon $ Tycon "Unit" Star
 
 fn :: Type -> Type -> Type
 fn a b = TAp (TAp tArrow a) b
+
+

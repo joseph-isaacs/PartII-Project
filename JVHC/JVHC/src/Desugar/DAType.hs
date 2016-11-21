@@ -24,9 +24,3 @@ dAType as (TATypeArrow a1 a2) = do
   a1' <- dAType as a1
   a2' <- dAType as a2
   return (a1' `fn` a2')
-
-lookupTl :: Monad m => ConID  -> TypeList -> m Tycon
-lookupTl id lt =
-  case lookup id lt of
-    Just x  -> return x
-    Nothing -> fail "Cannot find type"

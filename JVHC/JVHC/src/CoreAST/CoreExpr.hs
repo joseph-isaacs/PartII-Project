@@ -8,7 +8,8 @@ import CoreAST.DataCon
 
 import Infer.Id
 
-type CoreExprDefs = [(Id,CoreExpr)]
+type CoreExprDefs = [(Var,CoreExpr)]
+
 
 type CoreExpr = Expr Var
 

@@ -8,7 +8,7 @@ import Data.List(nub, union, intersect)
 import Control.Monad
 
 
-type Subst = [(Tyvar, Type)]
+type Subst  = [(Tyvar, Type)]
 
 nullSubst :: Subst
 nullSubst = []
@@ -65,7 +65,3 @@ merge s1 s2 = if agree then return merged else fail "subst merge failed"
     merged = s1 ++ s2
     agree = all (\v -> apply s1 (TVar v) == apply s2 (TVar v))
                 (domain s1 `intersect` domain s2)
-
-
-
-

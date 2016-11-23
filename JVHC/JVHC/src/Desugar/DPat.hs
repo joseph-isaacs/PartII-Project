@@ -14,7 +14,6 @@ dPat _         (PP.TLiteral l)    = return $ DE.PLit l
 dPat _         (PP.TVarID vid)    = return $ DE.PVar vid
 dPat as@(tl,dc) (PP.TPat cid pats) =
   do
-    tcon    <- lookupTl cid tl
     cAssump <- find cid dc
     pats'   <- mapM (dPat as) pats
     return $ DE.PCon (cid :>: cAssump) pats'

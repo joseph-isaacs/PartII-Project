@@ -44,11 +44,11 @@ tiExpr as (Ap e1 e2) =
 
 
 tiExpr as (Let bg e) =
-  do (bind,as') <- tiBindGroup as bg
-     let (id,expr,t) = head bind
+  do (bind,as')  <- tiBindGroup as bg
+     let (v,expr) = head bind
      (e', t')    <- tiExpr (as' ++ as) e
-     s          <- getSubst
-     return (C.Let (C.NonRec (MkVar { varName = id, varType = t }) expr) e', t')
+     s           <- getSubst
+     return (C.Let (C.NonRec v expr) e', t')
 
 tiExpr as (Lam p expr) =
   do (as', ts) <- tiPat (PVar p)
@@ -86,7 +86,7 @@ restricted bs = any simple bs
 
 
 
-tiImpls :: Infer [Impl] ([(Id,C.CoreExpr,Type)],[Assumption])
+tiImpls :: Infer [Impl] (C.CoreExprDefs,[Assumption])
 tiImpls as bs =
   do ts <- mapM (\_ -> newTVar Star) bs
      let is    = map fst bs
@@ -106,16 +106,18 @@ tiImpls as bs =
      if restricted bs then
         let gs'  = gs \\ (tv ps')
             scs' = map (quantify gs') ts'
-         in  return (zip3 is (apply s' es) ts',zipWith (:>:) is scs')
+         in  return (zipWith3 zipVECore is (apply s' es) ts',zipWith (:>:) is scs')
      else
        let scs' = map (quantify gs) ts'
-        in return (zip3 is (apply s' es) ts',zipWith (:>:) is scs')
+        in return (zipWith3 zipVECore is (apply s' es) ts',zipWith (:>:) is scs')
 
+zipVECore :: Id -> C.CoreExpr -> Type -> (Var,C.CoreExpr)
+zipVECore id e t = (MkVar { varName = id, varType = t }, e)
 
 -- TIExpl --
 
 
-tiExpl :: [Assumption] -> Expl -> TI ((Id,C.CoreExpr,Type),Type)
+tiExpl :: [Assumption] -> Expl -> TI ((Var,C.CoreExpr),Type)
 tiExpl as (i,sc,alt) =
   do t <- freshInstance sc
      (e,p) <-  tiAlt as alt t
@@ -125,21 +127,21 @@ tiExpl as (i,sc,alt) =
          fs  = tv (apply s as)
          gs  = (tv t' ++ seq ps []) \\ fs
          sc' = quantify gs t'
-     if sc /= sc' then error "signature too general"
-     else return ((i,apply s e,apply s ps),apply s ps)
+     if sc /= sc' then error $ "signature too general for " ++ i
+     else return ((MkVar { varName = i, varType = apply s ps },apply s e),apply s ps)
 
 
 -- TIBind --
 
 
-tiBindGroup :: Infer BindGroup ([(Id,C.CoreExpr,Type)],[Assumption])
+tiBindGroup :: Infer BindGroup (C.CoreExprDefs,[Assumption])
 tiBindGroup as (es,is) =
   do let as' = [v :>: sc | (v,sc,_) <- es]
      (eImpl,as'') <- tiSeq tiImpls (as' ++ as) is
      expls <- mapM (tiExpl (as'' ++ as' ++ as)) es
      return (map fst expls ++ eImpl,as'' ++ as')
 
-tiSeq :: Infer tiI ([(Id,C.CoreExpr,Type)],[Assumption]) -> Infer [tiI] ([(Id,C.CoreExpr,Type)],[Assumption])
+tiSeq :: Infer tiI (C.CoreExprDefs,[Assumption]) -> Infer [tiI] (C.CoreExprDefs,[Assumption])
 tiSeq _  _  [] = return ([],[])
 tiSeq ti as (bs:bss) = do (expr, as' ) <- ti as bs
                           (expr',as'') <- tiSeq ti (as' ++ as) bss

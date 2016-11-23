@@ -24,16 +24,16 @@ lexAndparse = jvhcParse . alexScanTokens
 desugar :: Monad m => Body -> m (BindGroup, [DataType])
 desugar = dTopDecls
 
-mkCore :: Monad m => m (BindGroup, [DataType]) -> m ([(Id,CoreExpr,Type)],[DataType])
+mkCore :: Monad m => m (BindGroup, [DataType]) -> m (CoreExprDefs,[DataType])
 mkCore bgdt =
   do des <- bgdt
      let bg  = fst des
          sdt = splitDataType $ snd des
          ass = snd sdt
          (ict, ass') =  tiProgram ass [bg]
-         idCoreExpr = map (\(i,c,t) -> (i,addBigLambda c,t)) ict
+         idCoreExpr = map (\(v,c) -> (v,addLambda [] c)) ict
      return (idCoreExpr,snd des)
 
-compilerSo :: Monad m => String -> m ([(Id,CoreExpr,Type)],[DataType])
+compilerSo :: Monad m => String -> m (CoreExprDefs,[DataType])
 compilerSo = mkCore . desugar . lexAndparse
 

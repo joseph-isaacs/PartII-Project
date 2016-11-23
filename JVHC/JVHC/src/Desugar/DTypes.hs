@@ -11,4 +11,4 @@ lookupTl :: Monad m => Id  -> TypeList -> m Tycon
 lookupTl id lt =
   case lookup id lt of
     Just x  -> return x
-    Nothing -> fail "Cannot find type"
+    Nothing -> fail $ "Cannot find type " ++ (show id)

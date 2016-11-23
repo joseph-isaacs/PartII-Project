@@ -12,7 +12,7 @@ import Infer.Subst
 import Infer.Id
 
 
-tiProgram :: [Assumption] -> Program -> ([(Id,CoreExpr,Type)],[Assumption])
+tiProgram :: [Assumption] -> Program -> (CoreExprDefs,[Assumption])
 tiProgram as prog = runTI $ (
   do (ict,a) <- tiSeq tiBindGroup as prog
      s <- getSubst

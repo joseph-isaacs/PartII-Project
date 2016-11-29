@@ -1,0 +1,73 @@
+Start with conclusion -- Know the result of the work, we write up the work to convay the meaning to others. What should people take away from the document. Make the conclusion interesting.
+                         What has changed since you did your work (you or others).
+                         Then split into useful parts. 
+
+Laying out document -- 
+
+
+Explaning -- Remove special cases, then address them later.
+
+Content -- present correct order. Start with the foundations. Diagrams (best way to make a point). Re-order after we have the content refine the text.
+           Start adding content with bullet points (get feedback on the bullet points). Then replace bullet points with text. (tricolon, asyndeton, anastrophe, ...).
+
+
+Citations (appear in the text).
+
+Quotation, then acknowledge the source.
+
+    "blah blah blah" [Alan Turing]
+
+Can be useful if you are making a subjective argument quoting can reinforce this.
+
+ -
+
+
+References refer to external justification.
+
+Cite a webpage as a footnote \footnote{...}: (put the retrived date, put only at bottom of the page).
+
+  XXXXXX XXX XXX
+  X XXX XXX X [1]
+  ...
+  [1] www.xxx.com
+
+Using \cite for the end.
+
+When doing research, but comments in the bibetex.
+
+How to handle multiple authers, "et al." only use for more than two authors.
+
+Define abreavitions.
+
+
+Grammar:
+
+ - subjunctive mood: express doubt, wih, condition or purpose.
+ - gerund: ???.
+ - shall/will.
+ - apostrophes (who's "who is", "who has"), whose possessive form "of whom" or "belonging to who".
+ - like goes to [as if, such as, similar to, for example].
+ - ise for English and for Amercia ize.
+ - 
+
+Proofreading
+
+ - Change the document font, font size margin ... Might stop something else. 
+ - Read beginning to end. (Does the argument flow, does it refer to things that haven't explained yet).
+ - Make changes as you go. Check the flow of the document.
+ - Read it backwards, ensure words aren't over-used. 
+
+ - wait 24 hours before reading again.
+
+Typingsetting and presentation:
+
+ - hyphen
+ - endash (like using brackets in middle pair, space either side, number range).
+ - emdash (no space around emdash).
+ - After Mr escape the space (don't use a sentance space).
+ - '~' is used to stop lines breaking.
+ - e.g. 'Matthew~T.\ Ireland'
+ - also function~$f(x)$,
+ - string~$s$.
+
+

@@ -26,7 +26,7 @@ tiCaseAlt (PLit l) =
   do t <- tiLit l
      return (LitAlt l, [], [], t)
 
-tiCaseAlt (PCon (i :>: sc@(Forall _ t)) pats) =
+tiCaseAlt (PCon (i :>: sc@(Scheme _ t)) pats) =
   do (binders, as, ts) <- tiCaseAlts pats
      t'                <- newTVar Star
      t                 <- freshInstance sc

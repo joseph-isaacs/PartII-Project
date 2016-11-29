@@ -40,11 +40,15 @@ tiExpr as (Ap e1 e2) =
      (e2',t2) <- tiExpr as e2
      t        <- newTVar Star
      unify t1 (t2 `fn` t)
-     return (C.App e1' e2',t)
+     let ca = C.App e1' e2'
+     logExpr ca t
+     return (ca,t)
 
 
 tiExpr as (Let bg e) =
-  do (bind,as')  <- tiBindGroup as bg
+  do id <- getId
+     (bind,as')  <- tiBindGroup as bg
+     setId id
      let (v,expr) = head bind
      (e', t')    <- tiExpr (as' ++ as) e
      s           <- getSubst
@@ -54,7 +58,9 @@ tiExpr as (Lam p expr) =
   do (as', ts) <- tiPat (PVar p)
      (e',t)    <- tiExpr (as' ++ as) expr
      s <- seq t getSubst
-     return (C.Lam (MkVar { varName = p, varType = ts }) e', ts `fn` t)
+     let lam = C.Lam (MkVar { varName = p, varType =  ts }) e'
+     return (lam, ts `fn` t)
+
 
 tiExpr as (Case e cases)
   = do (e',t) <- tiExpr as e
@@ -69,10 +75,11 @@ tiExpr as (Case e cases)
        s    <- getSubst
        return (C.Case e' v alts, v)
 
-tiAlt :: [Assumption] -> Alt -> Type -> TI (C.CoreExpr, Type)
-tiAlt as alts t =
-  do (e,pt) <- tiExpr as alts
-     unify t pt
+tiAlt :: [Assumption] -> (Id,Alt) -> Type -> TI (C.CoreExpr, Type)
+tiAlt as (id,alts) t =
+  do setId id
+     (e,pt) <- tiExpr as alts
+     unify pt t
      s' <- getSubst
      return (e, apply s' pt)
 
@@ -93,7 +100,7 @@ tiImpls as bs =
          scs   = map toScheme ts
          as'   = zipWith (:>:) is scs ++ as
          alt   = map snd bs
-     impls <- sequence (zipWith (tiAlt as') alt ts)
+     impls <- sequence (zipWith (tiAlt as') bs ts)
      s <- getSubst
      let pss = map snd impls
          es  = map fst impls
@@ -118,17 +125,17 @@ zipVECore id e t = (MkVar { varName = id, varType = t }, e)
 
 
 tiExpl :: [Assumption] -> Expl -> TI ((Var,C.CoreExpr),Type)
-tiExpl as (i,sc,alt) =
+tiExpl as (id,sc,alt) =
   do t <- freshInstance sc
-     (e,p) <-  tiAlt as alt t
+     (e,p) <-  tiAlt as (id,alt) t
      s     <- getSubst
      let ps  = apply s p
          t'  = apply s t
          fs  = tv (apply s as)
          gs  = (tv t' ++ seq ps []) \\ fs
          sc' = quantify gs t'
-     if sc /= sc' then error $ "signature too general for " ++ i
-     else return ((MkVar { varName = i, varType = apply s ps },apply s e),apply s ps)
+     if sc /= sc' then error $ "signature too general for " ++ id
+                  else return ((MkVar { varName = id, varType = apply s ps },apply s e),apply s ps)
 
 
 -- TIBind --

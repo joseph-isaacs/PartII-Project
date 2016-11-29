@@ -4,4 +4,4 @@ import CoreAST.Types
 
 data Var = MkVar  { varName :: String,  varType :: Type }
          | MkTVar { tvarName :: Tyvar }
-  deriving Show
+  deriving (Show,Eq)

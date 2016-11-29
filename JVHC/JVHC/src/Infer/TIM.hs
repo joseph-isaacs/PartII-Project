@@ -3,7 +3,11 @@
 
 module Infer.TIM where
 
-import Control.Monad.State(State, MonadState, evalState,get,modify)
+import CoreAST.CoreExpr
+import CoreAST.Types
+
+import Control.Monad.State(State, MonadState, runState,get,modify)
+import Control.Monad.Writer
 import Control.Monad
 
 import Infer.Subst
@@ -14,16 +18,32 @@ import CoreAST.Kind
 import Infer.Id
 import Infer.Assumption
 
-newtype TI a = TI (State (Subst, Int) a)
-  deriving (Functor, Applicative, Monad, MonadState (Subst, Int))
+import Infer.CoreExprSubst
+
+import qualified Data.Map as M
+import Data.List (groupBy)
+
+newtype TI a = TI (WriterT [(Id,(CoreExpr,Type))] (State (Subst, (Int, Id))) a)
+  deriving (Functor, Applicative, Monad
+           , MonadWriter [(Id,(CoreExpr,Type))]
+           , MonadState (Subst, (Int, Id)))
 
 type Infer e t = [Assumption] -> e -> TI t
 
-runTI :: TI a -> a
-runTI (TI s) = evalState s (nullSubst, 0)
+runTI :: TI a -> (a,M.Map Id [(CoreExpr,Type)])
+runTI (TI s) = (res,mLog)
+  where ((res,log),(sub,_)) = runState (runWriterT s) (nullSubst, (0,undefined))
+        ceG  = map (\(v,(r,l)) -> (v,[(r,apply sub l)])) log
+        mLog = M.fromListWith (++) ceG
+
 
 getSubst :: TI Subst
 getSubst = liftM fst get
+
+logExpr :: CoreExpr -> Type -> TI ()
+logExpr e t =
+  do v <- getId
+     tell [(v,(e,t))]
 
 unify :: Type -> Type -> TI ()
 unify t1 t2 = do s <- getSubst
@@ -32,14 +52,20 @@ unify t1 t2 = do s <- getSubst
         where
           extSubst s' = modify $ \(s,n) -> (s @@ s',n)
 
+setId :: Id -> TI ()
+setId v = modify $ \(s,(n,_)) -> (s,(n,v))
+
+getId :: TI Id
+getId = liftM (snd.snd) get
+
 newTVar :: Kind -> TI Type
 newTVar k = do
-  n <- liftM snd get
-  modify $ \(s,n) -> (s,n+1)
+  n <- liftM (fst.snd) get
+  modify $ \(s,(n,v)) -> (s,(n+1,v))
   return $ TVar $ Tyvar (enumId n) k
 
 freshInstance :: Scheme -> TI Type
-freshInstance (Forall k t) = do ts <- mapM newTVar k
+freshInstance (Scheme k t) = do ts <- mapM newTVar k
                                 return (inst ts t)
 
 class Instantiate t where
@@ -53,4 +79,12 @@ instance Instantiate Type where
 instance Instantiate a => Instantiate [a] where
   inst ts = map (inst ts)
 
+fst3 :: (a,b,c) -> a
+fst3 (a,_,_) = a
 
+
+snd3 :: (a,b,c) -> b
+snd3 (_,b,_) = b
+
+trd3 :: (a,b,c) -> c
+trd3 (_,_,c) = c

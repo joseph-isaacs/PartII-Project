@@ -47,8 +47,3 @@ instance FreeVariables BindGroup where
 
   binder (expl,impl) = concatMap binder expl ++ concatMap (concatMap binder) impl
 
---instance (FreeVariables a, FreeVariables b) => FreeVariables (a,b) where
---  fv (a,b) = fv a ++ fv b
-
---instance FreeVariables a => FreeVariables [a] where
---  fv = concatMap fv

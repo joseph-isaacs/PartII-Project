@@ -13,8 +13,10 @@ instance Types b => Types (Bind b) where
   apply s (Rec    rec) = Rec (apply s rec)
   tv s = []
 
+
 instance Types Var where
-  apply s (MkVar { varName = n, varType = t }) = MkVar { varName = n, varType = apply s t }
+  apply s (MkVar { varName = n, varType = t }) =
+                            MkVar { varName = n, varType = apply s t }
   apply s (MkTVar { tvarName = t }) = MkTVar { tvarName = apply s t }
 
   tv (MkVar {varType = t})   = tv t

@@ -33,9 +33,9 @@ unify k1 k2 = do s <- getKSubst
 
 newKVar :: KI Kind
 newKVar = do
-  n <- liftM snd get
+  num <- liftM snd get
   modify $ \(s,n) -> (s,n+1)
-  return $ KVar $ Kvar $ enumId n
+  return $ KVar $ Kvar $ enumId num
 
 
 

@@ -26,7 +26,6 @@ library
                      , CoreAST.Literal
                      , CoreAST.DataCon
                      , Printing.PPrint
-                     , Printing.PPrintTypes
                      , Desugar.DExpr
                      , Desugar.DTypes
                      , Desugar.DPat

@@ -3,8 +3,6 @@ module CoreAST.Types
 
 import CoreAST.Kind
 import Infer.Id
-import Printing.PPrint
-import Printing.PPrintTypes
 
 import Printing.PPrint
 import Text.PrettyPrint
@@ -37,16 +35,23 @@ instance HasKind Type where
   kind   (TCon x)   = kind x
   kind   (TVar x)   = kind x
   kind k@(TAp  t _) = case kind t of
-                      (Kfun _ k) -> k
-                      (Star)     -> error $ (show k) ++  " is not valid kind"
+                      (Kfun _ ki) -> ki
+                      _           -> error $ (show k) ++  " is not valid kind"
   kind x            = error $ (show x) ++ "has no kind"
 
+tChar :: Type
 tChar  = TCon $ Tycon "Char" Star
+
+tArrow :: Type
 tArrow = TCon $ Tycon "(->)" (Kfun Star
                           (Kfun Star Star))
+tInt :: Type
 tInt   = TCon $ Tycon  "Int"  Star
 
+tList :: Type
 tList  = TCon $ Tycon "List" (Kfun Star Star)
+
+tUnit :: Type
 tUnit  = TCon $ Tycon "Unit" Star
 
 fn :: Type -> Type -> Type
@@ -57,23 +62,23 @@ instance PPrint Type where
   pprint    = pptype 0
   parPprint = pptype 10
 
+pptype :: Int -> Type -> Doc
 pptype d (TAp (TAp a x) y)
     | a==tArrow    = ppParen (d>=5) (pptype 5 x <+> text "`fn`"
                                                 <+> pptype 0 y)
 pptype d (TAp l r) = ppParen (d>=10) (text "TAp" <+> pptype 10 l
                                                  <+> pptype 10 r)
 pptype d (TGen n)  = ppParen (d>=10) (text "TGen" <+> int n)
-pptype d t
+pptype _ t
     | t==tList     = text "tList"
     | t==tArrow    = text "tArrow"
     | t==tUnit     = text "tUnit"
-pptype d (TCon (Tycon i k))
-                   = text ('t':i)
-pptype d (TVar v)  = pprint v
+pptype _ (TCon (Tycon i _)) = text ('t':i)
+pptype _ (TVar v)  = pprint v
 
 instance Show Type where
   show = pretty
 
 instance PPrint Tyvar where
-  pprint (Tyvar v k)  = text v
+  pprint (Tyvar v _)  = text v
 

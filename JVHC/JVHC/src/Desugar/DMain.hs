@@ -98,7 +98,7 @@ predSplitImplExpl gs funs = driver gs funs []
     driver ((g@(TSGendecl var _)):gs) funs expl =
       if toManyFuns then fail $ "to many function bodies for " ++ (show var)
       else
-      if funsEmpty then fail $ "type signature for " ++ var ++ "lacks accompanying binding"
+      if funsEmpty then fail $ "type signature for " ++ var ++ " lacks accompanying binding"
                    else driver gs other ((g,head currentFuns):expl)
       where (currentFuns,other) = L.partition (\x -> var == genVar x) funs
             funsEmpty = currentFuns == []

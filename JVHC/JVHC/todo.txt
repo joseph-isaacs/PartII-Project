@@ -1,0 +1,4 @@
+Need to change DataType and DataCon to be useful!
+
+Need to allow data constructors to be used as function in the Pipeline.Compiler function.
+Fix the resulting type of the core expression (the top level type differs from the body only alpha-equiv).

@@ -32,4 +32,5 @@ match (TCon t1) (TCon t2)
 match (TAp l1 r1) (TAp l2 r2) = do s1 <- match l1 l2
                                    s2 <- match r1 r2
                                    merge s1 s2
-match t1 t2         = fail "cannot match types"
+
+match t1 t2         = error $ "cannot match types " ++ (show t1) ++ " " ++ (show t2)

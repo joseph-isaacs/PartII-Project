@@ -2,4 +2,7 @@ module Infer.Id where
 
 type Id = String
 enumId :: Int ->  Id
-enumId n = "_internal" ++ (show n)
+enumId n = "*" ++ (show n) ++ "*"
+
+enumId2 :: Int -> Id
+enumId2 n = "&" ++ (show n) ++ "&"

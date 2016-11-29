@@ -21,12 +21,12 @@ data Expr b
   | Let  (Bind b) (Expr b)
   | Case (Expr b) Type    [Alt b]
   | Type Type
-  deriving Show
+  deriving (Eq,Show)
 
 type Arg b = Expr b
 type Alt b = (AltCon, [b], Expr b)
 
 data AltCon = DataAlt DataCon | LitAlt Literal | DEFAULT
-  deriving Show
+  deriving (Show,Eq)
 data Bind b = NonRec b (Expr b) | Rec [(b, Expr b)]
-  deriving Show
+  deriving (Show,Eq)

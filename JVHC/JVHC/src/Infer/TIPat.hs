@@ -20,7 +20,7 @@ import Infer.Id
 tiCaseAlt :: Pat -> TI(AltCon, [Var], [Assumption], Type)
 tiCaseAlt (PVar id) =
   do v <- newTVar Star
-     return (DEFAULT, [MkVar { varName = id, varType = v}], [id :>: toScheme v],v)
+     return (DEFAULT, [MkVar { varName = id, varType = TScheme [] v}], [id :>: toScheme v],v)
 
 tiCaseAlt (PLit l) =
   do t <- tiLit l
@@ -31,7 +31,7 @@ tiCaseAlt (PCon (i :>: sc@(Scheme _ t)) pats) =
      t'                <- newTVar Star
      t                 <- freshInstance sc
      unify t (foldr fn t' ts)
-     return (DataAlt $ MkDataCon { dName = i, conType = t },
+     return (DataAlt $ MkDataCon { dName = i, conType = TScheme [] t },
              binders, as, t')
 
 tiCaseAlts :: [Pat] -> TI([Var],[Assumption],[Type])

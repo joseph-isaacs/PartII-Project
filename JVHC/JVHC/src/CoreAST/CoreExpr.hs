@@ -8,17 +8,16 @@ import CoreAST.DataCon
 
 import Infer.Id
 
-type CoreExprDefs = [(Var,CoreExpr)]
+type Binder = Var
 
-
-type CoreExpr = Expr Var
+type CoreExpr = Expr Binder
 
 data Expr b
   = Var  Id
   | Lit  Literal
   | App  (Expr b) (Arg  b)
   | Lam  b        (Expr b)
-  | Let  (Bind b) (Expr b)
+  | Let  (ExprDef b) (Expr b)
   | Case (Expr b) Type    [Alt b]
   | Type Type
   deriving (Eq,Show)
@@ -28,5 +27,10 @@ type Alt b = (AltCon, [b], Expr b)
 
 data AltCon = DataAlt DataCon | LitAlt Literal | DEFAULT
   deriving (Show,Eq)
-data Bind b = NonRec b (Expr b) | Rec [(b, Expr b)]
+
+data ExprDef b = ExprDef b (Expr b)
   deriving (Show,Eq)
+
+type CoreExprDef = ExprDef Binder
+
+type CoreExprDefs = [CoreExprDef]

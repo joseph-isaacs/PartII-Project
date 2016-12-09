@@ -43,8 +43,16 @@ dConstr cons (TK { varKinds = vars, typeName = tName}) (TConstr id types) =
   do dTypes <- mapM (dConstrType cons vars) types
      dataK <- find tName cons
      let tyvars  = map (\(i:>:ks) -> Tyvar i ks) vars
-         ctrType = makeConstrType (Tycon tName (removeVars dataK),tyvars) dTypes
+         dTypes' = map removeKVarsFromType dTypes
+         ctrType = makeConstrType (Tycon tName (removeVars dataK),tyvars) dTypes'
      return $ (A.:>:) id (quantify tyvars ctrType)
+
+removeKVarsFromType :: Type -> Type
+removeKVarsFromType (TAp t1 t2) = TAp (removeKVarsFromType t1) (removeKVarsFromType t2)
+removeKVarsFromType (TVar (Tyvar i k)) = TVar (Tyvar i (removeVars k))
+removeKVarsFromType (TCon (Tycon i k)) = TCon (Tycon i (removeVars k))
+removeKVarsFromType x = x
+
 
 makeConstrType :: (Tycon,[Tyvar]) -> [Type] -> Type
 makeConstrType (tcs,ass) ts = foldr fn ret ts

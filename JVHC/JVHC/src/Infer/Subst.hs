@@ -52,6 +52,10 @@ instance (Types a, Types b, Types c) => Types (a,b,c) where
   apply s (a,b,c) = (apply s a, apply s b, apply s c)
   tv      (a,b,c) = tv a ++ tv b ++ tv c
 
+applyTillNoChange :: (Types t, Eq t) => Subst -> t -> t
+applyTillNoChange sub t = if change then applyTillNoChange sub t' else t'
+  where t' = apply sub t
+        change = t /= t'
 
 infixr 4 @@
 (@@)  :: Subst -> Subst -> Subst
@@ -59,7 +63,7 @@ s1 @@ s2 = [(u, s1 `apply` t) | (u,t) <- s2] ++ s1
 
 
 merge :: (Monad m) => Subst -> Subst -> m Subst
-merge s1 s2 = if agree then return merged else fail "subst merge failed"
+merge s1 s2 = if agree then return merged else fail $ "subst merge failed " ++ (show s1) ++ ", " ++ (show s2)
   where
     domain = map fst
     merged = s1 ++ s2

@@ -18,7 +18,7 @@ import Infer.TILit
 import Infer.TIPat
 import Infer.Assumption
 
-import Data.List((\\),union)
+import Data.List((\\),union,intersect,partition)
 
 
 tiExpr :: Infer Expr (C.CoreExpr,Type)
@@ -29,7 +29,9 @@ tiExpr as (Var i) =
 
 tiExpr _  (Lit l) =
   do t <- tiLit l
-     return (C.Lit l, t)
+     let clit = C.Lit l
+     logExpr clit t
+     return (clit, t)
 
 tiExpr as (Const (i :>: sc)) =
   do t <- freshInstance sc
@@ -49,16 +51,18 @@ tiExpr as (Let bg e) =
   do id <- getId
      (bind,as')  <- tiBindGroup as bg
      setId id
-     let (v,expr) = head bind
+     let expr = head bind
      (e', t')    <- tiExpr (as' ++ as) e
      s           <- getSubst
-     return (C.Let (C.NonRec v expr) e', t')
+     let le = C.Let expr e'
+     logExpr le t'
+     return (le, t')
 
 tiExpr as (Lam p expr) =
   do (as', ts) <- tiPat (PVar p)
      (e',t)    <- tiExpr (as' ++ as) expr
      s <- seq t getSubst
-     let lam = C.Lam (MkVar { varName = p, varType =  ts }) e'
+     let lam = C.Lam (MkVar { varName = p, varType = TScheme [] ts }) e'
      return (lam, ts `fn` t)
 
 
@@ -81,9 +85,39 @@ tiAlt as (id,alts) t =
      (e,pt) <- tiExpr as alts
      unify pt t
      s' <- getSubst
-     return (e, apply s' pt)
+     return (e, t)
 
 -- TIImpl --
+
+
+
+
+split :: Monad m => [Tyvar] -> [Tyvar] -> [Type] -> m ([Type],[Type])
+split fs gs ps = do let (ds,rs) = partition (all (`elem` fs) . tv) ps
+                    rs' <- defaultedPreds (fs ++ gs) rs
+                    return (ds, rs)
+
+
+type Ambiguity = (Tyvar, [Type])
+
+ambiguities :: [Tyvar] -> [Type] -> [Ambiguity]
+ambiguities vs ps = [ (v, filter (elem v .tv) ps) | v <- tv ps \\ vs]
+
+defaultedPreds :: Monad m => [Tyvar] -> [Type] -> m [Type]
+defaultedPreds = withDefaults (\vps ts -> concat (map snd vps))
+
+withDefaults :: Monad m => ([Ambiguity] -> [Type] -> a) -> [Tyvar] -> [Type] -> m a
+withDefaults f vs ps
+  | any null tss = fail "cannot resolve ambiguity"
+  | otherwise    = return (f vps (map head tss))
+      where vps = ambiguities vs ps
+            tss = map candidates vps
+
+candidates :: Ambiguity -> [Type]
+candidates (v,qs) = error $ "got to candidates " ++ (show (v,qs))
+--[ t' | let ts = [ t' | qs ],
+--       all ((TVar v)==)ts]
+
 
 
 restricted :: [Impl] -> Bool
@@ -110,32 +144,36 @@ tiImpls as bs =
          vss = map tv ts'
          gs  = (foldr1 union vss) \\ fs
      s' <- getSubst
+     (ds,rs) <- split fs (foldr1 intersect vss) ps'
      if restricted bs then
-        let gs'  = gs \\ (tv ps')
+        let gs'  = gs \\ (tv rs)
             scs' = map (quantify gs') ts'
-         in  return (zipWith3 zipVECore is (apply s' es) ts',zipWith (:>:) is scs')
+         in
+         return (zipWith3 zipVECore is (apply s' es) ts',zipWith (:>:) is scs')
      else
        let scs' = map (quantify gs) ts'
         in return (zipWith3 zipVECore is (apply s' es) ts',zipWith (:>:) is scs')
 
-zipVECore :: Id -> C.CoreExpr -> Type -> (Var,C.CoreExpr)
-zipVECore id e t = (MkVar { varName = id, varType = t }, e)
+zipVECore :: Id -> C.CoreExpr -> Type -> C.CoreExprDef
+zipVECore id e t = C.ExprDef (MkVar { varName = id, varType = TScheme [] t }) e
 
 -- TIExpl --
 
 
-tiExpl :: [Assumption] -> Expl -> TI ((Var,C.CoreExpr),Type)
+tiExpl :: [Assumption] -> Expl -> TI (C.CoreExprDef,Type)
 tiExpl as (id,sc,alt) =
   do t <- freshInstance sc
-     (e,p) <-  tiAlt as (id,alt) t
+     (e,p') <-  tiAlt as (id,alt) t
      s     <- getSubst
+     let p = apply s p'
      let ps  = apply s p
          t'  = apply s t
          fs  = tv (apply s as)
          gs  = (tv t' ++ seq ps []) \\ fs
          sc' = quantify gs t'
-     if sc /= sc' then error $ "signature too general for " ++ id
-                  else return ((MkVar { varName = id, varType = apply s ps },apply s e),apply s ps)
+         t'' = apply s ps
+     if sc /= sc' then error $ "signature too general for \n" ++ (show sc) ++ "\n" ++ (show sc')
+      else return (C.ExprDef (MkVar { varName = id, varType = TScheme [] t'' }) (apply s e),t'')
 
 
 -- TIBind --

@@ -13,7 +13,7 @@ data Type = TVar  Tyvar
           | TCon  Tycon
           | TAp   Type    Type
           | TGen  FreshId
-          deriving Eq
+          deriving (Eq)
 
 
 data Tyvar = Tyvar Id Kind

@@ -8,11 +8,13 @@ import CoreAST.Literal
 
 import Infer.Subst
 
-instance Types b => Types (Bind b) where
-  apply s (NonRec b e) = NonRec (apply s b) (apply s e)
-  apply s (Rec    rec) = Rec (apply s rec)
+instance Types b => Types (ExprDef b) where
+  apply s (ExprDef b e) = ExprDef (apply s b) (apply s e)
   tv s = []
 
+instance Types TScheme where
+  apply s (TScheme b t) = TScheme b (apply s t)
+  tv (TScheme b t) = tv t
 
 instance Types Var where
   apply s (MkVar { varName = n, varType = t }) =
@@ -43,7 +45,5 @@ instance Types DataCon where
     MkDataCon { dName = n, conType = apply s c}
 
   tv s = []
-
-
 
 

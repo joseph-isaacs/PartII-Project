@@ -10,11 +10,14 @@ import Parsing.Lexer(alexScanTokens,LToken)
 import Desugar.DTopDecls(dTopDecls,splitDataType)
 import Desugar.DDataDecl(DataType)
 import Desugar.DExpr (BindGroup)
+
 import Infer.Id
+import Infer.Scheme
+import Infer.Assumption
 
 import Infer.TIProgram
 
-import Infer.CoreExprFixer
+import Infer.TyAppFixer
 
 import Control.Monad
 
@@ -27,7 +30,7 @@ desugar :: Monad m => Body -> m (BindGroup, [DataType])
 desugar = dTopDecls
 
 mkCore :: Monad m => m (BindGroup, [DataType]) ->
-                     m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)])
+                     m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)],[Assumption])
 mkCore bgdt =
   do des <- bgdt
      let bg  = fst des
@@ -35,13 +38,15 @@ mkCore bgdt =
          ass = snd sdt
          (x1,x2) = tiProgram ass [bg]
          (ict, ass')  = x1
-         idCoreExpr   = map (addLambda []) ict
-         topLevelVars = map (\((MkVar { varName = i, varType = t }),_) -> (Var i, t)) idCoreExpr
-     idCoreExpr'  <- mapM (\v@((MkVar { varName = i }),_) ->
-                          addTvApp [] (M.findWithDefault [] i x2 ++ topLevelVars) v ) idCoreExpr
-     return ((idCoreExpr',snd des),x2)
+         topLevelVars =
+           map (\(ExprDef (MkVar { varName = i, varType = TScheme [] t }) _) -> (Var i, t)) ict
+         ict' =   map (\v@(ExprDef (MkVar { varName = i }) _) ->
+           runFXR (frxExprDef [] (M.findWithDefault [] i x2 ++ topLevelVars) v )) ict
+     return ((ict',snd des),x2,ass')
 
-compilerSo :: Monad m => String -> m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)])
+
+
+compilerSo :: Monad m => String -> m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)], [Assumption])
 compilerSo = mkCore . desugar . lexAndparse
 
 

@@ -33,9 +33,12 @@ type Infer e t = [Assumption] -> e -> TI t
 runTI :: TI a -> (a,M.Map Id [(CoreExpr,Type)])
 runTI (TI s) = (res,mLog)
   where ((res,log),(sub,_)) = runState (runWriterT s) (nullSubst, (0,undefined))
-        ceG  = map (\(v,(r,l)) -> (v,[(r,apply sub l)])) log
+        ceG  = map (mapFun sub) log
         mLog = M.fromListWith (++) ceG
 
+mapFun :: Subst -> (Id,(CoreExpr,Type)) -> (Id,[(CoreExpr,Type)])
+mapFun sub (id,(c,t)) = (id,[(c, t')])
+  where t' = applyTillNoChange sub t
 
 getSubst :: TI Subst
 getSubst = liftM fst get
@@ -79,12 +82,3 @@ instance Instantiate Type where
 instance Instantiate a => Instantiate [a] where
   inst ts = map (inst ts)
 
-fst3 :: (a,b,c) -> a
-fst3 (a,_,_) = a
-
-
-snd3 :: (a,b,c) -> b
-snd3 (_,b,_) = b
-
-trd3 :: (a,b,c) -> c
-trd3 (_,_,c) = c

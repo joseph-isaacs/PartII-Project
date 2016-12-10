@@ -8,7 +8,7 @@ import Printing.PPrint
 import Text.PrettyPrint
 
 data Assumption = Id :>: Scheme
-  deriving (Show)
+  deriving (Show,Eq)
 
 instance Types Assumption where
   apply s (i :>: sc) = i :>: (apply s sc)

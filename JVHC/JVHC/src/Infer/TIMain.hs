@@ -19,7 +19,7 @@ import Infer.TIPat
 import Infer.Assumption
 
 import Data.List((\\),union,intersect,partition)
-
+import System.IO.Unsafe
 
 tiExpr :: Infer Expr (C.CoreExpr,Type)
 tiExpr as (Var i) =
@@ -35,6 +35,8 @@ tiExpr _  (Lit l) =
 
 tiExpr as (Const (i :>: sc)) =
   do t <- freshInstance sc
+     t' <- freshInstance sc
+     logExpr (C.Var i) t'
      return (C.Var i, t)
 
 tiExpr as (Ap e1 e2) =
@@ -55,7 +57,6 @@ tiExpr as (Let bg e) =
      (e', t')    <- tiExpr (as' ++ as) e
      s           <- getSubst
      let le = C.Let expr e'
-     logExpr le t'
      return (le, t')
 
 tiExpr as (Lam p expr) =
@@ -95,7 +96,7 @@ tiAlt as (id,alts) t =
 split :: Monad m => [Tyvar] -> [Tyvar] -> [Type] -> m ([Type],[Type])
 split fs gs ps = do let (ds,rs) = partition (all (`elem` fs) . tv) ps
                     rs' <- defaultedPreds (fs ++ gs) rs
-                    return (ds, rs)
+                    return (ds, rs ++ rs')
 
 
 type Ambiguity = (Tyvar, [Type])
@@ -137,22 +138,28 @@ tiImpls as bs =
      impls <- sequence (zipWith (tiAlt as') bs ts)
      s <- getSubst
      let pss = map snd impls
-         es  = map fst impls
-         ps' = apply s pss
-         ts' = apply s ts
-         fs  = tv (apply s as)
+         es  = seq (show pss) (map fst impls)
+         ts' = applyTillNoChange s ts
+         fs  = tv (applyTillNoChange s as)
          vss = map tv ts'
          gs  = (foldr1 union vss) \\ fs
+         psss = show pss
      s' <- getSubst
-     (ds,rs) <- split fs (foldr1 intersect vss) ps'
+     (ds,rs) <- split fs (foldr1 intersect vss) ts'
      if restricted bs then
-        let gs'  = gs \\ (tv rs)
+        let gs'  = gs
             scs' = map (quantify gs') ts'
-         in
-         return (zipWith3 zipVECore is (apply s' es) ts',zipWith (:>:) is scs')
+            er = ("\n\n" ++ psss ++ " " ++ show ds ++ " " ++ show rs ++ " " ++ show gs
+                  ++ " " ++ show fs ++ show vss ++ show (foldr1 intersect vss) ++ show (foldr1 union vss)
+                  ++ show ts' ++ " " ++ show es ++ show as ++ show (zipWith (:>:) is scs')  ++  show s' ++ "\n\n")
+        in return (zipWith3 zipVECore is (applyTillNoChange s' es) ts',zipWith (:>:) is scs')
+--         in (seq (unsafePerformIO (putStr er))) (return (zipWith3 zipVECore is (applyTillNoChange s' es) ts',zipWith (:>:) is scs'))
      else
        let scs' = map (quantify gs) ts'
-        in return (zipWith3 zipVECore is (apply s' es) ts',zipWith (:>:) is scs')
+           -- er = ("\n\n" ++ show ds ++ " " ++ show rs ++ " " ++ show gs
+           --      ++ " " ++ show fs ++ show (foldr1 intersect vss)
+           --      ++ show ts' ++ " " ++ show es ++ show as ++ show (zipWith (:>:) is scs') ++ show s' ++ "\n\n")
+        in return (zipWith3 zipVECore is (applyTillNoChange s' es) ts',zipWith (:>:) is scs')
 
 zipVECore :: Id -> C.CoreExpr -> Type -> C.CoreExprDef
 zipVECore id e t = C.ExprDef (MkVar { varName = id, varType = TScheme [] t }) e
@@ -173,7 +180,7 @@ tiExpl as (id,sc,alt) =
          sc' = quantify gs t'
          t'' = apply s ps
      if sc /= sc' then error $ "signature too general for \n" ++ (show sc) ++ "\n" ++ (show sc')
-      else return (C.ExprDef (MkVar { varName = id, varType = TScheme [] t'' }) (apply s e),t'')
+      else return (C.ExprDef (MkVar { varName = id, varType = TScheme [] t'' }) (applyTillNoChange s e),t'')
 
 
 -- TIBind --

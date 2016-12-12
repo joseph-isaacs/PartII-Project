@@ -7,6 +7,8 @@ import Parsing.ParsingAST
 import Infer.TIMain
 import Infer.Assumption
 
+import Infer.BuildInTypes as BIT
+
 import Desugar.DDataDecl
 import Desugar.DTypes
 import Desugar.DMain
@@ -18,7 +20,7 @@ dTopDecls :: Monad m => Body -> m (BindGroup, [DataType])
 dTopDecls (TTopDecls decls) =
   do let (dd,decl) = splitTopDecls decls
      dataTypes     <- dDataDecls dd
-     let context   = splitDataType dataTypes
+     let context   = splitDataType (dataTypes ++ BIT.types)
      bg            <- dDecl context decl
      return (bg,dataTypes)
 

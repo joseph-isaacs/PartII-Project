@@ -4,6 +4,7 @@ import CoreAST.Types
 import CoreAST.Kind
 import CoreAST.Var
 import CoreAST.Literal
+import CoreAST.TScheme
 import qualified CoreAST.CoreExpr as C
 
 import Desugar.DExpr
@@ -57,6 +58,7 @@ tiExpr as (Let bg e) =
      (e', t')    <- tiExpr (as' ++ as) e
      s           <- getSubst
      let le = C.Let expr e'
+     logExpr le t'
      return (le, t')
 
 tiExpr as (Lam p expr) =
@@ -69,6 +71,7 @@ tiExpr as (Lam p expr) =
 
 tiExpr as (Case e cases)
   = do (e',t) <- tiExpr as e
+       logExpr e' t
        v <- newTVar Star
        let tiCase (pat,body) =
              do (dCon,vars,as',t') <- tiCaseAlt pat
@@ -87,10 +90,6 @@ tiAlt as (id,alts) t =
      unify pt t
      s' <- getSubst
      return (e, t)
-
--- TIImpl --
-
-
 
 
 split :: Monad m => [Tyvar] -> [Tyvar] -> [Type] -> m ([Type],[Type])
@@ -127,7 +126,7 @@ restricted bs = any simple bs
         simple (_ , s  ) = True
 
 
-
+-- TIImpl --
 tiImpls :: Infer [Impl] (C.CoreExprDefs,[Assumption])
 tiImpls as bs =
   do ts <- mapM (\_ -> newTVar Star) bs
@@ -149,23 +148,15 @@ tiImpls as bs =
      if restricted bs then
         let gs'  = gs
             scs' = map (quantify gs') ts'
-            er = ("\n\n" ++ psss ++ " " ++ show ds ++ " " ++ show rs ++ " " ++ show gs
-                  ++ " " ++ show fs ++ show vss ++ show (foldr1 intersect vss) ++ show (foldr1 union vss)
-                  ++ show ts' ++ " " ++ show es ++ show as ++ show (zipWith (:>:) is scs')  ++  show s' ++ "\n\n")
         in return (zipWith3 zipVECore is (applyTillNoChange s' es) ts',zipWith (:>:) is scs')
---         in (seq (unsafePerformIO (putStr er))) (return (zipWith3 zipVECore is (applyTillNoChange s' es) ts',zipWith (:>:) is scs'))
      else
        let scs' = map (quantify gs) ts'
-           -- er = ("\n\n" ++ show ds ++ " " ++ show rs ++ " " ++ show gs
-           --      ++ " " ++ show fs ++ show (foldr1 intersect vss)
-           --      ++ show ts' ++ " " ++ show es ++ show as ++ show (zipWith (:>:) is scs') ++ show s' ++ "\n\n")
         in return (zipWith3 zipVECore is (applyTillNoChange s' es) ts',zipWith (:>:) is scs')
 
 zipVECore :: Id -> C.CoreExpr -> Type -> C.CoreExprDef
 zipVECore id e t = C.ExprDef (MkVar { varName = id, varType = TScheme [] t }) e
 
 -- TIExpl --
-
 
 tiExpl :: [Assumption] -> Expl -> TI (C.CoreExprDef,Type)
 tiExpl as (id,sc,alt) =

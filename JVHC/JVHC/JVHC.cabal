@@ -21,6 +21,7 @@ library
                      , Parsing.Lexer
                      , CoreAST.Types
                      , CoreAST.Kind
+                     , CoreAST.TScheme
                      , CoreAST.CoreExpr 
                      , CoreAST.Var
                      , CoreAST.Literal
@@ -50,8 +51,8 @@ library
                      , Infer.KIMonad
                      , Infer.KIMain
                      , Infer.CoreExprSubst
-                     , Infer.CoreExprFixer
                      , Pipeline.Compiler
+                     , Infer.TyFixerMonad
                      , Infer.TyAppFixer
   build-depends:       base >= 4.7 && < 5
                      , array >= 0.5.1

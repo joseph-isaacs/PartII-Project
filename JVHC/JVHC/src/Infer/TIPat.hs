@@ -5,6 +5,7 @@ import CoreAST.Kind
 import CoreAST.CoreExpr
 import CoreAST.DataCon
 import CoreAST.Var
+import CoreAST.TScheme
 import CoreAST.Literal
 
 import Desugar.DExpr

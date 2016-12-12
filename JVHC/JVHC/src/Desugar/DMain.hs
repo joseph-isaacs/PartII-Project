@@ -72,9 +72,6 @@ splitDep :: [DE.Impl] -> [[DE.Impl]]
 splitDep f = map flattenSCC (stronglyConnComp implNodes)
   where implNodes = map (\i@(id,e) -> (i,id,fv i)) f
 
--- TODO: add dependancy reductions.
-
-
 
 dImpl :: Monad m => (TypeList,[Assumption]) -> TFunDecl -> m DE.Impl
 dImpl as f@(TFundecl (TVarPat id _) _) =

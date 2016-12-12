@@ -2,7 +2,7 @@ module CoreAST.DataCon where
 
 import CoreAST.Types
 
-import CoreAST.Var
+import CoreAST.TScheme
 
 data TyCon = MkTyCon { mtyCon :: Tycon }
  deriving (Show,Eq)

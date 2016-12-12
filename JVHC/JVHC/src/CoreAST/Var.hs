@@ -1,9 +1,7 @@
 module CoreAST.Var where
 
 import CoreAST.Types
-
-data TScheme = TScheme [Type] Type
-  deriving (Show,Eq)
+import CoreAST.TScheme
 
 data Var = MkVar  { varName :: String,  varType :: TScheme }
          | MkTVar { tvarName :: Type }

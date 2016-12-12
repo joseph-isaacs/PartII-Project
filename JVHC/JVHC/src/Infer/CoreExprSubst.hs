@@ -3,6 +3,7 @@ module Infer.CoreExprSubst where
 import CoreAST.Types
 import CoreAST.CoreExpr
 import CoreAST.Var
+import CoreAST.TScheme
 import CoreAST.DataCon
 import CoreAST.Literal
 

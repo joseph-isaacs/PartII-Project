@@ -1,4 +1,4 @@
-module TestConidAndVaridLexer(tests)
+module LexerTest.TestConidAndVaridLexer(tests)
   where
 
 import Parsing.Lexer

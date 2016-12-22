@@ -15,11 +15,12 @@ mgu (TCon tc1) (TCon tc2)
 mgu (TAp l1 r1) (TAp l2 r2) = do s1 <- mgu l1 l2
                                  s2 <- mgu (apply s1 r1) (apply s1 r2)
                                  return (s2 @@ s1)
-mgu t1       t2   = fail "cannot unity types"
+
+mgu t1       t2   = fail $ "cannot unity types " ++  (show t1) ++ " with " ++ (show t2)
 
 varBind :: Monad m => Tyvar -> Type -> m Subst
 varBind u t | t == (TVar u)    = return nullSubst
-            | u `elem` tv t    = fail "occurs check failed"
+            | u `elem` tv t    = fail $ "occurs check failed" ++ (show u) ++ "\nand\n" ++ (show t)
             | kind u == kind t = return (u +-> t)
             | otherwise        = fail "kind error"
 
@@ -32,4 +33,5 @@ match (TCon t1) (TCon t2)
 match (TAp l1 r1) (TAp l2 r2) = do s1 <- match l1 l2
                                    s2 <- match r1 r2
                                    merge s1 s2
-match t1 t2         = fail "cannot match types"
+
+match t1 t2         = error $ "cannot match types (" ++ (show t1) ++ ") and (" ++ (show t2) ++ ")"

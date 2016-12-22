@@ -1,4 +1,4 @@
-module TestCommentLexer(tests)
+module LexerTest.TestCommentLexer(tests)
   where
 
 import Parsing.Lexer

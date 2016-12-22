@@ -1,17 +1,28 @@
 module Desugar.DPat where
 
+import CoreAST.DataCon
+
 import Parsing.ParsingAST as PP
-import Infer.TIPat        as TIP
+import Desugar.DExpr      as DE
 import Infer.Assumption
 import Desugar.DTypes
 
+import qualified Data.List as DL
 
 -- takes a list of all data constructors and a ParsingAST Pat
-dPat :: Monad m => (TypeList,[Assumption]) -> PP.Pat -> m TIP.Pat
-dPat _         (PP.TLiteral l)    = return $ TIP.PLit l
-dPat _         (PP.TVarID vid)    = return $ TIP.PVar vid
-dPat as@(_,dc) (PP.TPat cid pats) =
+dPat :: Monad m => [DataType] -> (TypeList,[Assumption]) -> PP.Pat -> m DE.Pat
+dPat _ _         (PP.TLiteral l)    = return $ DE.PLit l
+dPat _ _         (PP.TVarID vid)    = return $ DE.PVar vid
+dPat dt as@(tl,dc) (PP.TPat cid pats) =
   do
     cAssump <- find cid dc
-    pats'   <- mapM (dPat as) pats
-    return $ TIP.PCon (cid :>: cAssump) pats'
+    pats'   <- mapM (dPat dt as) pats
+    d <- findDT cid dt
+    return $ DE.PCon d (cid :>: cAssump) pats'
+
+findDT :: Monad m => String -> [DataType] -> m DataCon
+findDT f dts = case DL.find (\x -> dName x == f) dCons of
+              Just x -> return x
+              Nothing -> fail $ "Cannot find value in " ++ (show tyCons)
+  where tyCons = map tCon dts
+        dCons  = concatMap constrs tyCons

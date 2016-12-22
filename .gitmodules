@@ -1,0 +1,3 @@
+[submodule "JVHC/JVHC/codec-jvm"]
+	path = JVHC/JVHC/codec-jvm
+	url = git@github.com:rahulmutt/codec-jvm.git

@@ -1,4 +1,4 @@
-module TestLiteralLexer(tests)
+module LexerTest.TestLiteralLexer(tests)
   where
 
 import Parsing.Lexer

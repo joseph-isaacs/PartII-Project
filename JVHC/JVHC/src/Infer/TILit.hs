@@ -3,8 +3,7 @@ module Infer.TILit where
 import Infer.TIM
 import CoreAST.Types
 import CoreAST.Kind
-import Parsing.ParsingAST
-
+import CoreAST.Literal
 
 
 tiLit  :: Literal -> TI Type

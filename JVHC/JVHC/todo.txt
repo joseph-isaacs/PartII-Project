@@ -1,0 +1,18 @@
+
+
+1) Check the fix in TyAppFixer and clean up the code. (Done)
+2) Remove CoreExprFixer. (Done)
+
+3) I need change the way Pipeline works 
+4) Add build in types to type checker. (Done)
+5) Need to change DataType and DataCon to be useful!
+
+6) I need to fix the bound stuff in the TyAppFixer since the only allowing application of unbound types
+   to variables missed many cases. (THINK this is done)
+
+7) --Need to allow data constructors to be used as function in the Pipeline.Compiler function.
+   --By adding the constructors with a new type. Cannot log const in tiExpr since will get the same
+   --type which will muck up when doing the Fixer app step. This will work it you use unique type variables 
+   Above i think is not true
+
+

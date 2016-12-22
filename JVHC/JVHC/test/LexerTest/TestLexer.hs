@@ -1,9 +1,9 @@
-module TestLexer(tests)
+module LexerTest.TestLexer(tests)
   where
 
-import qualified TestCommentLexer as CL
-import qualified TestConidAndVaridLexer as CVL
-import qualified TestLiteralLexer as LL
+import qualified LexerTest.TestCommentLexer as CL
+import qualified LexerTest.TestConidAndVaridLexer as CVL
+import qualified LexerTest.TestLiteralLexer as LL
 
 import Test.HUnit
 

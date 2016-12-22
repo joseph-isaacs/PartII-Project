@@ -1,0 +1,8 @@
+{
+  id x = x;
+
+  bind_ ma mb = bind ma (\u -> mb);
+
+  main = bind_ (bind_ (putChar 'a') (putChar 'n')) putNewLine
+
+}

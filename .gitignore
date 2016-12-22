@@ -25,3 +25,7 @@ JVHC/JVHC/dist
 
 .cabal-sandbox
 cabal.sandbox.config
+
+.idea
+
+

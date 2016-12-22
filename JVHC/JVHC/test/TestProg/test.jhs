@@ -1,8 +1,32 @@
 {
-  id x = x;
+  data List a = Cons a (List a) | Nil;
+
+  nat x = Cons x (nat (plus x 1));
+
+  take number listS = case number of {
+    0 -> Nil;
+    un -> case listS of { 
+            Cons listH listTail -> Cons listH (take (plus number (neg 1)) listTail);
+            Nil -> Nil 
+    }
+  };
+
+  sumList y = case y of { Cons h t -> plus (sumList t) h ; Nil -> 0 };
+
+--  head x = case x of { Cons h t -> h };
+
+  id = id2 id2 id2;
+  id2 ttr = ttr;
+
+  listTT = Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil))));
+
+  list1 = Cons 1 Nil;
 
   bind_ ma mb = bind ma (\u -> mb);
 
   main = bind_ (bind_ (putChar 'a') (putChar 'n')) putNewLine
+  -- main = putInt (sumList  (take 100 (nat 1)))
+  -- main = putChar (id 'a')
+
 
 }

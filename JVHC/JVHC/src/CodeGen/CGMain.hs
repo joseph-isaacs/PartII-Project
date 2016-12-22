@@ -58,7 +58,7 @@ cgEnv c =
      setScope [Scope sv scopeMap]
      envMap <- mapM cgEnvMap c
      mapM_ mkEnvSuppliers envMap
-     mkEnvClassFile envMap
+     mkEnvClassFile $ map (\(a,b,_) -> (a,b)) envMap
 
 scopeMap :: Binder -> CG ScopeVar
 scopeMap b =
@@ -66,8 +66,8 @@ scopeMap b =
          bn = fromString n
      return (ScopeVar bn supplierInterfaceType t)
 
-mkEnvSuppliers :: (Text,Code) -> CG ()
-mkEnvSuppliers (text,code) = logClass text $
+mkEnvSuppliers :: (Text,Code,Bool) -> CG ()
+mkEnvSuppliers (text,code,restricted) = logClass text $
   mkClassFileV lamAccessors text Nothing [supplierInterfaceName] [envField] [ctr,get]
   where
     envField = mkFieldDef [Public] envName (obj envName)
@@ -75,7 +75,10 @@ mkEnvSuppliers (text,code) = logClass text $
                                                  <> gload jobject 1
                                                  <> gconv jobject (obj envName)
                                                  <> putfield (mkFieldRef text envName (obj envName)))
-    get = mkMethodDef text [Public] supplierName [] (ret jobject) (code <> greturn jobject)
+    get = mkMethodDef text [Public] supplierName [] (ret jobject) (
+              code
+           <> (if restricted then invokeSupplier else mempty)
+           <> greturn jobject)
 
 
 mkEnvClassFile :: [(Text,Code)] -> CG ()
@@ -99,8 +102,6 @@ mkEnvClassFile topLevel = logClass envName $
                     <> invokespecial (mkMethodRef envName "<init>" [] void)
                     <> getfield (mkFieldRef envName mainName supplierInterfaceType)
                     <> invokeSupplier
-                    <> gconv jobject supplierInterfaceType
-                    <> invokeSupplier
                     <> unsafePeformIO
                     <> invokevirtual (mkMethodRef "java/io/PrintStream" "println" [jobject] void)
                     <> vreturn)
@@ -109,7 +110,7 @@ unsafePeformIO :: Code
 unsafePeformIO = gconv jobject ioJType
               <> invokeinterface (mkMethodRef ioName "unsafePerformIO" [] (ret jobject))
 
-cgEnvMap :: CoreExprDef -> CG (Text,Code)
+cgEnvMap :: CoreExprDef -> CG (Text,Code,Bool)
 cgEnvMap (ExprDef b e) =
   do let (MkVar { varType = TScheme _ t }) = b
          name = (fromString . varName) b
@@ -119,7 +120,12 @@ cgEnvMap (ExprDef b e) =
      updateScope (Scope sv [env])
      (code,_) <- cgExpr e
      setScope scope
-     return (name,code)
+     return (name,code,isRestricted e)
+
+isRestricted :: CoreExpr -> Bool
+isRestricted (Lam (MkVar _ _) _) = False
+isRestricted (Lam (MkTVar _ ) e) = isRestricted e
+isRestricted _                   = True
 
 cgExpr :: CodeGen CoreExpr
 
@@ -256,12 +262,12 @@ cgAlt (DataAlt dc, binders, e) otherBranch =
      (pname,ptype,pctype) <- getParent
      envName <- newFunName $ (fromString name) `mappend` (fromString $ concatMap varName binders)
      let envType = obj envName
-         envFields = zip (map fromString $ map varName binders) (repeat thunk)
+         envFields = zip (map fromString $ map varName binders) (repeat supplierInterfaceType)
          sc = (ScopeVar envName envType (TVar $ Tyvar "e" Star))
-         inner = map (\v -> ScopeVar (fromString $ varName v) thunk (tyOf $ varType v)) binders
+         inner = map (\v -> ScopeVar (fromString $ varName v) supplierInterfaceType (tyOf $ varType v)) binders
      updateScope (Scope sc inner)
      (c,(jt,t)) <- cgExpr e
-     logClass envName (mkScopeClass envName envFields c)
+     logClass envName (mkScopeClass envName (envFields ++ [(pname,ptype)]) c)
      let argsCode = foldr (\(n,t) acc ->
                            dup jobject
                         <> invokeSupplier
@@ -275,7 +281,9 @@ cgAlt (DataAlt dc, binders, e) otherBranch =
              <> dup_x1 jobject envType
              <> swap envType jobject
              <> argsCode
-             <> invokespecial (mkMethodRef envName "<init>" (replicate binderLen thunk) void)
+             <> gload ptype 0
+             <> gconv jobject ptype
+             <> invokespecial (mkMethodRef envName "<init>" (replicate binderLen supplierInterfaceType ++ [ptype]) void)
              <> invokevirtual (mkMethodRef envName runMethod [] (ret jobject))
              <> greturn jobject
          code = dup jobject

@@ -83,11 +83,11 @@ mkCurriedFunction name args code = fst $ foldr driver ([],code) input
             parentType = obj parentName
             className = name `mappend` ((fromString . show) n)
             classType = obj className
-            argField = mkFieldDef fieldAccessor className thunk
+            argField = mkFieldDef fieldAccessor className supplierInterfaceType
             fields = (if n > 0 then [parentField] else []) ++ [argField]
             ctrArg = mkConstructorDef className jobjectC [parentType] (fieldSetterCode 1 className parentName parentType)
             ctrDef = mkDefaultConstructor className jobjectC
-            applyFun = mkApplyFun className (fieldSetterCode 1 className className thunk
+            applyFun = mkApplyFun className (fieldSetterCode 1 className className supplierInterfaceType
                                           <> code)
             methods  = (if (n > 0) then [ctrArg] else [ctrDef]) ++ [applyFun]
             newCode = new classType

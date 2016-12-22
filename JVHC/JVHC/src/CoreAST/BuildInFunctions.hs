@@ -22,10 +22,14 @@ returnFun = BuildInFunction { fnName = "return", fnType = tva  `fn` io tva, fnCl
 
 bindFun = BuildInFunction { fnName = "bind", fnType = io tva `fn` ((tva `fn` io tvb) `fn` io tvb), fnClassName = "BuildIn/Bind0" }
 
+intToChar = BuildInFunction { fnName = "toChar", fnType = tInt `fn` tChar, fnClassName = "BuildIn/intToChar" }
+
 putCharFun = BuildInFunction { fnName = "putChar", fnType = tChar `fn` io tUnit, fnClassName = "BuildIn/putChar" }
+
+putIntFun = BuildInFunction { fnName = "putInt", fnType = tInt `fn` io tUnit, fnClassName = "BuildIn/putInt" }
 
 putNewLineFun = BuildInFunction { fnName = "putNewLine", fnType = io tUnit, fnClassName = "BuildIn/putNewLine" }
 
 getCharFun = BuildInFunction { fnName = "getChar", fnType = io tChar, fnClassName = "BuildIn/getChar" }
 
-buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun]
+buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun,intToChar,putIntFun]

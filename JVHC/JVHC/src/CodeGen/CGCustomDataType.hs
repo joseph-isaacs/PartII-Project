@@ -34,7 +34,7 @@ mkDataConstructors (MkDataCon { dName = name, tName = iface, fields = f }) =
         code = ( newDup objThunkType
               <> newDup dataType
               <> (mconcat . reverse $  (map (getter lenF)) input)
-              <> invokespecial (mkMethodRef dataName "<init>" (replicate (length f) thunk) void))
+              <> invokespecial (mkMethodRef dataName "<init>" (replicate (length f) supplierInterfaceType) void))
               <> invokespecial objThunkConstructor
         lenF = length f - 1
         input = zip f [lenF,lenF - 1..]
@@ -43,7 +43,7 @@ mkDataConstructors (MkDataCon { dName = name, tName = iface, fields = f }) =
                     <> foldr (\n acc -> (getfield (mkFieldRef (cn n) (cn (n-1)) (obj (cn (n-1))) )) <> acc)
                           start [l,l-1..c+1]
           where cn v = ctrName `mappend` if v >= 0 then ((fromString . show) v) else (error (show v))
-                start = getfield (mkFieldRef (cn c) (cn c) thunk)
+                start = getfield (mkFieldRef (cn c) (cn c) supplierInterfaceType)
 
 
 
@@ -62,18 +62,18 @@ mkDataConType (MkDataCon { dName = name, tName = iface, fields = f }) =
       where n = fromString name
 
 mkDataFields :: Text -> [Type] -> [FieldDef]
-mkDataFields name ts = map (\(_,n) -> mkFieldDef fieldAccessor (toFieldName name n) thunk) (zip ts [0..])
+mkDataFields name ts = map (\(_,n) -> mkFieldDef fieldAccessor (toFieldName name n) supplierInterfaceType) (zip ts [0..])
 
 mkConstructorMethodDef :: Text   ->  -- Name
                           [JType] ->  -- Arguments
                           MethodDef
 
 mkConstructorMethodDef name args =
-  mkConstructorDef name jobjectC (map (\_ -> thunk) args) (mconcat $ map setter (zip args [0..]))
+  mkConstructorDef name jobjectC (map (\_ -> supplierInterfaceType) args) (mconcat $ map setter (zip args [0..]))
     where setter (_,n) =
                  (gload jobject 0
                <> gload jobject (n+1)
-               <> putfield (mkFieldRef name  (toFieldName name n) thunk))
+               <> putfield (mkFieldRef name  (toFieldName name n) supplierInterfaceType))
 
 toFieldName :: (Show a, Num a) => Text -> a -> Text
 toFieldName n num = n `mappend` fromString (show num)

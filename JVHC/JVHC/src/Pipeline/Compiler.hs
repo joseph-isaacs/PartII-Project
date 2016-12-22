@@ -81,7 +81,7 @@ mkData (Var x@(l:_),t) = (Var x,(t, tvs))
 mkData (a,b) = (a,(b,[]))
 
 jvmPath :: Text
-jvmPath = "/Users/joeisaacs/Dropbox/git/PartII-Project/JVMTesting/out/production/JVMTesting/"
+jvmPath = "/Users/joeisaacs/Dropbox/git/JVMTesting/out/production/JVMTesting/"
 
 codeGen :: (CoreExprDefs,[TyCon]) -> [(Text,ClassFile)]
 codeGen (exprs,tyCons) =  (snd $ runCG buildInMapping (cgEnv exprs)) ++ concatMap mkDataType tyCons

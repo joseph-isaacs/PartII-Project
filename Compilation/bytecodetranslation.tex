@@ -232,7 +232,7 @@ public class Thunk_x extends Thunk<Function_a>{
 
     @Override
     protected Function_a force() {
-        return new Function_a(this);
+        return new Function_a(env);
     }
 }
 
@@ -244,11 +244,16 @@ public class Thunk_g extends Thunk<Function<Object,Integer>> {
     }
     @Override
     protected Function<Object, Integer> force() {
-        return new Function_g();
+        return new Function_g(e);
     }
 }
 
 public class Function_g implements Function<Object,Integer> {
+    Environment e;
+
+    public Function_g (Environment e) {
+      this.e = e
+    }
     @Override
     public Integer apply(Object o) {
         return 2;
@@ -256,10 +261,10 @@ public class Function_g implements Function<Object,Integer> {
 }
 
 public class Function_a implements Function<Thunk<Object>, Function_b> {
-    public Thunk_x t;
+    public Environment e;
     Thunk<Object>  a;
-    Function_a(Thunk_x x) {
-        this.t = x;
+    Function_a(Environment e) {
+        this.e = e;
     }
     @Override
     public Function_b apply(Thunk<Object> a) {
@@ -276,7 +281,7 @@ public class Function_b implements Function<Thunk<Integer>,Integer>{
 
     @Override
     public Integer apply(Thunk<Integer> bThunk) {
-        Function<Object,Integer> g = a.t.env.g.get();
+        Function<Object,Integer> g = a.e.g.get();
         Function_Plus plus = new Function_Plus();
         return plus.apply(g.apply(a.a.get())).apply(bThunk.get());
     }

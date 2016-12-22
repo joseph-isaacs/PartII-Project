@@ -155,9 +155,9 @@ cgExpr l@(Lam (MkVar { varName = n, varType = TScheme [] bt } ) e) =
      (body, (tyE,t)) <- cgExpr e
      let lamClass = mkLambdaClass fnName pname tyB tyE ptype body
      logClass fnName lamClass
-     let retCode = new fnType
-                <> dup fnType
-                <> gload jobject 0
+     let retCode = newDup fnType
+                <> gload ptype 0
+                <> gconv jobject ptype
                 <> invokespecial (mkMethodRef fnName "<init>" [ptype] void)
      return (retCode,(fnType,bt `fn` t))
 

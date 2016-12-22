@@ -6,4 +6,4 @@ import CoreAST.Types
 
 import Codec.JVM(Code)
 
-type CodeGen a = a -> CG (Code,(JType,Type))
+type CodeGen a = a -> CG (Code,(JType,Int))

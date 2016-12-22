@@ -76,6 +76,7 @@ library
                      , containers
                      , text
                      , bytestring
+                     , MissingH
                      , codec-jvm 
   default-language:    Haskell2010
   build-tools:         alex, happy

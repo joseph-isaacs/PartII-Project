@@ -10,8 +10,8 @@ public class putNewLine implements Supplier<IO> {
     @Override
     public IO get() {
         return (IO) () -> {
-                    System.out.print('\n');
-                    return new ObjThunk(new Unit());
+            System.out.print('\n');
+            return new ObjThunk(new Unit());
         };
     }
 }

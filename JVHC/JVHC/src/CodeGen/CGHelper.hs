@@ -19,6 +19,8 @@ import Data.Monoid((<>))
 lamAccessors :: [AccessFlag]
 lamAccessors = [Public,Super]
 
+methodAccessor :: [AccessFlag]
+methodAccessor = [Public]
 
 fieldAccessor :: [AccessFlag]
 fieldAccessor = [Protected]
@@ -33,6 +35,7 @@ mkLambdaClass :: Text ->   -- Class Name
                  JType ->  -- Parent JType
                  Code  ->  -- Lam Body Code
                  ClassFile
+
 
 mkLambdaClass name pname tyB tyE tyP eC =
  mkClassFile jvmVersion lamAccessors name
@@ -52,7 +55,7 @@ mkLambdaClass name pname tyB tyE tyP eC =
                      <> gconv tyE jobject)]
 
 mkApplyFun :: Text -> Code -> MethodDef
-mkApplyFun name code =  mkMethodDef name [Public] "apply" [jobject] (ret jobject) (
+mkApplyFun name code =  mkMethodDef name methodAccessor "apply" [jobject] (ret jobject) (
                         code
                      <> greturn jobject)
 
@@ -96,3 +99,16 @@ mkCurriedFunction name args code = fst $ foldr driver ([],code) input
                    <> invokespecial (mkMethodRef className "<init>" [parentType] void)
        input = zip args [0..]
 
+mkThunk :: Text  -> -- Class Name
+           JType -> -- Class Type
+           Text  -> -- Parent Name
+           JType -> -- Parent Type
+           Code  -> -- get body
+           ClassFile
+
+mkThunk className classType parentName parentType codeBody =
+  mkClassFileV lamAccessors className (Just thunkName) [] [parentField] [getMethod,ctr]
+  where getMethod = mkMethodDef className methodAccessor supplierName [] (ret jobject) (codeBody <> greturn jobject)
+        ctr       = mkConstructorDef className thunkName [parentType]
+                      (fieldSetterCode 1 className parentName parentType)
+        parentField = mkFieldDef [Protected] parentName parentType

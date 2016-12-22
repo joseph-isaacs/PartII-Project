@@ -86,3 +86,8 @@ mainName = "main"
 mainType :: JType
 mainType = obj mainName
 
+envName :: Text
+envName = "Env"
+
+envType :: JType
+envType = obj envName

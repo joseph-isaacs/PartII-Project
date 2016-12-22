@@ -3,19 +3,22 @@ package BuildIn;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static BuildIn.thunkRemover.*;
+
 /**
  * Created by joeisaacs on 20/12/2016.
  */
-public class plus1 implements Function<Supplier<Integer>,Supplier<Integer>>{
-    Supplier<Integer> i0;
+public class plus1 implements Function<Object,Object>{
+    Object i0;
 
-    plus1(Supplier<Integer> s) {
-        this.i0 = s;
+    plus1(Object i0) {
+        this.i0 = i0;
     }
 
 
     @Override
-    public Supplier<Integer> apply(Supplier<Integer> integerSupplier) {
-        return new IntThunk(integerSupplier.get() + i0.get());
+    public Supplier<Integer> apply(Object i1) {
+
+        return new IntThunk((int) removeThunks(i0) + (int)removeThunks(i1));
     }
 }

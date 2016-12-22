@@ -3,10 +3,12 @@ package BuildIn;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static BuildIn.thunkRemover.removeThunks;
+
 /**
  * Created by joeisaacs on 21/12/2016.
  */
-public class Bind1 implements Function<Function<Object,Supplier<IO>>,Supplier<IO>> {
+public class Bind1 implements Function<Object,Supplier<IO>> {
 
     private final Bind0 b0;
 
@@ -15,11 +17,13 @@ public class Bind1 implements Function<Function<Object,Supplier<IO>>,Supplier<IO
     }
 
     @Override
-    public Supplier<IO> apply(Function<Object,Supplier<IO>> amb) {
+    public Supplier<IO> apply(Object amb) {
         return (Supplier)new ObjThunk(new IO() {
             @Override
             public Object unsafePerformIO() {
-                return amb.apply(b0.ma.get().unsafePerformIO()).get().unsafePerformIO();
+                IO uma = (IO) removeThunks(b0.ma);
+                Function uamb = (Function) removeThunks(amb);
+                return ((IO)(removeThunks(uamb.apply(uma.unsafePerformIO())))).unsafePerformIO();
             }
         });
     }

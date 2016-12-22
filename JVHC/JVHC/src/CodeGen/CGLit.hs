@@ -18,11 +18,11 @@ import Codec.JVM
 
 cgLit :: CodeGen Literal
 cgLit (LitInt i) = return (mkLit intThunkType value intThunkConstructor jint
-                          ,(jIntType,tInt))
+                          ,(jIntType,1))
   where value = fromInteger i
 
 cgLit (LitChar c) = return (mkLit charThunkType value charThunkConstructor jchar
-                           ,(jCharType,tChar))
+                           ,(jCharType,1))
   where value = (fromIntegral . ord) c
 
 cgLit (LitString _) = error "code gen for string not supported"

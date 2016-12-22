@@ -18,7 +18,7 @@ import Data.String(fromString,IsString)
 import Codec.JVM.Class (ClassFile)
 import Codec.JVM.Types (FieldType)
 
-data ScopeVar = ScopeVar Text FieldType Type
+data ScopeVar = ScopeVar Text FieldType
   deriving Show
 
 data Scope = Scope ScopeVar [ScopeVar]
@@ -60,10 +60,10 @@ updateScope s = modify $ \(scope,i) -> (s:scope,i)
 setScope :: [Scope] -> CG ()
 setScope s = modify $ \(_,i) -> (s,i)
 
-getParent :: CG (Text,JType,Type)
+getParent :: CG (Text,JType)
 getParent =
-  do (Scope (ScopeVar pname ptype pctype) _) <- liftM Prelude.head getScope
-     return (pname,ptype,pctype)
+  do (Scope (ScopeVar pname ptype) _) <- liftM Prelude.head getScope
+     return (pname,ptype)
 
 newFunName :: Text -> CG Text
 newFunName fnName = do

@@ -42,8 +42,8 @@ instance Types (AltCon) where
   tv s                 = []
 
 instance Types DataCon where
-  apply s (MkDataCon { dName = n, conType = c}) =
-    MkDataCon { dName = n, conType = apply s c}
+  apply s (MkDataCon { dName = n, conType = c, tName = tn, fields = f}) =
+    MkDataCon { dName = n, conType = apply s c, tName = tn, fields = apply s f}
 
   tv s = []
 

@@ -27,13 +27,12 @@ tiCaseAlt (PLit l) =
   do t <- tiLit l
      return (LitAlt l, [], [], t)
 
-tiCaseAlt (PCon (i :>: sc@(Scheme _ t)) pats) =
+tiCaseAlt (PCon dt (i :>: sc@(Scheme _ t)) pats) =
   do (binders, as, ts) <- tiCaseAlts pats
      t'                <- newTVar Star
      t                 <- freshInstance sc
      unify t (foldr fn t' ts)
-     return (DataAlt $ MkDataCon { dName = i, conType = TScheme [] t },
-             binders, as, t')
+     return (DataAlt dt, binders, as, t')
 
 tiCaseAlts :: [Pat] -> TI([Var],[Assumption],[Type])
 tiCaseAlts pats =

@@ -16,55 +16,58 @@ import Infer.Scheme
 import Infer.Subst
 import Infer.Assumption
 
+import Data.Maybe (isJust, fromJust)
 
 import qualified Data.List as L
 import Data.Graph(stronglyConnComp,flattenSCC)
 
-dExpr :: Monad m => (TypeList,[Assumption]) -> PP.Exp -> m DE.Expr
-dExpr _      (PP.TEVar v)  = return $ DE.Var v
-dExpr _      (PP.TELiteral l) = return $ DE.Lit l
-dExpr (_,as) (PP.TEConstr c)  =
+dExpr :: Monad m => [DataType] -> (TypeList,[Assumption]) -> PP.Exp -> m DE.Expr
+dExpr _ (_,as) (PP.TEVar v)  =
+  do let var = find v as
+     return (if isJust var then DE.Const (v :>: fromJust var) else DE.Var v)
+dExpr _ _      (PP.TELiteral l) = return $ DE.Lit l
+dExpr _ (_,as) (PP.TEConstr c)  =
   do assump <- find c as
      return $ DE.Const (c :>: assump)
 
-dExpr as (PP.TEApp e1 e2) =
-  do e1' <- dExpr as e1
-     e2' <- dExpr as e2
+dExpr dt as (PP.TEApp e1 e2) =
+  do e1' <- dExpr dt as e1
+     e2' <- dExpr dt as e2
      return $ DE.Ap e1' e2'
 
-dExpr as (PP.TELambda id e) =
-  do e' <- dExpr as e
+dExpr dt as (PP.TELambda id e) =
+  do e' <- dExpr dt as e
      return $ DE.Lam id e'
 
-dExpr as (PP.TELet d e) =
-  do bg <- dDecl as [d]
-     e' <- dExpr as e
+dExpr dt as (PP.TELet d e) =
+  do bg <- dDecl dt as [d]
+     e' <- dExpr dt as e
      return $ DE.Let bg e'
 
-dExpr as (PP.TECase e alts) =
-  do e'    <- dExpr as e
-     alts' <- mapM (dCaseAlt as) alts
+dExpr dt as (PP.TECase e alts) =
+  do e'    <- dExpr dt as e
+     alts' <- mapM (dCaseAlt dt as) alts
      return $ DE.Case e' alts'
 
-dCaseAlt :: Monad m => (TypeList,[Assumption]) -> PP.Alt -> m (DE.Pat,DE.Expr)
-dCaseAlt as (PP.TAlt pat exp) =
-  do pat' <- dPat  as pat
-     exp' <- dExpr as exp
+dCaseAlt :: Monad m => [DataType] -> (TypeList,[Assumption]) -> PP.Alt -> m (DE.Pat,DE.Expr)
+dCaseAlt dt as (PP.TAlt pat exp) =
+  do pat' <- dPat  dt as pat
+     exp' <- dExpr dt as exp
      return (pat',exp')
 
-dDecl :: Monad m => (TypeList,[Assumption]) -> [PP.Decl] -> m DE.BindGroup
-dDecl as decls =
+dDecl :: Monad m => [DataType] -> (TypeList,[Assumption]) -> [PP.Decl] -> m DE.BindGroup
+dDecl dt as decls =
   do let (explDecl,funDecl)   = splitDecl decls
      (expl,impl)  <- predSplitImplExpl explDecl funDecl
-     dExpl        <- mapM (dExpl as) expl
-     dImpl        <- mapM (dImpl as) impl
+     dExpl        <- mapM (dExpl dt as) expl
+     dImpl        <- mapM (dImpl dt as) impl
      let dImpls = splitDep dImpl
      return (dExpl,dImpls)
 
-dExpl :: Monad m => (TypeList,[Assumption]) -> (TSGenDecl,TFunDecl) -> m DE.Expl
-dExpl as ((TSGendecl vId typ), funs) =
+dExpl :: Monad m => [DataType] -> (TypeList,[Assumption]) -> (TSGenDecl,TFunDecl) -> m DE.Expl
+dExpl dt as ((TSGendecl vId typ), funs) =
   do dType <- dAType   as typ
-     alts  <- dFunDecl as funs
+     alts  <- dFunDecl dt as funs
      return (vId,quantify (tv dType) dType,alts)
 
 
@@ -73,17 +76,17 @@ splitDep f = map flattenSCC (stronglyConnComp implNodes)
   where implNodes = map (\i@(id,e) -> (i,id,fv i)) f
 
 
-dImpl :: Monad m => (TypeList,[Assumption]) -> TFunDecl -> m DE.Impl
-dImpl as f@(TFundecl (TVarPat id _) _) =
-  do alt <- dFunDecl as f
+dImpl :: Monad m => [DataType] -> (TypeList,[Assumption]) -> TFunDecl -> m DE.Impl
+dImpl dt as f@(TFundecl (TVarPat id _) _) =
+  do alt <- dFunDecl dt as f
      return (id,alt)
 
-dFunDecl :: Monad m => (TypeList,[Assumption]) -> TFunDecl -> m DE.Alt
-dFunDecl as (TFundecl (TVarPat id ids) exp) =
-  do p'   <- dPat as (TVarID id)
-     ps'  <- mapM (dPat as) (map TVarID ids)
-     expn  <- dExpr as exp
-     exp'  <- dExpr as $ foldr (\i acc -> TELambda i acc) exp ids -- (make pats into lambdas)
+dFunDecl :: Monad m => [DataType] -> (TypeList,[Assumption]) -> TFunDecl -> m DE.Alt
+dFunDecl dt as (TFundecl (TVarPat id ids) exp) =
+  do p'   <- dPat dt as (TVarID id)
+     ps'  <- mapM (dPat dt as) (map TVarID ids)
+     expn  <- dExpr dt as exp
+     exp'  <- dExpr dt as $ foldr (\i acc -> TELambda i acc) exp ids -- (make pats into lambdas)
      return exp'
 
 

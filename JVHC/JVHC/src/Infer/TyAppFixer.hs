@@ -101,9 +101,9 @@ frxAlt b sub mp ((dc,bs,exp),t) =
      return (dc',bs',e')
 
 frxAltCon :: TyFxr (AltCon,Type) (AltCon,Subst)
-frxAltCon b sub mp ((DataAlt (MkDataCon { dName = dname, conType = TScheme [] ty })),t) =
+frxAltCon b sub mp ((DataAlt (MkDataCon { dName = dname, conType = TScheme [] ty, tName = tname, fields = f  })),t) =
   do (sc@(TScheme b ts),subst) <- quantifyTScheme (apply sub ty)
-     let dc = DataAlt $  MkDataCon { dName = dname, conType = sc }
+     let dc = DataAlt $  MkDataCon { dName = dname, conType = sc, tName = tname, fields = f }
          sub' = sub @@ subst
      return (dc,sub')
 

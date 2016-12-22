@@ -13,8 +13,10 @@ data Type = TVar  Tyvar
           | TCon  Tycon
           | TAp   Type    Type
           | TGen  FreshId
-          deriving (Eq)
+          deriving Eq
 
+instance Show Type where
+  show = pretty
 
 data Tyvar = Tyvar Id Kind
   deriving (Show, Eq)
@@ -54,6 +56,15 @@ tList  = TCon $ Tycon "List" (Kfun Star Star)
 tUnit :: Type
 tUnit  = TCon $ Tycon "Unit" Star
 
+tIO   :: Type
+tIO    = TCon $ Tycon "IO" (Kfun Star Star)
+
+io :: Type -> Type
+io = TAp tIO
+
+starTVar :: String -> Type
+starTVar s = TVar $ Tyvar s Star
+
 fn :: Type -> Type -> Type
 fn a b = TAp (TAp tArrow a) b
 
@@ -76,8 +87,6 @@ pptype _ t
 pptype _ (TCon (Tycon i _)) = text ('t':i)
 pptype _ (TVar v)  = pprint v
 
-instance Show Type where
-  show = pretty
 
 instance PPrint Tyvar where
   pprint (Tyvar v _)  = text v

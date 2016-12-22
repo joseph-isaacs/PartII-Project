@@ -59,6 +59,8 @@ applyN f n s | n > 0 = applyN f (n-1) (f s s)
 decls = ["A" :>: Kfun (KVar $ Kvar "a") Star, "B" :>: Kfun (KVar $ Kvar "b") Star, "X" :>: Kfun (KVar $ Kvar "c") (Kfun (KVar $ Kvar "d") Star)]
 dds = [DD (TSimpleType "A" ["b"])  [TConstr "X" [TATypeAp  (TGTyCon "B") (TTyVar "a")]], DD (TSimpleType "B" ["b"]) [TConstr "Y" [TATypeAp (TGTyCon "A") (TTyVar "b")]], DD (TSimpleType "X" ["c"]) [TConstr "V" [TATypeAp (TTyVar "c") (TTyVar "d")]]]
 
+dds2 = [DD (TSimpleType "IO" ["a", "b"]) [TConstr "MkIO" [TATypeArrow (TTyVar "b") (TATypeAp (TTyVar "a") (TTyVar "b"))]]]
+
 kiConstr :: KInfer Constr ()
 kiConstr as (TConstr id types) =
   do kinds <- mapM (kiType as) types
@@ -75,4 +77,11 @@ kiType as (TATypeAp k1 k2) = do
   v <- newKVar
   unify k1' (Kfun k2' v)
   return v
+
+kiType as (TATypeArrow k1 k2) = do
+  k1' <- kiType as k1
+  k2' <- kiType as k2
+  unify k1' Star
+  unify k2' Star
+  return Star
 

@@ -66,7 +66,9 @@ tiExpr as (Lam p expr) =
      (e',t)    <- tiExpr (as' ++ as) expr
      s <- seq t getSubst
      let lam = C.Lam (MkVar { varName = p, varType = TScheme [] ts }) e'
-     return (lam, ts `fn` t)
+         ty = ts `fn` t
+     logExpr lam ty
+     return (lam, ty)
 
 
 tiExpr as (Case e cases)

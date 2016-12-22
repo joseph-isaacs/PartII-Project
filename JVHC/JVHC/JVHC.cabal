@@ -26,6 +26,7 @@ library
                      , CoreAST.Var
                      , CoreAST.Literal
                      , CoreAST.DataCon
+                     , CoreAST.BuildInFunctions
                      , Printing.PPrint
                      , Desugar.DExpr
                      , Desugar.DTypes
@@ -40,6 +41,8 @@ library
                      , Infer.Unify
                      , Infer.Scheme
                      , Infer.Assumption
+                     , Infer.BuildInTypes
+                     , Infer.BuildInFunctionTypes
                      , Infer.TIM
                      , Infer.TILit
                      , Infer.TIPat
@@ -54,11 +57,25 @@ library
                      , Pipeline.Compiler
                      , Infer.TyFixerMonad
                      , Infer.TyAppFixer
+                     , CodeGen.JVMVersion
+                     , CodeGen.JTypes
+                     , CodeGen.JInterfaces
+                     , CodeGen.TypeToJType
+                     , CodeGen.CGHelper
+                     , CodeGen.CGMonad
+                     , CodeGen.CGCustomDataType
+                     , CodeGen.CodeGen
+                     , CodeGen.CGLit
+                     , CodeGen.CGMain
+                     , CodeGen.CGFileWriter
+                     , CodeGen.Test
   build-depends:       base >= 4.7 && < 5
                      , array >= 0.5.1
                      , mtl
                      , pretty
                      , containers
+                     , text
+                     , bytestring
                      , codec-jvm 
   default-language:    Haskell2010
   build-tools:         alex, happy

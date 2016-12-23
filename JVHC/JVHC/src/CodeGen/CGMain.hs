@@ -294,6 +294,7 @@ cgAlt (DataAlt dc, binders, e) otherBranch =
          inner = map (\v -> ScopeVar (fromString $ varName v) supplierInterfaceType) binders
      updateScope (Scope sc inner)
      (c,(jt,t)) <- cgExpr e
+     logClass envName (mkScopeClass envName (envFields ++ [(pname,ptype)]) c)
      let argsCode = foldr (\(n,t) acc ->
                            dup jobject
                         <> gconv jobject (obj $ fromString name)

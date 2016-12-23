@@ -36,11 +36,21 @@
 
   list1 = Cons 1 Nil;
 
+  list100 = take 100 (nat 0);
+
   bind_ ma mb = bind ma (\u -> mb);
 
+  undef = undef;
+
+  sumN numberN = case numberN of { 
+    0 -> 0; 
+    numberT -> plus numberT 1
+  };
+
   -- main = bind_ (bind_ (putChar 'a') (putChar 'n')) putNewLine
-  main = putInt (sumList  (take 100  (map (\z -> multiply z z) (nat 1))))
-  --main = putInt (multiply 2 3)
+  -- main = putInt (sumList  (take 300  (nat 0)))
+ -- main = putInt (sumN 500)
+  main = putInt (seq undef (multiply 2 3))
   -- main = putChar (id 'a')
 
 

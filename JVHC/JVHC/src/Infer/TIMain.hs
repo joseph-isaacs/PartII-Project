@@ -52,7 +52,7 @@ tiExpr as (Ap e1 e2) =
 
 tiExpr as (Let bg e) =
   do id <- getId
-     (bind,as')  <- tiBindGroup as bg
+     (bind,as')  <- tiBindGroup False as bg
      setId id
      let expr = head bind
      (e', t')    <- tiExpr (as' ++ as) e
@@ -85,9 +85,9 @@ tiExpr as (Case e cases)
        s    <- getSubst
        return (C.Case e' v alts, v)
 
-tiAlt :: [Assumption] -> (Id,Alt) -> Type -> TI (C.CoreExpr, Type)
-tiAlt as (id,alts) t =
-  do setId id
+tiAlt :: Bool -> [Assumption] -> (Id,Alt) -> Type -> TI (C.CoreExpr, Type)
+tiAlt tl as (id,alts) t =
+  do if tl then setId id else return ()
      (e,pt) <- tiExpr as alts
      unify pt t
      s' <- getSubst
@@ -129,14 +129,14 @@ restricted bs = any simple bs
 
 
 -- TIImpl --
-tiImpls :: Infer [Impl] (C.CoreExprDefs,[Assumption])
-tiImpls as bs =
+tiImpls :: Bool -> Infer [Impl] (C.CoreExprDefs,[Assumption])
+tiImpls tl as bs =
   do ts <- mapM (\_ -> newTVar Star) bs
      let is    = map fst bs
          scs   = map toScheme ts
          as'   = zipWith (:>:) is scs ++ as
          alt   = map snd bs
-     impls <- sequence (zipWith (tiAlt as') bs ts)
+     impls <- sequence (zipWith (tiAlt tl as') bs ts)
      s <- getSubst
      let pss = map snd impls
          es  = seq (show pss) (map fst impls)
@@ -160,10 +160,10 @@ zipVECore id e t = C.ExprDef (MkVar { varName = id, varType = TScheme [] t }) e
 
 -- TIExpl --
 
-tiExpl :: [Assumption] -> Expl -> TI (C.CoreExprDef,Type)
-tiExpl as (id,sc,alt) =
+tiExpl :: Bool -> [Assumption] -> Expl -> TI (C.CoreExprDef,Type)
+tiExpl tl as (id,sc,alt) =
   do t <- freshInstance sc
-     (e,p') <-  tiAlt as (id,alt) t
+     (e,p') <-  tiAlt tl as (id,alt) t
      s     <- getSubst
      let p = apply s p'
      let ps  = apply s p
@@ -179,11 +179,11 @@ tiExpl as (id,sc,alt) =
 -- TIBind --
 
 
-tiBindGroup :: Infer BindGroup (C.CoreExprDefs,[Assumption])
-tiBindGroup as (es,is) =
+tiBindGroup :: Bool -> Infer BindGroup (C.CoreExprDefs,[Assumption])
+tiBindGroup tl as (es,is) =
   do let as' = [v :>: sc | (v,sc,_) <- es]
-     (eImpl,as'') <- tiSeq tiImpls (as' ++ as) is
-     expls <- mapM (tiExpl (as'' ++ as' ++ as)) es
+     (eImpl,as'') <- tiSeq (tiImpls tl) (as' ++ as) is
+     expls <- mapM (tiExpl tl (as'' ++ as' ++ as)) es
      return (map fst expls ++ eImpl,as'' ++ as')
 
 tiSeq :: Infer tiI (C.CoreExprDefs,[Assumption]) -> Infer [tiI] (C.CoreExprDefs,[Assumption])

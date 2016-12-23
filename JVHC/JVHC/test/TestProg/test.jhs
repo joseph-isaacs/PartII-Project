@@ -24,9 +24,9 @@
 
   bind_ ma mb = bind ma (\u -> mb);
 
-  main = bind_ (bind_ (putChar 'a') (putChar 'n')) putNewLine
+  -- main = bind_ (bind_ (putChar 'a') (putChar 'n')) putNewLine
   -- main = putInt (sumList  (take 100 (nat 1)))
-  -- main = putChar (id 'a')
+  main = putChar (id 'a')
 
 
 }

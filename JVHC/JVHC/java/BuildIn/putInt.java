@@ -6,13 +6,17 @@ import java.util.function.Supplier;
 /**
  * Created by joeisaacs on 21/12/2016.
  */
-public class putInt implements Function<Object,Supplier<IO>> {
+public class putInt implements Function<Supplier<Integer>,IO>, Supplier<putInt> {
     @Override
-    public Supplier<IO> apply(Object intThunk) {
-        return (Supplier)new ObjThunk((IO) () -> {
-
-            System.out.print(thunkRemover.removeThunks(intThunk));
+    public IO apply(Supplier<Integer> intThunk) {
+        return (IO) () -> {
+            System.out.print((int) intThunk.get());
             return new ObjThunk(new Unit());
-        });
+        };
+    }
+
+    @Override
+    public putInt get() {
+        return new putInt();
     }
 }

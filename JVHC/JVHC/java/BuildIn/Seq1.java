@@ -1,13 +1,14 @@
 package BuildIn;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Created by joeisaacs on 23/12/2016.
  */
-public class Seq1 implements Function<Object,Object> {
+public class Seq1<B> implements Function<Supplier<B>,B> {
     @Override
-    public Object apply(Object o) {
-        return o;
+    public B apply(Supplier<B> o) {
+        return o.get();
     }
 }

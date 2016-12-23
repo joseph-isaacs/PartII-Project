@@ -6,11 +6,11 @@ import java.util.function.Supplier;
 /**
  * Created by joeisaacs on 21/12/2016.
  */
-public class Return implements Function <Object,Supplier<IO>> {
+public class Return <T> implements Function <Supplier<T>,IO<T>> {
 
     @Override
-    public Supplier<IO> apply(Object objectSupplier) {
+    public IO<T> apply(Supplier<T> objectSupplier) {
 
-        return (Supplier)new ObjThunk((IO) () -> objectSupplier);
+        return () -> objectSupplier.get();
     }
 }

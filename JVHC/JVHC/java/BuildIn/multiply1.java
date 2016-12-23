@@ -8,16 +8,16 @@ import static BuildIn.thunkRemover.removeThunks;
 /**
  * Created by joeisaacs on 23/12/2016.
  */
-public class multiply1 implements Function<Object,Object>{
-    Object i0;
+public class multiply1 implements Function<Supplier<Integer>,Integer>{
+    Supplier<Integer> i0;
 
-    public multiply1(Object integer) {
+    public multiply1(Supplier<Integer> integer) {
         this.i0 = integer;
     }
 
     @Override
-    public Supplier<Integer> apply(Object i1) {
+    public Integer apply(Supplier<Integer> i1) {
 
-        return new IntThunk((int) removeThunks(i0) * (int)removeThunks(i1));
+        return i0.get() * i1.get();
     }
 }

@@ -10,6 +10,8 @@ data BuildInFunction = BuildInFunction { fnName :: String, fnType :: Type, fnCla
 plusFun :: BuildInFunction
 plusFun = BuildInFunction { fnName = "plus", fnType = tInt `fn` (tInt `fn` tInt), fnClassName = "BuildIn/plus0" }
 
+multFun = BuildInFunction { fnName = "multiply", fnType = tInt `fn` (tInt `fn` tInt), fnClassName = "BuildIn/multiply0" }
+
 negFun = BuildInFunction { fnName = "neg", fnType = tInt `fn` tInt, fnClassName = "BuildIn/neg" }
 
 tva :: Type
@@ -34,4 +36,4 @@ putNewLineFun = BuildInFunction { fnName = "putNewLine", fnType = io tUnit, fnCl
 
 getCharFun = BuildInFunction { fnName = "getChar", fnType = io tChar, fnClassName = "BuildIn/getChar" }
 
-buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun,intToChar,putIntFun, negFun]
+buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun,intToChar,putIntFun, negFun,multFun]

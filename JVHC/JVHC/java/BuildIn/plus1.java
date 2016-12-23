@@ -5,9 +5,6 @@ import java.util.function.Supplier;
 
 import static BuildIn.thunkRemover.*;
 
-/**
- * Created by joeisaacs on 20/12/2016.
- */
 public class plus1 implements Function<Object,Object>{
     Object i0;
 

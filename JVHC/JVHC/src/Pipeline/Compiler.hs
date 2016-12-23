@@ -90,7 +90,7 @@ codeGen (exprs,tyCons) =  (snd $ runCG buildInMapping (cgEnv exprs)) ++ concatMa
 buildInType :: TyCon -> PreDefFunctionMap
 buildInType tyCon = map buildMap ctrs
   where ctrs = constrs tyCon
-        buildMap c = (name,(newName,isNull))
+        buildMap c = (name,(newName,True))
           where isNull = null $ DC.fields c
                 name = fromString $ dName c
                 newName = if isNull then name else (name `mappend` "0")

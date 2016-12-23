@@ -71,8 +71,9 @@ mkEnvSuppliers (text,code,e) =
          ctr = mkConstructorDef text jobjectC [envType] (gload jobject 0
                                                       <> gload jobject 1
                                                       <> putfield (mkFieldRef text envName (obj envName)))
-     c <- unwrapMany jobject (greturn jobject)
-     let getMethodCode = code <> c
+--     c <- unwrapMany jobject (greturn jobject)
+       --
+     let getMethodCode = code <> (if isRestricted e then invokeSupplier else mempty) <> (greturn jobject)
          get = mkMethodDef text [Public] supplierName [] (ret jobject) getMethodCode
      logClass text $ mkClassFileV lamAccessors text Nothing [supplierInterfaceName] [envField] [ctr,get]
 
@@ -92,13 +93,14 @@ mkEnvClassFile topLevel =
      let after = unsafePeformIO
               <> invokevirtual (mkMethodRef "java/io/PrintStream" "println" [jobject] void)
               <> vreturn
-     c <- unwrapMany jobject after
+     --c <- unwrapMany jobject after
      let mCode =   (  getstatic (mkFieldRef "java/lang/System" "out" (obj "java/io/PrintStream"))
                     <> new (obj envName)
                     <> dup (obj envName)
                     <> invokespecial (mkMethodRef envName "<init>" [] void)
                     <> getfield (mkFieldRef envName mainName supplierInterfaceType)
-                    <> c)
+                    <> invokeSupplier
+                    <> after)
          mainFunction = mkMethodDef envName [Public,Static] "main" [] void mCode
      logClass envName $ mkClassFileV lamAccessors envName Nothing [] fields [ctr,mainFunction]
 
@@ -133,6 +135,11 @@ isApp (App e (Type _)) = isApp e
 isApp (App _ _) = True
 isApp _         = False
 
+notLam :: CoreExpr -> Bool
+notLam (Lam (MkTVar _) e) = notLam e
+notLam (Lam (MkVar _ _) _) = False
+notLam _ = True
+
 unwrapMany :: FieldType -> Code -> CG Code
 unwrapMany ft code =
   do fInt <- getFreshInt
@@ -165,20 +172,19 @@ cgExpr l@(Lam (MkVar { varName = n, varType = TScheme [] bt } ) e) =
   do (pname,ptype) <- getParent
      let fnName = fromString n
          fnType = obj fnName
-         tyB = jobject
+         tyB = supplierInterfaceType
          sc = (ScopeVar fnName fnType)
          inner = (ScopeVar fnName tyB)
      updateScope (Scope sc [inner])
      (body, (tyE,n)) <- cgExpr e
-     b <- unwrapMany tyE mempty
-     let body'    = body <> b
+     let body'    = body <> (if notLam e then invokeSupplier else mempty)
          lamClass = mkLambdaClass fnName pname tyB tyE ptype body'
      logClass fnName lamClass
      let retCode = newDup fnType
                 <> gload ptype 0
                 <> gconv jobject ptype
                 <> invokespecial (mkMethodRef fnName "<init>" [ptype] void)
-     return (retCode,(fnType,0))
+     return (retCode,(fnType,20))
 
 cgExpr (Let (ExprDef b e1) e2) =
   do scope <- getScope
@@ -202,8 +208,11 @@ cgExpr (App e1 e2) =
      (c1,(jt1,n1)) <- cgExpr e1
      setScope s1
      (c2,(jt2,n2)) <- cgExpr e2
-     tc <- (unwrapMany jt1 (c2 <> invokeFunction))
-     let thunkCode = c1 <> tc
+     let thunkCode = c1
+                  <> (if n1 /= 20 then invokeSupplier else mempty)
+                  <> c2
+                  <> (if n2 == 20 then new objThunkType <> dup_x1 jt2 objThunkType <> swap objThunkType jt2 <> invokespecial objThunkConstructor else mempty)
+                  <> invokeFunction
          thunk = mkThunk thunkName (obj thunkName) pname ptype thunkCode
      logClass thunkName thunk
      let retCode = (newDup (obj thunkName)
@@ -258,8 +267,8 @@ caseMap alts code =
 
 
 raiseMatchError :: Code
-raiseMatchError =
-     invokevirtual (mkMethodRef "java/lang/Object" "toString" [] (ret $ obj "java/lang/String"))
+raiseMatchError = invokeSupplier
+  <>   invokevirtual (mkMethodRef "java/lang/Object" "toString" [] (ret $ obj "java/lang/String"))
   <> new runTimeExcpType
   <> dup_x1 jstring runTimeExcpType
   <> swap runTimeExcpType jstring
@@ -277,6 +286,10 @@ cgAlt (DEFAULT, binders, e) otherBranch =
      let code' = code
               <> swap binderType supplierInterfaceType
               <> invokeFunction
+              <> new objThunkType
+              <> dup_x1 jt objThunkType
+              <> swap jt supplierInterfaceType
+              <> invokespecial objThunkConstructor
      return code'
 
 cgAlt (LitAlt l,b,e) otherBranch = cgLitAlt (l,b,e) otherBranch
@@ -297,6 +310,7 @@ cgAlt (DataAlt dc, binders, e) otherBranch =
      logClass envName (mkScopeClass envName (envFields ++ [(pname,ptype)]) c)
      let argsCode = foldr (\(n,t) acc ->
                            dup jobject
+                        <> invokeSupplier
                         <> gconv jobject (obj $ fromString name)
                         <> getfield (mkFieldRef (fromString name) (fromString $ name ++ (show n)) t)
                         <> swap t jobject
@@ -311,12 +325,13 @@ cgAlt (DataAlt dc, binders, e) otherBranch =
              <> gconv jobject ptype
              <> invokespecial (mkMethodRef envName "<init>" (replicate binderLen supplierInterfaceType ++ [ptype]) void)
              <> invokevirtual (mkMethodRef envName runMethod [] (ret jobject))
+             <> invokeSupplier
              <> greturn jobject
      let code = dup jobject
+             <> invokeSupplier
              <> ginstanceof (obj $ fromString name)
              <> ifeq otherBranch thisBranch
-     c' <- unwrapMany jobject code
-     return c'
+     return code
   where tyOf (TScheme _ t) = t
 
 mkScopeClass :: Text           ->  -- Name
@@ -360,11 +375,12 @@ cgGLit :: Int32     ->  -- value
 cgGLit value boxedName boxedType primType getterName expr otherBranch =
   do (thisBranch,(jt,t)) <- cgExpr expr
      let code = dup jobject
+           <> invokeSupplier
            <> gconv jobject boxedType
            <> invokevirtual (mkMethodRef boxedName getterName [] (ret primType))
            <> iconst primType value
            <> if_icmpeq thisBranch otherBranch
-     unwrapMany jobject code
+     return code
 
 mkName s i = fromString s `mappend` (fromString . show) i
 

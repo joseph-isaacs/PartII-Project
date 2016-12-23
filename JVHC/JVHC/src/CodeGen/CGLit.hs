@@ -10,6 +10,7 @@ import Data.Char(ord)
 import Data.Int(Int32)
 
 import CodeGen.JTypes
+import CodeGen.JInterfaces
 import CodeGen.CGMonad
 import CodeGen.CodeGen
 
@@ -18,11 +19,11 @@ import Codec.JVM
 
 cgLit :: CodeGen Literal
 cgLit (LitInt i) = return (mkLit intThunkType value intThunkConstructor jint
-                          ,(jIntType,1))
+                          ,(supplierInterfaceType,1))
   where value = fromInteger i
 
 cgLit (LitChar c) = return (mkLit charThunkType value charThunkConstructor jchar
-                           ,(jCharType,1))
+                           ,(supplierInterfaceType ,1))
   where value = (fromIntegral . ord) c
 
 cgLit (LitString _) = error "code gen for string not supported"

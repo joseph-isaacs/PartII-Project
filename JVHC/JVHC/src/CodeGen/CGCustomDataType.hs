@@ -31,11 +31,9 @@ mkDataConstructors (MkDataCon { dName = name, tName = iface, fields = f }) =
   where jFields = map toJType f
         dataName = fromString name
         dataType = obj dataName
-        code = ( newDup objThunkType
-              <> newDup dataType
+        code = ( newDup dataType
               <> (mconcat . reverse $  (map (getter lenF)) input)
               <> invokespecial (mkMethodRef dataName "<init>" (replicate (length f) supplierInterfaceType) void))
-              <> invokespecial objThunkConstructor
         lenF = length f - 1
         input = zip f [lenF,lenF - 1..]
         ctrName = fromString name

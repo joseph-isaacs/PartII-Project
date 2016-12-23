@@ -11,9 +11,23 @@
     }
   };
 
+  comp fF fR aaa = fF (fR aaa);
+
+--  multiply a b = case a of {
+--    0 -> 0;
+--    1 -> b;
+--    uuu -> plus b (multiply (plus (neg 1) uuu) b)
+--  };
+
   sumList y = case y of { Cons h t -> plus (sumList t) h ; Nil -> 0 };
 
 --  head x = case x of { Cons h t -> h };
+
+--  map mapFun l = case l of { Cons first second -> Cons (mapFun first) (map mapFun second); Nil -> Nil };
+
+  map fMapF = foldr (comp Cons fMapF) Nil;
+
+  foldr fFun acc fList = case fList of { Cons fh ft -> fFun fh (foldr fFun acc ft); Nil -> acc };
 
   id = id2 id2 id2;
   id2 ttr = ttr;
@@ -25,8 +39,9 @@
   bind_ ma mb = bind ma (\u -> mb);
 
   -- main = bind_ (bind_ (putChar 'a') (putChar 'n')) putNewLine
-  -- main = putInt (sumList  (take 100 (nat 1)))
-  main = putChar (id 'a')
+  main = putInt (sumList  (take 100  (map (\z -> multiply z z) (nat 1))))
+  --main = putInt (multiply 2 3)
+  -- main = putChar (id 'a')
 
 
 }

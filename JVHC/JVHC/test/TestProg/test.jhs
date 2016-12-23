@@ -6,7 +6,7 @@
   take number listS = case number of {
     0 -> Nil;
     un -> case listS of { 
-            Cons listH listTail -> Cons listH (take (plus number (neg 1)) listTail);
+            Cons listH listTail -> Cons listH (take (sub un 1) listTail);
             Nil -> Nil 
     }
   };
@@ -21,7 +21,6 @@
 
   sumList y = case y of { Cons h t -> plus (sumList t) h ; Nil -> 0 };
 
---  head x = case x of { Cons h t -> h };
 
 --  map mapFun l = case l of { Cons first second -> Cons (mapFun first) (map mapFun second); Nil -> Nil };
 
@@ -29,29 +28,41 @@
 
   foldr fFun acc fList = case fList of { Cons fh ft -> fFun fh (foldr fFun acc ft); Nil -> acc };
 
-  id = id2 id2 id2;
-  id2 ttr = ttr;
+  se fstSE sndSE = fstSE;
+
+  id = (\asd -> asd) (\yyyyy -> yyyyy) (se id2 undef) id2 id2 id2;
+ id2 ttr = ttr;
+
+  undef = undef;
 
   listTT = Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil))));
 
   list1 = Cons 1 Nil;
 
-  list100 = take 100 (nat 0);
+--  list100 = take 100 (nat 0);
 
-  bind_ ma mb = bind ma (\u -> mb);
+  bind_ ma mb = bind ma (\uu -> mb);
 
-  undef = undef;
+--  undef = undef;
 
   sumN numberN = case numberN of { 
     0 -> 0; 
-    numberT -> plus numberT 1
+    tt -> plus numberN (sumN (sub numberN 1))
   };
 
-  -- main = bind_ (bind_ (putChar 'a') (putChar 'n')) putNewLine
-  -- main = putInt (sumList  (take 300  (nat 0)))
- -- main = putInt (sumN 500)
-  main = putInt (seq undef (multiply 2 3))
-  -- main = putChar (id 'a')
+
+  head ght = case ght of {
+    Cons hhht ttt2 ->  hhht
+  };
+
+
+--  main = bind_ (bind_ (bind getChar (\ee -> putChar ee)) (putChar 'n')) putNewLine
+--  main = putInt (sumList (take 900 (nat 1)))
+--  main = putInt (head (map (plus 1)(nat 1)))
+  main = putInt (sumN 500)
+--  main = putInt (seq id (multiply 2 3))
+--  main = putInt (id  (sumN 500))
+--  main = putInt (head listTT)
 
 
 }

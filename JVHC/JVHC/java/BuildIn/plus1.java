@@ -3,7 +3,6 @@ package BuildIn;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static BuildIn.thunkRemover.*;
 
 public class plus1 implements Function<Supplier<Integer>,Integer>{
     Supplier<Integer> i0;

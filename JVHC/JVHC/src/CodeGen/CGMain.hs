@@ -98,7 +98,7 @@ mkEnvClassFile topLevel =
                     <> getfield (mkFieldRef envName mainName supplierInterfaceType)
                     <> invokeSupplier
                     <> after)
-         mainFunction = mkMethodDef envName [Public,Static] "main" [] void mCode
+         mainFunction = mkMethodDef envName [Public,Static] "main" [jarray jstring] void mCode
      logClass envName $ mkClassFileV lamAccessors envName Nothing [] fields [ctr,mainFunction]
 
 unsafePeformIO :: Code
@@ -289,10 +289,6 @@ cgAlt (DEFAULT, binders, e) otherBranch =
               <> (if t == 1 then invokeSupplier else mempty)
               <> swap binderType supplierInterfaceType
               <> invokeFunction
-              -- <> new objThunkType
-              -- <> dup_x1 jt objThunkType
-              -- <> swap jt supplierInterfaceType
-              -- <> invokespecial objThunkConstructor
      return code'
 
 cgAlt (LitAlt l,b,e) otherBranch = cgLitAlt (l,b,e) otherBranch
@@ -379,8 +375,9 @@ cgGLit :: Int32     ->  -- value
 
 cgGLit value boxedName boxedType primType getterName expr otherBranch =
   do (thisBranch,(jt,t)) <- cgExpr expr
-     let thisBranch' = if t == 1 then thisBranch <> invokeSupplier else thisBranch
-     let code = dup jobject
+     let thisBranch' = pop supplierInterfaceType <> (if t == 1 then thisBranch <> invokeSupplier else thisBranch)
+     let code =
+              dup jobject
            <> invokeSupplier
            <> gconv jobject boxedType
            <> invokevirtual (mkMethodRef boxedName getterName [] (ret primType))

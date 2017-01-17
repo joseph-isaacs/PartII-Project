@@ -1,4 +1,4 @@
-{-# OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module CoreAST.BuildInFunctions where
 
@@ -24,6 +24,8 @@ tvb = starTVar "b"
 
 unitFun = BuildInFunction { fnName = "unit", fnType = tUnit, fnClassName = "BuildIn/Unit" }
 
+decFun = BuildInFunction { fnName = "dec", fnType = tInt `fn` tInt, fnClassName = "BuildIn/dec" }
+
 returnFun = BuildInFunction { fnName = "return", fnType = tva  `fn` io tva, fnClassName = "BuildIn/Return" }
 
 bindFun = BuildInFunction { fnName = "bind", fnType = io tva `fn` ((tva `fn` io tvb) `fn` io tvb), fnClassName = "BuildIn/Bind0" }
@@ -40,4 +42,4 @@ getCharFun = BuildInFunction { fnName = "getChar", fnType = io tChar, fnClassNam
 
 seqFun = BuildInFunction { fnName = "seq", fnType = tva `fn` (tvb `fn` tvb), fnClassName = "BuildIn/Seq0" }
 
-buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun,intToChar,putIntFun, negFun,multFun, seqFun,subFun]
+buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun,intToChar,putIntFun, negFun,multFun, seqFun,subFun, decFun]

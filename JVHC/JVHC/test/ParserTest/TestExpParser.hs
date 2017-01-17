@@ -4,6 +4,7 @@ module ParserTest.TestExpParser(tests)
 import Parsing.Lexer
 import Parsing.Parser (expParser)
 import Parsing.ParsingAST
+import CoreAST.Literal
 import Test.HUnit
 
 tests = test [test1, test2, test3, test4, test5]

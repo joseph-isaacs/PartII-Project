@@ -11,9 +11,9 @@ import CoreAST.Kind
 import Infer.Id
 
 
-tIO = Tycon "IO" (Kfun Star Star)
+TCon tIOTy = tIO
 
-typeList = ([("IO", tIO),("Int", Tycon "Int" Star)])
+typeList = ([("IO", tIOTy),("Int", Tycon "Int" Star)])
 assumptions = []
 tia = (typeList,assumptions)
 
@@ -24,6 +24,6 @@ test1 = "Test Desugar (:: Int -> Int)" ~: (dsType
                             ~=? Just (tInt `fn` tInt)
 
 test2 = "Test Desugar [IO a -> IO b]"  ~: (dsType (TATypeArrow (TATypeAp (TGTyCon "IO") (TTyVar "a")) (TATypeAp (TGTyCon "IO") (TTyVar "b"))))
-                            ~=? Just  ((TAp (TCon tIO) (TVar (Tyvar "a" Star))) `fn` (TAp (TCon tIO) (TVar (Tyvar "b" Star))))
+                            ~=? Just  ((TAp (TCon tIOTy) (TVar (Tyvar "a" Star))) `fn` (TAp (TCon tIOTy) (TVar (Tyvar "b" Star))))
 
 tests = test [test1,test2]

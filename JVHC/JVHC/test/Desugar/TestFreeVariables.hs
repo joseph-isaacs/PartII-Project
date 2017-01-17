@@ -5,7 +5,9 @@ import Infer.TIMain
 import Infer.TIPat
 import Infer.TILit
 import Parsing.ParsingAST
+import CoreAST.Literal
 import Desugar.FreeVariables
+import Desugar.DExpr
 
 
 test1 = "let (f x = let { g = \\y -> x } in g x y)" ~:

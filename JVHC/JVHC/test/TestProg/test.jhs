@@ -29,8 +29,8 @@ comp fF fR aaa = fF (fR aaa);
 
 --  se fstSE sndSE = fstSE;
 
-  id =   -- (\asd -> asd) (\yyyyy -> yyyyy) (se id2 undef) id2 id2 id2;
-    case Cons 1 Nil of { Cons asdf asdfasd -> \idF -> idF };
+--  id =    (\asd -> asd) (\yyyyy -> yyyyy) (se id2 undef) id2 id2 id2;
+--    case Cons 1 Nil of { Cons asdf asdfasd -> \idF -> idF };
  --id2 ttr = ttr;
 
 --  undef = undef;
@@ -47,7 +47,7 @@ comp fF fR aaa = fF (fR aaa);
 
   sumN numberN = case numberN of { 
     0 -> 0; 
-    tt -> plus numberN (sumN (sub numberN 1))
+    tt -> plus numberN (sumN (dec numberN))
   };
 
   head2 headArg = case headArg of {
@@ -74,6 +74,6 @@ comp fF fR aaa = fF (fR aaa);
 --  main = putInt (seq id (multiply 2 3))
 --  main = putInt (plus (head (Cons   1 Nil)) 1)
 -- main = putInt (head (take 40 list1))
-main = putInt (sumN 1200)
+main = putInt (sumN 10000)
 
 }

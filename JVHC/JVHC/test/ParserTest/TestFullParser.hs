@@ -4,6 +4,7 @@ module ParserTest.TestFullParser(tests)
 import Parsing.Lexer
 import Parsing.Parser (jvhcParse)
 import Parsing.ParsingAST
+import CoreAST.Literal
 import Test.HUnit
 
 tests = test [test1]

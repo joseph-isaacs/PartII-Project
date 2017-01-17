@@ -3,6 +3,7 @@ module LexerTest.TestLiteralLexer(tests)
 
 import Parsing.Lexer
 import Parsing.ParsingAST
+import CoreAST.Literal
 import Test.HUnit
 
 testString = "string hello" ~: alexScanTokens "\"hello\"" ~=? [Literal (LitString "hello")]

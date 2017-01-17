@@ -3,6 +3,7 @@ module LexerTest.TestCommentLexer(tests)
 
 import Parsing.Lexer
 import Parsing.ParsingAST
+import CoreAST.Literal
 import Test.HUnit
 
 test1 = "One Line Comment" ~: alexScanTokens "--12gs--\n"  ~=? []

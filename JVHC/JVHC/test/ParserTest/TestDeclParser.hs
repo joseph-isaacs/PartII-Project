@@ -4,6 +4,7 @@ module ParserTest.TestDeclParser(tests)
 import Parsing.Lexer
 import Parsing.Parser (decl)
 import Parsing.ParsingAST
+import CoreAST.Literal
 import Test.HUnit
 
 tests = test [test1,test2]

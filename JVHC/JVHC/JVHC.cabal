@@ -55,6 +55,7 @@ library
                      , Infer.KIMain
                      , Infer.CoreExprSubst
                      , Pipeline.Compiler
+                     , Opt.Inlining
                      , Infer.TyFixerMonad
                      , Infer.TyAppFixer
                      , CodeGen.JVMVersion

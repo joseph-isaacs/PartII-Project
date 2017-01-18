@@ -54,8 +54,9 @@ library
                      , Infer.KIMonad
                      , Infer.KIMain
                      , Infer.CoreExprSubst
-                     , Pipeline.Compiler
+                     , Opt.InlineMonad
                      , Opt.Inlining
+                     , Pipeline.Compiler
                      , Infer.TyFixerMonad
                      , Infer.TyAppFixer
                      , CodeGen.JVMVersion

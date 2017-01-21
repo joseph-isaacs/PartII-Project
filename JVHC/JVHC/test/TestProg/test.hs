@@ -93,11 +93,7 @@ odd odN = case odN of {
 --  main = putInt (seq id (multiply 2 3))
 --  main = putInt (plus (head (Cons   1 Nil)) 1)
 -- main = putInt (head (take 40 list1))
-<<<<<<< HEAD
 main = putInt (odd 3)
-=======
-main = putInt (sumN 20)
->>>>>>> inlining
 --main = putInt 2
 
 }

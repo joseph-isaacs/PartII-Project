@@ -6,9 +6,9 @@ import CoreAST.Kind
 import CoreAST.Literal
 import CoreAST.Var
 import CoreAST.TScheme
+import CoreAST.RenameCoreExpr
 
 import Opt.InlineMonad
-import Opt.RenameCoreExpr
 
 import Infer.Id
 import Infer.Subst

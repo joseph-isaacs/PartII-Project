@@ -1,7 +1,7 @@
 {
-  -- data List a = Cons a (List a) | Nil;
+  data List a = Cons a (List a) | Nil;
 
-  -- list1 = Cons 1 Nil;
+  list1 = Cons 1 Nil;
 
   -- nat x = Cons x (nat (plus x 1));
 
@@ -59,7 +59,6 @@
   --    tt -> plus numberN (sumN (dec numberN))
   --  };
 
-
   -- head2 headArg = case headArg of {
   --   hardArgCase -> case hardArgCase of {
   --     hardArgCCase -> case 1 of {
@@ -94,7 +93,11 @@ odd odN = case odN of {
 --  main = putInt (seq id (multiply 2 3))
 --  main = putInt (plus (head (Cons   1 Nil)) 1)
 -- main = putInt (head (take 40 list1))
+<<<<<<< HEAD
 main = putInt (odd 3)
+=======
+main = putInt (sumN 20)
+>>>>>>> inlining
 --main = putInt 2
 
 }

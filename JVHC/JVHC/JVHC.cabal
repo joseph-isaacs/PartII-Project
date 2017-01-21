@@ -27,6 +27,8 @@ library
                      , CoreAST.Literal
                      , CoreAST.DataCon
                      , CoreAST.BuildInFunctions
+                     , CoreAST.RenameMonad
+                     , CoreAST.RenameCoreExpr
                      , Printing.PPrint
                      , Desugar.DExpr
                      , Desugar.DTypes
@@ -54,6 +56,8 @@ library
                      , Infer.KIMonad
                      , Infer.KIMain
                      , Infer.CoreExprSubst
+                     , Opt.InlineMonad
+                     , Opt.Inlining
                      , Pipeline.Compiler
                      , Infer.TyFixerMonad
                      , Infer.TyAppFixer

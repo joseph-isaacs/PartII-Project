@@ -7,6 +7,7 @@ import CoreAST.Kind
 import CoreAST.TScheme
 import CoreAST.Var
 import CoreAST.CoreExpr
+import CoreAST.BuildInFunctions
 import CoreAST.DataCon as DC
 
 import Parsing.ParsingAST(Body)
@@ -19,32 +20,30 @@ import Infer.Id
 import Infer.Scheme
 import Infer.Subst
 import Infer.Assumption
-
-import CoreAST.BuildInFunctions
-
 import Infer.TIProgram
-
 import Infer.TyAppFixer
 import Infer.TyFixerMonad
-
 import Infer.BuildInFunctionTypes
+
+import Opt.InlineMonad
+import Opt.Inlining
 
 import CodeGen.CGMonad
 import CodeGen.CGMain
 import CodeGen.CGCustomDataType
 import CodeGen.CGFileWriter
 
+import Codec.JVM
+
 import Data.Text (Text)
 import Data.String (fromString)
 import Data.Maybe (fromJust)
-
-import Codec.JVM
+import Data.Char (isUpper)
+import qualified Data.Map as M
 
 import Control.Monad
 
-import Data.Char (isUpper)
 
-import qualified Data.Map as M
 
 lexAndparse :: String -> Body
 lexAndparse = jvhcParse . alexScanTokens
@@ -71,7 +70,11 @@ mkCore bgdt =
             map (\(ExprDef (MkVar { varName = i, varType = TScheme [] t }) _) -> (Var i,(t, tv t))) ict
          ict' =   map (\v@(ExprDef (MkVar { varName = i }) _) ->
             runFXR (frxExprDef [] [] (map mkData (M.findWithDefault [] i x2) ++ topLevelVars) v )) ict
-     return ((ict',des),x2,ass')
+     return ((optimize ict',des),x2,ass')
+
+optimize :: CoreExprDefs -> CoreExprDefs
+optimize = inlineN 1
+
 
 -- This create the correct free type variables for Data constructors which were logged in the TI
 mkData :: (CoreExpr,Type) -> (CoreExpr,(Type,[Tyvar]))

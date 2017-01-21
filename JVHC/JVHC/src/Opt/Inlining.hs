@@ -15,8 +15,7 @@ import Infer.Subst
 import Infer.CoreExprSubst
 import Data.Int
 import Data.Monoid hiding(Alt)
-
-import Debug.Trace
+import Data.List(find)
 
 inlineN :: Int -> CoreExprDefs -> CoreExprDefs
 inlineN n defs = iterate inlineOnce defs !! n
@@ -77,8 +76,9 @@ inline (Case e t alts) =
   do inl   <- getInlined
      e'    <- inline e
      setInlined inl
-     alts' <- mapM inlineAlt alts
-     return $ Case e' t alts'
+     inlineCase e' t alts
+     -- alts' <- mapM inlineAlt alts
+     -- return $ Case e' t alts'
 
 inline v@(Var _) = return v
 
@@ -87,6 +87,25 @@ inline l@(Lit _) = return l
 inline t@(Type _)  = return t
 
 inline x         = fail ("not valid core: " ++ show x)
+
+inlineCase :: CoreExpr -> Type -> [Alt Binder] -> IL CoreExpr
+inlineCase e@(Lit l) t alts = maybe (return (Case e t alts)) (\x -> inline $ embedAlt l x) branch
+  where branch = find (findBranch l . \(a,_,_) -> a) alts
+
+inlineCase e         t alts =
+  do alts' <- mapM inlineAlt alts
+     return $ Case e t alts'
+
+
+findBranch :: Literal -> AltCon -> Bool
+findBranch lit (LitAlt l) = lit == l
+findBranch _   DEFAULT    = True
+findBranch _   _          = False
+
+embedAlt :: Literal -> Alt Binder -> CoreExpr
+embedAlt l (LitAlt lit,_,e) | l == lit = e
+embedAlt l (DEFAULT,[var],e)           = Let (ExprDef var (Lit l)) e
+embedAlt l alt                         = error $ "could not embed " ++ show l ++ " in " ++ show alt
 
 inlineAlt :: Alt Binder -> IL (Alt Binder)
 inlineAlt (dc,vars,e) =

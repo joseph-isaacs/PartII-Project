@@ -27,6 +27,8 @@ library
                      , CoreAST.Literal
                      , CoreAST.DataCon
                      , CoreAST.BuildInFunctions
+                     , CoreAST.RenameMonad
+                     , CoreAST.RenameCoreExpr
                      , Printing.PPrint
                      , Desugar.DExpr
                      , Desugar.DTypes

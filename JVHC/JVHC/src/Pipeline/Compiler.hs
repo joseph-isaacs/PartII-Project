@@ -73,7 +73,7 @@ mkCore bgdt =
      return ((optimize ict',des),x2,ass')
 
 optimize :: CoreExprDefs -> CoreExprDefs
-optimize = inlineN 2000
+optimize = inlineN 1
 
 
 -- This create the correct free type variables for Data constructors which were logged in the TI

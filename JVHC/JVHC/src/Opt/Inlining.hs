@@ -8,12 +8,15 @@ import CoreAST.Var
 import CoreAST.TScheme
 
 import Opt.InlineMonad
+import Opt.RenameCoreExpr
 
 import Infer.Id
 import Infer.Subst
 import Infer.CoreExprSubst
 import Data.Int
 import Data.Monoid hiding(Alt)
+
+import Debug.Trace
 
 inlineN :: Int -> CoreExprDefs -> CoreExprDefs
 inlineN n defs = iterate inlineOnce defs !! n
@@ -35,35 +38,40 @@ inline (App (Lam (MkTVar {tvarName = TVar t1}) e) (Type t2)) =
   do e' <- inline e
      return $ applyType (t1 +-> t2) e'
 
-inline (App (Lam b@(MkVar {varName = n})  e) a) =
+inline ap@(App (Lam b@(MkVar {varName = n})  e) a) =
   do addInlinedId n
-     inl <- getInlined
      inline (Let (ExprDef b a) e)
 
 inline (App (Var id) a) =
   do wasInl <- wasInlined id
      idE    <- lookupExpr id
+     i      <- getNewInt
      let isRec = case idE of {Just ide -> countVars id ide > 0; Nothing -> False}
      case wasInl || idE == Nothing || isRec of
        True  -> do {a' <- inline a; return (App (Var id) a')}
-       False -> let Just ide = idE in do {addInlinedId id;  inline (App ide a)}
+       False -> let Just (ide,i') = fmap (runRenameExpr i) idE in do {addInlinedId id; setNewInt i';  inline (App ide a)}
 
 inline (App e1 e2) =
-  do inl <- getInlined
+  do before <- getInlined
      e1' <- inline e1
-     setInlined inl
+     e1Inl <- getInlined
+     setInlined before
      e2' <- inline e2
-     return $ App e1' e2'
+     e2Inl <- getInlined
+     setInlined (e1Inl ++ e2Inl)
+     if e1' /= e1 || e2' /= e2 then inline (App e1' e2') else (return $ App e1' e2')
 
 inline (Lam b e)   =
   do e' <- inline e
      return $ Lam b e'
 
-inline (Let (ExprDef (MkVar { varName = n }) a) e) =
+inline l@(Let (ExprDef (MkVar { varName = n }) a) e) =
   do addInlinedId n
      a' <- inline a
      let numVars = countVars n a + countVars n e
-     return (if numVars < 4 then (applyExpr (n,a') e) else e)
+     let l' = (if numVars < 4 then (applyExpr (n,a') e) else e)
+     l'' <- inline l'
+     if l'' == l' then return l' else inline l''
 
 inline (Case e t alts) =
   do inl   <- getInlined

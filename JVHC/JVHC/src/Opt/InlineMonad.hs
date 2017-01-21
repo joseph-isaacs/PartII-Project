@@ -17,30 +17,42 @@ import Control.Monad
 import Data.List(find)
 
 
-newtype IL a = IL (ReaderT CoreExprDefs (State [Id]) a)
+newtype IL a = IL (ReaderT CoreExprDefs (State ([Id],Int)) a)
   deriving (Functor, Applicative, Monad
            , MonadReader CoreExprDefs
-           , MonadState [Id])
+           , MonadState ([Id],Int))
 
 runIL :: CoreExprDefs -> IL a -> a
-runIL defs (IL s) = evalState (runReaderT s defs) []
+runIL defs (IL s) = evalState (runReaderT s defs) ([],0)
+
+getNewInt :: IL Int
+getNewInt = liftM snd get
+
+setNewInt :: Int -> IL ()
+setNewInt i = modify (\(id,_) -> (id,i))
 
 getDefs :: IL CoreExprDefs
 getDefs = ask
 
 getInlined :: IL [Id]
-getInlined = get
+getInlined = liftM fst get
 
 setInlined :: [Id] -> IL ()
-setInlined ids = put ids
+setInlined ids = modify (\(_,i) -> (ids,i))
 
 addInlinedId :: Id -> IL ()
-addInlinedId id = modify (\ids -> id : ids)
+addInlinedId id = modify (\(ids,i) -> (id : ids,i))
 
 wasInlined :: Id -> IL Bool
 wasInlined id =
   do ids <- getInlined
      return (id `elem` ids)
+
+mkNewName :: String -> IL String
+mkNewName nm =
+  do i <- getNewInt
+     setNewInt (i+1)
+     return $ "_INLINE_" ++ show i ++ nm
 
 
 lookupExpr :: Id -> IL (Maybe CoreExpr)

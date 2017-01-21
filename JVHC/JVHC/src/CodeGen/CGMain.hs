@@ -220,7 +220,8 @@ cgExpr (App e1 e2) =
      let retCode = (newDup (obj thunkName)
                 <> gload ptype 0
                 <> gconv jobject ptype
-                <> invokespecial (mkMethodRef thunkName "<init>" [ptype] void))
+                <> invokespecial (mkMethodRef thunkName "<init>" [ptype] void)
+                <> gconv jobject (obj thunkName))
      --
      return (retCode,(obj thunkName,1))
 
@@ -375,7 +376,7 @@ cgGLit :: Int32     ->  -- value
 
 cgGLit value boxedName boxedType primType getterName expr otherBranch =
   do (thisBranch,(jt,t)) <- cgExpr expr
-     let thisBranch' = pop supplierInterfaceType <> (if t == 1 then thisBranch <> invokeSupplier else thisBranch)
+     let thisBranch' = pop boxedType <> (if t == 1 then thisBranch <> invokeSupplier else thisBranch)
      let code =
               dup jobject
            <> invokeSupplier

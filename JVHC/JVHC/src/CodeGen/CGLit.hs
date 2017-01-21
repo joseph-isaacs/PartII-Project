@@ -38,4 +38,5 @@ mkLit t val con pt =
   <> dup t
   <> iconst pt val
   <> invokespecial con
+  <> gconv jobject intThunkType
 

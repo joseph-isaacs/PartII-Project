@@ -36,3 +36,6 @@ invokeSupplier = invokeinterface (mkMethodRef supplierInterfaceName supplierName
 
 thunk :: JType
 thunk = obj thunkName
+
+thunkForce :: Text
+thunkForce = "force"

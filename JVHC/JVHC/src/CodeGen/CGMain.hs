@@ -142,6 +142,10 @@ notLam (Lam (MkTVar _) e) = notLam e
 notLam (Lam (MkVar _ _) _) = False
 notLam _ = True
 
+isVar :: CoreExpr -> Bool
+isVar (Var _) = True
+isVar _       = False
+
 unwrapMany :: FieldType -> Code -> CG Code
 unwrapMany ft code =
   do fInt <- getFreshInt
@@ -376,7 +380,7 @@ cgGLit :: Int32     ->  -- value
 
 cgGLit value boxedName boxedType primType getterName expr otherBranch =
   do (thisBranch,(jt,t)) <- cgExpr expr
-     let thisBranch' = pop boxedType <> (if t == 1 then thisBranch <> invokeSupplier else thisBranch)
+     let thisBranch' = pop boxedType <> (if t == 1 || isVar expr then thisBranch <> invokeSupplier else thisBranch)
      let code =
               dup jobject
            <> invokeSupplier

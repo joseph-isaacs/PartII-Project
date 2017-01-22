@@ -108,7 +108,7 @@ mkThunk :: Text  -> -- Class Name
 
 mkThunk className classType parentName parentType codeBody =
   mkClassFileV lamAccessors className (Just thunkName) [] [parentField] [getMethod,ctr]
-  where getMethod = mkMethodDef className methodAccessor supplierName [] (ret jobject) (codeBody <> greturn jobject)
+  where getMethod = mkMethodDef className methodAccessor thunkForce [] (ret jobject) (codeBody <> greturn jobject)
         ctr       = mkConstructorDef className thunkName [parentType]
                       (fieldSetterCode 1 className parentName parentType)
         parentField = mkFieldDef [Protected] parentName parentType

@@ -17,6 +17,7 @@ import Data.Int
 import Data.Monoid hiding(Alt)
 import Data.List(find)
 
+
 inlineN :: Int -> CoreExprDefs -> CoreExprDefs
 inlineN n defs = iterate inlineOnce defs !! n
 
@@ -73,12 +74,10 @@ inline l@(Let (ExprDef (MkVar { varName = n }) a) e) =
      if l'' == l' then return l' else inline l''
 
 inline (Case e t alts) =
-  do inl   <- getInlined
-     e'    <- inline e
+  do inl <- getInlined
+     e'  <- inline e
      setInlined inl
      inlineCase e' t alts
-     -- alts' <- mapM inlineAlt alts
-     -- return $ Case e' t alts'
 
 inline v@(Var _) = return v
 
@@ -150,7 +149,7 @@ applyType s (Lam v e) =
 
 applyType s (Let (ExprDef b a) e) = Let (ExprDef (apply s b) (applyType s a)) (applyType s e)
 
-applyType s (Case e t alts) = Case (applyType s e) (apply s t) (map (\(dc,bs,es) -> (dc,apply s bs,applyType s e)) alts)
+applyType s (Case e t alts) = Case (applyType s e) (apply s t) (map (\(dc,bs,es) -> (dc,apply s bs,applyType s es)) alts)
 
 applyType s e@(Type t) = Type (apply s t)
 

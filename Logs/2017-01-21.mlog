@@ -1,0 +1,11 @@
+Worked on inlining. Struggled to create verifiable JVM bytecode, the problem was
+StackMap variables were uninitialized, fixed by adding gconv in the correct place 
+to add extra entries in the StackMap.
+
+Allowed partial inlining for mutually recursive functions. 
+
+Implemented case reduction for literal case expressions. Going from 
+  'case 2 of {2 -> e} ===> e'
+
+Tested all of this using odd and even which only converge if the input is >0 and even if passed to even and 
+odd is passed to odd.

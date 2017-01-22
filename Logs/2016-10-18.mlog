@@ -1,0 +1,3 @@
+Worked with Alex and Happy to create the lexer and started on the parser.
+Kept line numbers and column numbers, didn't create a parsing monad so the
+line and column number where included in the AST

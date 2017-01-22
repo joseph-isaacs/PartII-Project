@@ -1,0 +1,5 @@
+Starting looking at code generation with codec-jvm. Was easy to install 
+and integrate into my project, I used cabal-sandbox to store all dependancies
+
+Added dependancy analysis to group the least set of implecitely typed function 
+into a single TI block.

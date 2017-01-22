@@ -1,0 +1,7 @@
+Been looking at the 'Typing Haskell in Haskell' (thih) paper.
+This presented an algorithm for typing Haskell, which I adaped, removing 
+type classes since my implementation didn't support them (maybe I should have
+included them).
+
+Also need to add kind inference which would work similar to type inference, 
+but instead of using expression we use data types.

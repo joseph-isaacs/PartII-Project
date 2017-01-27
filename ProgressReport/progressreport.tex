@@ -1,0 +1,97 @@
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{parskip}
+\usepackage{verbatim}
+\usepackage{amsfonts}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+\def\comment#1\done{{\color{blue}#1}}
+\def\add#1\done{{\color{red}#1}}
+\def\remove#1\done{{\sout{#1}}}
+\def\change#1\to#2\done{{\sout{#1}\color{red}#2}}
+
+\bibliography{ProRefs.bib}
+
+\begin{document}
+
+
+\begin{center}
+  \Large
+  Computer Science Tripos -- Part II -- Progress Report\\[4mm]
+  \LARGE
+  Haskell 98 to JVM bytecode compiler\\[4mm]
+
+  \large
+  J.~Isaacs, Sidney Sussex
+
+  \texttt{josi2@cam.ac.uk}
+
+  \today
+\end{center}
+
+\vspace{5mm}
+
+\textbf{Project Supervisor:} R.~Kovacsics
+
+\textbf{Director of Studies:} Dr J.~Fawcett 
+
+\textbf{Project Overseers:} S.~Holden and S.~Teufel
+
+
+My project is on schedule, I have completed all work packages scheduled to be completed by 15/02/17.
+
+
+
+
+ \section*{Success Criteria}
+
+  The following criteria have bee achieved:
+
+  \begin{itemize}
+
+    \item
+      I have created unit tests which test simple Haskell programs, making sure the valid programs compile
+      and produce the correct result and invalid programs will not compile and produce errors related to the 
+      problem with the input program. 
+      
+      These test come in the form of validation of individual stages in the compiler to test the
+      these stages in isolation. 
+      I have tests checking:
+      \begin{itemize}
+        \item Parsing of simple Haskell source.
+        \item Checking the desugaring of the syntax from the parse tree to an intermediate representation
+              is valid.
+        \item If typeable and untypeable programs have correct typing judgments when run through 
+          the type checker, also checking that for typeable programs the type checker returns the correct
+          and most general type for that expression.
+        \item The System F like core calculus (called Core) 
+          output from the type-checking algorithm is annotated with the correct types.
+        \item The JVM bytecode outputted from the code generation stage of the compiler will execute 
+          and the correct output values printed inside the IO monad and return value is observed is
+          the correct value for that program.
+      \end{itemize}
+
+      I have created tests checking the validity of extensions:
+      As well as core requirements I have implement all of my extension tasks and have tests checking:
+      \begin{itemize}
+        \item Function inlining doesn't change the semantics of the program
+        \item Checking that functions implemented in Java without side effect can be invoked by 
+              Haskell code.
+        \item Checking that calling monad IO function such as \texttt{putInt} function
+          in the correct manor.
+      \end{itemize}
+
+      I have started implementing analysis feature I have created a profiler that will measure the 
+      run time of a given program multiple times.
+
+
+
+
+\end{document}

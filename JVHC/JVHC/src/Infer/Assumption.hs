@@ -1,4 +1,9 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Infer.Assumption where
+
+import GHC.Generics
+import Control.DeepSeq
 
 import Infer.Scheme
 import Infer.Subst
@@ -8,7 +13,7 @@ import Printing.PPrint
 import Text.PrettyPrint
 
 data Assumption = Id :>: Scheme
-  deriving (Show,Eq)
+  deriving (Show,Eq,Generic)
 
 instance Types Assumption where
   apply s (i :>: sc) = i :>: (apply s sc)
@@ -21,3 +26,5 @@ find i as = if schemes == [] then fail ("unbound identifier: " ++ i) else return
 
 instance PPrint Assumption where
   pprint (i :>: s) = (text (show i) <+> text ":>:") $$ nest 2 (pprint s)
+
+instance NFData Assumption

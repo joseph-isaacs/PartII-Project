@@ -1,5 +1,10 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module CoreAST.Types
   where
+
+import GHC.Generics
+import Control.DeepSeq
 
 import CoreAST.Kind
 import Infer.Id
@@ -9,20 +14,25 @@ import Text.PrettyPrint
 
 type FreshId = Int
 
-data Type = TVar  Tyvar
-          | TCon  Tycon
-          | TAp   Type    Type
+data Type = TVar  !Tyvar
+          | TCon  !Tycon
+          | TAp   !Type    !Type
           | TGen  FreshId
-          deriving Eq
+          deriving (Eq, Generic)
 
 instance Show Type where
   show = pretty
 
 data Tyvar = Tyvar Id Kind
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
 data Tycon = Tycon Id Kind
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+
+instance NFData Type
+instance NFData Tyvar
+instance NFData Tycon
 
 class HasKind t where
   kind :: t -> Kind

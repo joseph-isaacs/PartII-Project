@@ -1,4 +1,9 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module CoreAST.Kind where
+
+import GHC.Generics
+import Control.DeepSeq
 
 import Infer.Id
 
@@ -6,10 +11,10 @@ import Printing.PPrint
 import Text.PrettyPrint
 
 data Kind = Star | Kfun Kind Kind | KVar KVar
-  deriving (Eq,Show)
+  deriving (Eq,Show,Generic)
 
 data KVar = Kvar Id
-  deriving (Show,Eq)
+  deriving (Show,Eq,Generic)
 
 removeVars :: Kind -> Kind
 removeVars (KVar _)     = Star
@@ -25,3 +30,7 @@ ppkind _ Star       = text "Star"
 ppkind _ (KVar v)   = text (show v)
 ppkind d (Kfun l r) = ppParen (d>=10)
                          (text "Kfun" <+> ppkind 10 l <+> ppkind 0 r)
+
+
+instance NFData Kind
+instance NFData KVar

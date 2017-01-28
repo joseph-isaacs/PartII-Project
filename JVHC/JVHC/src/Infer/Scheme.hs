@@ -1,4 +1,9 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Infer.Scheme where
+
+import GHC.Generics
+import Control.DeepSeq
 
 import CoreAST.Types
 import CoreAST.Kind
@@ -8,7 +13,7 @@ import Printing.PPrint
 import Text.PrettyPrint
 
 data Scheme = Scheme [Kind] Type
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
 
 instance Types Scheme where
@@ -31,3 +36,5 @@ instance HasKind Scheme where
 instance PPrint Scheme where
   pprint (Scheme ks qt)
     = (text "Scheme" <+> pprint ks) $$ nest 2 (parPprint qt)
+
+instance NFData Scheme

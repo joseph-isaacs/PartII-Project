@@ -14,7 +14,6 @@ public class plus1 implements Function<Supplier<Integer>,Integer>{
 
     @Override
     public Integer apply(Supplier<Integer> i1) {
-
         return i0.get() + i1.get();
     }
 }

@@ -45,53 +45,57 @@
 \textbf{Project Overseers:} S.~Holden and S.~Teufel
 
 
-My project is on schedule, I have completed all work packages scheduled to be completed by 15/02/17.
+My project is on schedule. I also have completed all work packages scheduled to be completed by 15/02/17.
+I have also completed all work packages not requiring analysis or dissertation write up.
 
 
 
+ \section*{Criteria Accomplished}
 
- \section*{Success Criteria}
-
-  The following criteria have bee achieved:
+  The following criteria have been achieved:
 
   \begin{itemize}
 
     \item
-      I have created unit tests which test simple Haskell programs, making sure the valid programs compile
-      and produce the correct result and invalid programs will not compile and produce errors related to the 
-      problem with the input program. 
+      I have created unit tests which test simple Haskell programs, making sure that valid programs compile
+      and produce the correct result and that invalid programs will not compile and produce errors.
+      I have also checked that if the program is invalid the errors produced are related to the problems with
+      the input program, where I use valid to mean syntatically correct and typeable.
       
-      These test come in the form of validation of individual stages in the compiler to test the
-      these stages in isolation. 
-      I have tests checking:
+      The unit tests I created help validate the individual stages in the compiler and test these
+      stages in isolation. 
+      I developed tests checking:
       \begin{itemize}
-        \item Parsing of simple Haskell source.
-        \item Checking the desugaring of the syntax from the parse tree to an intermediate representation
-              is valid.
+        \item Lexing and parsing of Haskell source.
+        \item Checking the correctness of desugaring from a parse tree to an intermediate representation.
         \item If typeable and untypeable programs have correct typing judgments when run through 
-          the type checker, also checking that for typeable programs the type checker returns the correct
+          the type checker. Checking that for typeable programs the type checker returns the correct
           and most general type for that expression.
-        \item The System F like core calculus (called Core) 
-          output from the type-checking algorithm is annotated with the correct types.
-        \item The JVM bytecode outputted from the code generation stage of the compiler will execute 
-          and the correct output values printed inside the IO monad and return value is observed is
-          the correct value for that program.
+        \item The System F like core calculus, called Core, 
+          outputted from the type-checking algorithm is annotated with the correct types.
+        \item That the JVM bytecode outputted from the code generation stage of the compiler  
+          will:
+         \begin{itemize} 
+            \item Run without unexpected runtime errors.
+            \item Print correct values to stdout when the I/O monad is evaluated 
+            \item Return the correct value if the program halts.
+        \end{itemize}
       \end{itemize}
 
-      I have created tests checking the validity of extensions:
-      As well as core requirements I have implement all of my extension tasks and have tests checking:
+    \item As well fulfilling the core requirements I have implemented all of my extension tasks and have tests checking 
+          that:
       \begin{itemize}
-        \item Function inlining doesn't change the semantics of the program
-        \item Checking that functions implemented in Java without side effect can be invoked by 
+        \item Function inlining does not change the semantics of the program.
+        \item Functions implemented in Java without side effect can be invoked by 
               Haskell code.
-        \item Checking that calling monad IO function such as \texttt{putInt} function
-          in the correct manor.
+        \item Invoking monadic I/O functions such as \texttt{putInt} have the correct effects and 
+              side effects.
       \end{itemize}
 
-      I have started implementing analysis feature I have created a profiler that will measure the 
-      run time of a given program multiple times.
+    \item I have implemented an analysis framework that will measure the run time of a given program
+          multiple times, the data produced can then be further analysed.
 
-
+  \end{itemize}
 
 
 \end{document}

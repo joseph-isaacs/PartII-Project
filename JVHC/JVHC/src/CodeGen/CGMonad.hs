@@ -26,21 +26,28 @@ data Scope = Scope ScopeVar [ScopeVar]
 
 type PreDefFunctionMap = [(Text,(Text,Bool))]
 
-newtype CG a = CG (ReaderT PreDefFunctionMap (WriterT [(Text,ClassFile)] (State ([Scope],Int))) a)
+data CodeGenReader = CGR { funMap :: PreDefFunctionMap, debug :: Bool }
+
+newtype CG a = CG (ReaderT CodeGenReader (WriterT [(Text,ClassFile)] (State ([Scope],Int))) a)
   deriving (Functor, Applicative, Monad
            , MonadWriter [(Text,ClassFile)]
            , MonadState ([Scope], Int)
-           , MonadReader PreDefFunctionMap)
+           , MonadReader CodeGenReader)
 
 
-runCG :: PreDefFunctionMap -> CG a -> (a,[(Text,ClassFile)])
+runCG :: CodeGenReader     ->
+         CG a              ->
+         (a,[(Text,ClassFile)])
 runCG pre (CG m) = evalState (runWriterT (runReaderT m pre)) ([],0)
 
 getPreDefinedFunction :: Text -> CG (Maybe (Text,Bool))
-getPreDefinedFunction funName = liftM (lookup funName) getPreDefFunc
+getPreDefinedFunction funName = liftM (lookup funName) getCGReaderDef
 
-getPreDefFunc :: CG PreDefFunctionMap
-getPreDefFunc = ask
+isDebug :: CG Bool
+isDebug = liftM debug ask
+
+getCGReaderDef :: CG PreDefFunctionMap
+getCGReaderDef = liftM funMap ask
 
 logClass :: Text -> ClassFile -> CG ()
 logClass n c = tell [(n,c)]

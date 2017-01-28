@@ -35,7 +35,7 @@ import CodeGen.CGFileWriter
 
 import Codec.JVM
 
-import Data.Text (Text)
+import Data.Text (Text,unpack,pack)
 import Data.String (fromString)
 import Data.Maybe (fromJust)
 import Data.Char (isUpper)
@@ -57,9 +57,9 @@ tVr = TVar $ Tyvar "_t_" Star
 buildInMap :: PreDefFunctionMap
 buildInMap = map (\bi -> (fromString $ fnName bi, (fromString $ fnClassName bi,False))) buildIn
 
-mkCore :: Monad m => m (BindGroup, [DataType]) ->
+mkCore :: Monad m => OptimizeParams -> m (BindGroup, [DataType]) ->
                      m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)],[Assumption])
-mkCore bgdt =
+mkCore op bgdt =
   do (bg,des) <- bgdt
      let sdt = splitDataType $ des
          ass = snd sdt ++ buildInAssumptions
@@ -70,10 +70,12 @@ mkCore bgdt =
             map (\(ExprDef (MkVar { varName = i, varType = TScheme [] t }) _) -> (Var i,(t, tv t))) ict
          ict' =   map (\v@(ExprDef (MkVar { varName = i }) _) ->
             runFXR (frxExprDef [] [] (map mkData (M.findWithDefault [] i x2) ++ topLevelVars) v )) ict
-     return ((optimize ict',des),x2,ass')
+     return ((optimize op ict',des),x2,ass')
 
-optimize :: CoreExprDefs -> CoreExprDefs
-optimize = inlineN 1
+data OptimizeParams = OP { inlineTimes :: Int }
+
+optimize :: OptimizeParams -> CoreExprDefs -> CoreExprDefs
+optimize op = inlineN (inlineTimes op)
 
 
 -- This create the correct free type variables for Data constructors which were logged in the TI
@@ -86,8 +88,8 @@ mkData (a,b) = (a,(b,[]))
 jvmPath :: Text
 jvmPath = "/Users/joeisaacs/Dropbox/git/JVMTesting/out/production/JVMTesting/"
 
-codeGen :: (CoreExprDefs,[TyCon]) -> [(Text,ClassFile)]
-codeGen (exprs,tyCons) =  (snd $ runCG buildInMapping (cgEnv exprs)) ++ concatMap mkDataType tyCons
+codeGen :: Bool -> (CoreExprDefs,[TyCon]) -> [(Text,ClassFile)]
+codeGen d (exprs,tyCons) =  (snd $ runCG (CGR { funMap = buildInMapping, debug = d }) (cgEnv exprs)) ++ concatMap mkDataType tyCons
   where buildInMapping = buildInMap ++ (concatMap buildInType tyCons)
 
 buildInType :: TyCon -> PreDefFunctionMap
@@ -98,20 +100,24 @@ buildInType tyCon = map buildMap ctrs
                 name = fromString $ dName c
                 newName = if isNull then name else (name `mappend` "0")
 
-writeCodeFiles :: [(Text,ClassFile)] -> IO ()
-writeCodeFiles = writeFiles jvmPath
+writeCodeFiles :: Text -> [(Text,ClassFile)] -> IO ()
+writeCodeFiles outPutDir = writeFiles outPutDir
 
-compilerSo :: Monad m => String -> m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)], [Assumption])
-compilerSo = mkCore . desugar . lexAndparse
+compilerSo :: Monad m => OptimizeParams -> String -> m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)], [Assumption])
+compilerSo op = (mkCore op) . desugar . lexAndparse
 
-compiler :: String -> IO ()
-compiler = writeCodeFiles . codeGen . (\((c,d),_,_) -> (c,map tCon d)) . fromJust . compilerSo
+compiler :: Bool -> OptimizeParams -> Text -> String -> IO ()
+compiler d op output = (writeCodeFiles output) . (codeGen d) . (\((c,d),_,_) -> (c,map tCon d)) . fromJust . (compilerSo op)
 
-compileFromSourceFile :: FilePath -> IO ()
-compileFromSourceFile fp =
+compileFromSourceFile :: Bool -> OptimizeParams -> FilePath -> FilePath -> IO ()
+compileFromSourceFile d op outputPath fp =
   do fileContent <- readFile fp
-     compiler fileContent
+     (compiler d op) (pack outputPath) fileContent
 
-compileSoFar fp =
+compileSoFar op fp =
   do fileContent <- readFile fp
-     compilerSo fileContent
+     compilerSo op fileContent
+
+noOpt = (OP {inlineTimes = 0})
+
+normalOpt = (OP {inlineTimes = 1})

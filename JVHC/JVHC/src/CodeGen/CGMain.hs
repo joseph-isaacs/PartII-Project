@@ -18,6 +18,7 @@ import CodeGen.CGMonad
 import CodeGen.CGLit
 import CodeGen.CodeGen
 import CodeGen.CGHelper
+import CodeGen.CodePrint
 
 import Codec.JVM
 import Codec.JVM.Opcode (athrow)
@@ -88,18 +89,39 @@ mkEnvClassFile topLevel =
                              <> gload jobject 0
                              <> invokespecial (mkMethodRef t "<init>" [envType] void)
                              <> putfield (mkFieldRef envName t supplierInterfaceType )) topLevel))
-     let after = unsafePeformIO
-              <> invokevirtual (mkMethodRef "java/io/PrintStream" "println" [jobject] void)
-              <> vreturn
-     let mCode =   (  getstatic (mkFieldRef "java/lang/System" "out" (obj "java/io/PrintStream"))
-                    <> new (obj envName)
-                    <> dup (obj envName)
+     let mCode =     ( newDup (obj envName)
                     <> invokespecial (mkMethodRef envName "<init>" [] void)
                     <> getfield (mkFieldRef envName mainName supplierInterfaceType)
+                    <> newDup jLongType
+                    <> getSystemTime
+                    <> longConstructor
+                    <> swap supplierInterfaceType jLongType
                     <> invokeSupplier
-                    <> after)
+                    <> unsafePeformIO
+                    <> swap jLongType jobject
+                    <> new jLongType
+                    <> dup_x1 jLongType jLongType
+                    <> swap jLongType jLongType
+                    <> getLongValue
+                    <> getSystemTime
+                    <> lsub
+                    <> mathAbs
+                    <> longConstructor
+                    <> getPrintStream
+                    <> swap jLongType printStreamType
+                    <> getPrintStream
+                    <> invokePrintLn []
+                    <> invokePrintLn [jobject]
+                    <> vreturn)
          mainFunction = mkMethodDef envName [Public,Static] "main" [jarray jstring] void mCode
      logClass envName $ mkClassFileV lamAccessors envName Nothing [] fields [ctr,mainFunction]
+
+getSystemTime :: Code
+getSystemTime = invokestatic (mkMethodRef "java/lang/System" "currentTimeMillis" [] (ret jlong))
+
+mathAbs :: Code
+mathAbs = invokestatic (mkMethodRef "java/lang/Math" "abs" [jlong] (ret jlong))
+
 
 unsafePeformIO :: Code
 unsafePeformIO = gconv jobject ioJType
@@ -186,7 +208,9 @@ cgExpr l@(Lam (MkVar { varName = n, varType = TScheme [] bt } ) e) =
      let body'    = body <> (if notLam e &&  not (isCase e) then invokeSupplier else mempty)
          lamClass = mkLambdaClass fnName pname tyB tyE ptype body'
      logClass fnName lamClass
-     let retCode = newDup fnType
+     printStr <- printString ("Lam: " ++ unpack fnName)
+     let retCode = printStr
+                <> newDup fnType
                 <> gload ptype 0
                 <> gconv jobject ptype
                 <> invokespecial (mkMethodRef fnName "<init>" [ptype] void)
@@ -194,9 +218,10 @@ cgExpr l@(Lam (MkVar { varName = n, varType = TScheme [] bt } ) e) =
 
 cgExpr (Let (ExprDef b e1) e2) =
   do scope <- getScope
-     ret <- cgExpr (App (Lam b e2) e1)
+     (code,t) <- cgExpr (App (Lam b e2) e1)
      setScope scope
-     return ret
+     printStr <- printString "Let"
+     return (code <> printStr,t)
 
 
 cgExpr (Lam (MkTVar _) e) = cgExpr e
@@ -221,12 +246,13 @@ cgExpr (App e1 e2) =
                   <> invokeFunction
          thunk = mkThunk thunkName (obj thunkName) pname ptype thunkCode
      logClass thunkName thunk
+     printStr <- printString ("Thunk: " ++ unpack thunkName)
      let retCode = (newDup (obj thunkName)
                 <> gload ptype 0
                 <> gconv jobject ptype
+                <> printStr
                 <> invokespecial (mkMethodRef thunkName "<init>" [ptype] void)
                 <> gconv jobject (obj thunkName))
-     --
      return (retCode,(obj thunkName,1))
 
 
@@ -235,7 +261,8 @@ cgExpr (Case e t alts) =
      (code,(obj,n)) <- cgExpr e
      setScope scope
      altsCode <- foldrM caseMap raiseMatchError alts
-     return (code <> altsCode,(toJType t,20))
+     printStr <- printString "Case"
+     return (code <> printStr <> altsCode,(toJType t,20))
 
 cgExpr (Var i) =
   do let v = (fromString i)
@@ -253,14 +280,17 @@ cgNormalVar i = do
 cgBuildIn :: CodeGen (Text,Bool)
 cgBuildIn (fnName,False) =
   do let fnType  = obj fnName
-         retCode = (new fnType
-                <> dup fnType
-                <> invokespecial (mkMethodRef fnName "<init>" [] void))
+     printStr <-  printString ("Var: " ++ unpack fnName)
+     let retCode = (printStr
+                 <> newDup fnType
+                 <> invokespecial (mkMethodRef fnName "<init>" [] void))
      return (retCode,(fnType,0))
 
 cgBuildIn (fnName,True) =
   do let fnType  = obj fnName
-     return (newDup objThunkType
+     printStr <- printString ("Var: " ++ unpack fnName)
+     return ( printStr
+          <> newDup objThunkType
           <> newDup fnType
           <> invokespecial (mkMethodRef fnName "<init>" [] void)
           <> invokespecial objThunkConstructor,(supplierInterfaceType,1))
@@ -381,13 +411,14 @@ cgGLit :: Int32     ->  -- value
 cgGLit value boxedName boxedType primType getterName expr otherBranch =
   do (thisBranch,(jt,t)) <- cgExpr expr
      let thisBranch' = pop boxedType <> (if t == 1 || isVar expr then thisBranch <> invokeSupplier else thisBranch)
-     let code =
-              dup jobject
-           <> invokeSupplier
-           <> gconv jobject boxedType
-           <> invokevirtual (mkMethodRef boxedName getterName [] (ret primType))
-           <> iconst primType value
-           <> if_icmpeq thisBranch' otherBranch
+     printStrCode <- printString ("Lit " ++ (show value))
+     let code = printStrCode
+             <> dup jobject
+             <> invokeSupplier
+             <> gconv jobject boxedType
+             <> invokevirtual (mkMethodRef boxedName getterName [] (ret primType))
+             <> iconst primType value
+             <> if_icmpeq thisBranch' otherBranch
      return code
 
 mkName s i = fromString s `mappend` (fromString . show) i

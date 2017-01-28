@@ -32,6 +32,18 @@ jIntValue = "intValue"
 integerConstructor :: MethodRef
 integerConstructor = mkConstructorRef integerFieldName [jint]
 
+jLongType :: JType
+jLongType = obj jLongName
+
+jLongName :: Text
+jLongName = "java/lang/Long"
+
+getLongValue :: Code
+getLongValue = invokevirtual (mkMethodRef jLongName "longValue" [] (ret jlong))
+
+longConstructor :: Code
+longConstructor = invokespecial $ mkConstructorRef jLongName [jlong]
+
 intThunkName :: Text
 intThunkName = "BuildIn/IntThunk"
 
@@ -91,3 +103,15 @@ envName = "Env"
 
 envType :: JType
 envType = obj envName
+
+getPrintStream :: Code
+getPrintStream =  getstatic (mkFieldRef "java/lang/System" "out" printStreamType)
+
+invokePrintLn :: [JType] -> Code
+invokePrintLn ty =  invokevirtual (mkMethodRef "java/io/PrintStream" "println" ty void)
+
+printStreamType :: JType
+printStreamType = obj printStreamName
+
+printStreamName :: Text
+printStreamName = "java/io/PrintStream"

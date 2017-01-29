@@ -43,7 +43,7 @@ import qualified Data.Map as M
 
 import Control.Monad
 
-
+type TopLevelVars = (CoreExpr,(Type,[Tyvar]))
 
 lexAndparse :: String -> Body
 lexAndparse = jvhcParse . alexScanTokens
@@ -57,20 +57,32 @@ tVr = TVar $ Tyvar "_t_" Star
 buildInMap :: PreDefFunctionMap
 buildInMap = map (\bi -> (fromString $ fnName bi, (fromString $ fnClassName bi,False))) buildIn
 
-mkCore :: Monad m => OptimizeParams -> m (BindGroup, [DataType]) ->
+typeInference :: Monad m => m (BindGroup, [DataType]) -> m ((CoreExprDefs,[Assumption]),M.Map Id [(CoreExpr,Type)])
+typeInference bgdt =
+  do (bg,des) <- bgdt
+     let sdt = splitDataType $ des
+         ass = snd sdt ++ buildInAssumptions
+     return $ tiProgram ass [bg]
+
+getTopLevelVars :: CoreExprDefs -> [TopLevelVars]
+getTopLevelVars = map (\(ExprDef (MkVar { varName = i, varType = TScheme [] t }) _) -> (Var i,(t, tv t)))
+
+toSystemFExpr :: M.Map Id [(CoreExpr,Type)] -> [TopLevelVars] -> ExprDef Binder -> CoreExprDef
+toSystemFExpr idCoreTMap tlv expr = runFXR (frxExprDef [] [] (map mkData (M.findWithDefault [] i idCoreTMap) ++ tlv) expr)
+  where (ExprDef (MkVar { varName = i }) _) = expr
+
+mkCore :: Monad m => m (BindGroup, [DataType]) ->
                      m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)],[Assumption])
-mkCore op bgdt =
+mkCore bgdt =
   do (bg,des) <- bgdt
      let sdt = splitDataType $ des
          ass = snd sdt ++ buildInAssumptions
          (x1,x2) = tiProgram ass [bg]
          (ict, ass')  = x1
           -- Adds the other top level function to the fixer
-         topLevelVars =
-            map (\(ExprDef (MkVar { varName = i, varType = TScheme [] t }) _) -> (Var i,(t, tv t))) ict
-         ict' =   map (\v@(ExprDef (MkVar { varName = i }) _) ->
-            runFXR (frxExprDef [] [] (map mkData (M.findWithDefault [] i x2) ++ topLevelVars) v )) ict
-     return ((optimize op ict',des),x2,ass')
+         topLevelVars = getTopLevelVars ict
+         ict' =   map (toSystemFExpr x2 topLevelVars) ict
+     return ((ict',des),x2,ass')
 
 data OptimizeParams = OP { inlineTimes :: Int }
 
@@ -79,7 +91,7 @@ optimize op = inlineN (inlineTimes op)
 
 
 -- This create the correct free type variables for Data constructors which were logged in the TI
-mkData :: (CoreExpr,Type) -> (CoreExpr,(Type,[Tyvar]))
+mkData :: (CoreExpr,Type) -> TopLevelVars
 mkData (Var x@(l:_),t) = (Var x,(t, tvs))
   where tvs = if isUpper l then tv t else []
 
@@ -103,11 +115,14 @@ buildInType tyCon = map buildMap ctrs
 writeCodeFiles :: Text -> [(Text,ClassFile)] -> IO ()
 writeCodeFiles outPutDir = writeFiles outPutDir
 
-compilerSo :: Monad m => OptimizeParams -> String -> m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)], [Assumption])
-compilerSo op = (mkCore op) . desugar . lexAndparse
+compilerSo :: Monad m => String -> m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)], [Assumption])
+compilerSo = mkCore  . desugar . lexAndparse
+
+compilerPreCodeGen :: OptimizeParams -> String -> (CoreExprDefs,[TyCon])
+compilerPreCodeGen op = (\((c,d),_,_) -> (optimize op c,map tCon d)) . fromJust . compilerSo
 
 compiler :: Bool -> OptimizeParams -> Text -> String -> IO ()
-compiler d op output = (writeCodeFiles output) . (codeGen d) . (\((c,d),_,_) -> (c,map tCon d)) . fromJust . (compilerSo op)
+compiler d op output = (writeCodeFiles output) . (codeGen d) . (compilerPreCodeGen op)
 
 compileFromSourceFile :: Bool -> OptimizeParams -> FilePath -> FilePath -> IO ()
 compileFromSourceFile d op outputPath fp =
@@ -116,7 +131,7 @@ compileFromSourceFile d op outputPath fp =
 
 compileSoFar op fp =
   do fileContent <- readFile fp
-     compilerSo op fileContent
+     compilerSo  fileContent
 
 noOpt = (OP {inlineTimes = 0})
 

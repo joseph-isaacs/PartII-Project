@@ -131,8 +131,8 @@ applyExpr _ e = e
 
 applyExprAlts :: (Id,CoreExpr) -> (Alt Binder) -> (Alt Binder)
 applyExprAlts s@(id,_) (d,vars,e)
-  | and (map (isId id) vars)  = (d,vars,e)
-  | otherwise                 = (d,vars,applyExpr s e)
+  | or (map (isId id) vars)  = (d,vars,e)
+  | otherwise                = (d,vars,applyExpr s e)
 
 isId :: Id -> Binder -> Bool
 isId id (MkVar {varName = n}) = id == n

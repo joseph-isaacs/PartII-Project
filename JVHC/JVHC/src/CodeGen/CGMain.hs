@@ -196,7 +196,7 @@ cgExpr (Lit lit) = cgLit lit
 --
 -- returns a new instance of the above class
 
-cgExpr l@(Lam (MkVar { varName = n, varType = TScheme [] bt } ) e) =
+cgExpr l@(Lam (MkVar { varName = n, varType = TScheme _ bt } ) e) =
   do (pname,ptype) <- getParent
      let fnName = fromString n
          fnType = obj fnName
@@ -270,6 +270,8 @@ cgExpr (Var i) =
      case lookupResult of
        Just x   -> cgBuildIn x
        Nothing -> cgNormalVar v
+
+cgExpr x = error $ "failed " ++ show x
 
 cgNormalVar :: CodeGen Text
 cgNormalVar i = do

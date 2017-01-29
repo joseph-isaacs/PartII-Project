@@ -1,4 +1,8 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Desugar.DExpr where
+
+import GHC.Generics
 
 import CoreAST.Kind
 import CoreAST.DataCon
@@ -15,7 +19,7 @@ data DataType = DT { dTName :: String, dKind :: Kind, dConstrs :: [Assumption], 
 data Pat = PVar Id
          | PLit Literal
          | PCon DataCon Assumption [Pat]
-    deriving (Show)
+    deriving (Show,Generic)
 
 data Expr = Var Id
           | Lit Literal
@@ -24,7 +28,7 @@ data Expr = Var Id
           | Lam Id Expr
           | Let BindGroup Expr
           | Case Expr [(Pat,Expr)]
-     deriving Show
+     deriving (Show,Generic)
 
 type Alt = Expr
 

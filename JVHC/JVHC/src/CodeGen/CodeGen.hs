@@ -1,9 +1,8 @@
 module CodeGen.CodeGen where
 
-import CodeGen.CGMonad
-import CodeGen.JTypes
-import CoreAST.Types
+import CodeGen.CGMonad(CG)
+import CodeGen.JTypes(JType)
 
 import Codec.JVM(Code)
 
-type CodeGen a = a -> CG (Code,(JType,Int))
+type CodeGen a = a -> CG (Code,JType)

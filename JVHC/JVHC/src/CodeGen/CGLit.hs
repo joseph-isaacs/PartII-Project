@@ -19,11 +19,11 @@ import Codec.JVM
 
 cgLit :: CodeGen Literal
 cgLit (LitInt i) = return (mkLit intThunkType value intThunkConstructor jint
-                          ,(supplierInterfaceType,1))
+                          ,supplierInterfaceType)
   where value = fromInteger i
 
 cgLit (LitChar c) = return (mkLit charThunkType value charThunkConstructor jchar
-                           ,(supplierInterfaceType ,1))
+                           ,supplierInterfaceType)
   where value = (fromIntegral . ord) c
 
 cgLit (LitString _) = error "code gen for string not supported"
@@ -38,5 +38,5 @@ mkLit t val con pt =
   <> dup t
   <> iconst pt val
   <> invokespecial con
-  <> gconv jobject intThunkType
+  <> gconv jobject t
 

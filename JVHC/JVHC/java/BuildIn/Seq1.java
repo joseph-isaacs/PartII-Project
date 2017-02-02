@@ -13,7 +13,6 @@ public class Seq1<B> implements Function<Supplier<B>,B> {
 
     @Override
     public B apply(Supplier<B> o) {
-       // seq0.sa.get();
         System.out.println(seq0.sa.get());
         return o.get();
     }

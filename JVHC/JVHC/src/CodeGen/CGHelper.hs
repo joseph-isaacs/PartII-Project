@@ -42,32 +42,31 @@ mkLambdaClass name pname tyB tyE tyP eC =
              Nothing [functionInterface] fields methods
     where
       fields = [ mkFieldDef [Protected] name tyB
-               , mkFieldDef [Protected] pname   tyP
+               , mkFieldDef [Protected] pname tyP
                ]
       methods = [ mkConstructorDef name jobjectC [tyP] (
                      fieldSetterCode 1 name pname tyP
-                  <> gload jobject 0
-                   ),
+                  <> gload (obj name) 0
+                  ),
                   mkApplyFun name (
                         fieldSetterCode 1 name name tyB
-                     <> gload jobject 0
+                     <> gload (obj name) 0
                      <> eC
                      <> gconv tyE jobject)]
 
 mkApplyFun :: Text -> Code -> MethodDef
 mkApplyFun name code =  mkMethodDef name methodAccessor "apply" [jobject] (ret jobject) (
-                        code
-                     <> greturn jobject)
+                           code
+                        <> greturn jobject)
 
 fieldSetterCode :: Int ->   -- Arg Pos
-              Text ->  -- Class Name
-              Text ->  -- Field Name
-              JType -> -- Field Type
-              Code
+                   Text ->  -- Class Name
+                   Text ->  -- Field Name
+                   JType -> -- Field Type
+                   Code
 fieldSetterCode pos cName fName fType =
-     gload jobject 0
-  <> gload jobject pos
-  <> gconv jobject fType
+     gload (obj cName) 0
+  <> gload fType pos
   <> putfield (mkFieldRef cName fName fType)
 
 -- Will put the argument in on the top of the stack with the first arguement at the bottom

@@ -18,6 +18,7 @@ import Desugar.DExpr
 
 import Control.Monad
 
+import Debug.Trace
 
 dTopDecls :: Monad m => Body -> m (BindGroup, [DataType])
 dTopDecls (TTopDecls decls) =
@@ -25,7 +26,7 @@ dTopDecls (TTopDecls decls) =
      dataTypes     <- dDataDecls dd
      let context   = splitDataType (dataTypes ++ BIT.types)
      let context'  = (fst context, snd context ++ buildInAssumptions)
-     bg            <- dDecl dataTypes context' decl
+     bg            <- dDecl (dataTypes ++ BIT.types) context' decl
      return (bg,dataTypes)
 
 splitTopDecls :: [TopDecl] -> ([TDataDecl],[Decl])

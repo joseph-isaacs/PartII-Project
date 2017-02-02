@@ -4,11 +4,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 
-public class Bind0 <T> implements Function<Supplier<IO<T>>,Bind1>, Supplier<Bind0> {
-    Supplier<IO<T>> ma;
+public class Bind0 <T> implements Function<Supplier<Supplier<IO<T>>>,Bind1>, Supplier<Bind0> {
+    Supplier<Supplier<IO<T>>> ma;
 
     @Override
-    public Bind1 apply(Supplier<IO<T>> ma) {
+    public Bind1 apply(Supplier<Supplier<IO<T>>> ma) {
         this.ma = ma;
         return new Bind1<>(this);
     }

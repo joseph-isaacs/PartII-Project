@@ -12,9 +12,19 @@ plusFun = BuildInFunction { fnName = "plus", fnType = tInt `fn` (tInt `fn` tInt)
 
 subFun = BuildInFunction { fnName = "sub", fnType = tInt `fn` (tInt `fn` tInt), fnClassName = "BuildIn/subtract0" }
 
+
+modFun = BuildInFunction { fnName = "mod", fnType = tInt `fn` (tInt `fn` tInt), fnClassName = "BuildIn/mod0" }
+
 multFun = BuildInFunction { fnName = "multiply", fnType = tInt `fn` (tInt `fn` tInt), fnClassName = "BuildIn/multiply0" }
 
 negFun = BuildInFunction { fnName = "neg", fnType = tInt `fn` tInt, fnClassName = "BuildIn/neg" }
+
+intEqFun = BuildInFunction { fnName = "intEq", fnType = tInt `fn` (tInt `fn` tBool), fnClassName = "BuildIn/intEq0" }
+
+intLTFun = BuildInFunction { fnName = "intLT", fnType = tInt `fn` (tInt `fn` tBool), fnClassName = "BuildIn/intLT0" }
+
+true  = BuildInFunction { fnName = "True", fnType = tBool, fnClassName = "BuildIn/True" }
+false = BuildInFunction { fnName = "False", fnType = tBool, fnClassName = "BuildIn/False" }
 
 tva :: Type
 tva = starTVar "a"
@@ -42,4 +52,4 @@ getCharFun = BuildInFunction { fnName = "getChar", fnType = io tChar, fnClassNam
 
 seqFun = BuildInFunction { fnName = "seq", fnType = tva `fn` (tvb `fn` tvb), fnClassName = "BuildIn/Seq0" }
 
-buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun,intToChar,putIntFun, negFun,multFun, seqFun,subFun, decFun]
+buildIn = [plusFun,returnFun,bindFun,putCharFun,getCharFun,unitFun,putNewLineFun,intToChar,putIntFun, negFun,multFun, seqFun,subFun, decFun, modFun, intEqFun, intLTFun, true, false ]

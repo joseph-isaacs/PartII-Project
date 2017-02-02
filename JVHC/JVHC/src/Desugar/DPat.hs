@@ -23,6 +23,6 @@ dPat dt as@(tl,dc) (PP.TPat cid pats) =
 findDT :: Monad m => String -> [DataType] -> m DataCon
 findDT f dts = case DL.find (\x -> dName x == f) dCons of
               Just x -> return x
-              Nothing -> fail $ "Cannot find value in " ++ (show tyCons)
+              Nothing -> fail $ "Cannot find value in " ++ show f ++ " in "  ++ (show tyCons)
   where tyCons = map tCon dts
         dCons  = concatMap constrs tyCons

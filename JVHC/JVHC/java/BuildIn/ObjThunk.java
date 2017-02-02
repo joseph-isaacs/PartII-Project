@@ -1,14 +1,14 @@
 package BuildIn;
 
-public class ObjThunk extends Thunk<Object> {
-    Object value;
+public class ObjThunk<T> extends Thunk<T> {
+    T value;
 
-    public ObjThunk (Object value) {
+    public ObjThunk (T value) {
         this.value = value;
     }
 
     @Override
-    protected Object force() {
+    protected T force() {
         return value;
     }
 }

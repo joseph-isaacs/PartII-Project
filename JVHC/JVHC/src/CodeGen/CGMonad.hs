@@ -26,7 +26,9 @@ data Scope = Scope ScopeVar [ScopeVar]
 
 type PreDefFunctionMap = [(Text,(Text,Bool))]
 
-data CodeGenReader = CGR { funMap :: PreDefFunctionMap, debug :: Bool }
+data CodeGenReader = CGR { funMap :: PreDefFunctionMap
+                         , typeNameMap :: [(Text,Text)]
+                         , debug :: Bool }
 
 newtype CG a = CG (ReaderT CodeGenReader (WriterT [(Text,ClassFile)] (State ([Scope],Int))) a)
   deriving (Functor, Applicative, Monad
@@ -43,6 +45,14 @@ runCG pre (CG m) = evalState (runWriterT (runReaderT m pre)) ([],0)
 getPreDefinedFunction :: Text -> CG (Maybe (Text,Bool))
 getPreDefinedFunction funName = liftM (lookup funName) getCGReaderDef
 
+getTypeNameMap :: CG [(Text,Text)]
+getTypeNameMap = liftM typeNameMap ask
+
+typeFromName :: Text -> CG Text
+typeFromName n =
+  do tNM <- getTypeNameMap
+     return (maybe n id (lookup n tNM))
+
 isDebug :: CG Bool
 isDebug = liftM debug ask
 
@@ -53,7 +63,10 @@ logClass :: Text -> ClassFile -> CG ()
 logClass n c = tell [(n,c)]
 
 getFreshInt :: CG Int
-getFreshInt = liftM snd get
+getFreshInt =
+  do int <- liftM snd get
+     modify $ \(s,_) -> (s,int+1)
+     return int
 
 updateFreshInt :: Int -> CG ()
 updateFreshInt i = modify $ \(s,_) -> (s,i)
@@ -75,5 +88,4 @@ getParent =
 newFunName :: Text -> CG Text
 newFunName fnName = do
   i <- getFreshInt
-  updateFreshInt (i+1)
   return $ fnName `mappend` (fromString $ show i)

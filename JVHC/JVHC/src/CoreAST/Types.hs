@@ -69,6 +69,9 @@ tUnit  = TCon $ Tycon "Unit" Star
 tIO   :: Type
 tIO    = TCon $ Tycon "IO" (Kfun Star Star)
 
+tBool :: Type
+tBool = TCon $ Tycon "Bool" Star
+
 io :: Type -> Type
 io = TAp tIO
 

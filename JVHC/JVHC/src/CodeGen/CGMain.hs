@@ -21,7 +21,6 @@ import CodeGen.CGHelper
 import CodeGen.CodePrint
 
 import Codec.JVM
-import Codec.JVM.Opcode (athrow)
 import Codec.JVM.Const (cstring)
 
 import Control.Monad (liftM)
@@ -166,12 +165,11 @@ cgExpr l@(Lam (MkVar { varName = n, varType = TScheme _ bt } ) e) =
          inner = (ScopeVar fnName tyB)
      updateScope (Scope sc [inner])
      (body,tyE) <- cgExpr e
-     let body' = body <> invokeSupplier
+     printStr <- printString ("Lam: " ++ unpack fnName)
+     let body' = printStr <> body <> invokeSupplier
      let lamClass = mkLambdaClass fnName pname tyB tyE ptype body'
      logClass fnName lamClass
-     printStr <- printString ("Lam: " ++ unpack fnName)
-     let retCode = printStr
-                <> newDup objThunkType
+     let retCode = newDup objThunkType
                 <> newDup fnType
                 <> gload ptype 0
                 <> gconv jobject ptype
@@ -202,28 +200,30 @@ cgExpr (App e1 e2) =
      (c1,jt1) <- cgExpr e1
      setScope s1
      (c2,jt2) <- cgExpr e2
-     let thunkCode = c1
+     printStr <- printString ("Thunk: " ++ unpack thunkName)
+     let thunkCode = printStr
+                  <> c1
                   <> invokeSupplier
                   <> c2
                   <> invokeFunction
          thunk = mkThunk thunkName (obj thunkName) pname ptype thunkCode
      logClass thunkName thunk
-     printStr <- printString ("Thunk: " ++ unpack thunkName)
      let retCode = (newDup (obj thunkName)
                 <> gload ptype 0
                 <> gconv jobject ptype
-                <> printStr
                 <> invokespecial (mkMethodRef thunkName "<init>" [ptype] void)
                 <> gconv jobject (obj thunkName))
      return (retCode,obj thunkName)
 
 cgExpr (Case e t alts) =
   do scope <- getScope
-     (code,obj) <- cgExpr e
+     (code,ty) <- cgExpr e
      setScope scope
-     altsCode <- foldrM caseMap raiseMatchError alts
+     lblInt <- getFreshInt
+     let final = mempty
+     altsCode <- foldrM (caseMap ty final) raiseMatchError alts
      printStr <- printString "Case"
-     return (code <> printStr <> altsCode,toJType t)
+     return (code <> printStr <> altsCode <> final ,toJType t)
 
 cgExpr (Var i) =
   do let v = (fromString i)
@@ -238,7 +238,8 @@ cgNormalVar :: CodeGen Text
 cgNormalVar i = do
   (s@(ScopeVar n ft),path) <- liftM (lookupVar [] i) getScope
   scope <- getScope
-  return (gload jobject 0 <> buildPath path,ft)
+  (pname, ptype) <- getParent
+  return (gload ptype 0 <> buildPath path,ft)
 
 cgBuildIn :: CodeGen (Text,Bool)
 cgBuildIn (fnName,False) =
@@ -258,10 +259,10 @@ cgBuildIn (fnName,True) =
           <> invokespecial (mkMethodRef fnName "<init>" [] void)
           <> invokespecial objThunkConstructor,supplierInterfaceType)
 
-caseMap :: (Alt Binder) -> Code -> CG Code
-caseMap alts code =
+caseMap :: JType -> Code -> (Alt Binder) -> Code -> CG Code
+caseMap ty fCode alts code =
   do scope <- getScope
-     c     <- cgAlt alts code
+     c     <- cgAlt ty fCode alts code
      setScope scope
      return c
 
@@ -273,12 +274,15 @@ raiseMatchError = invokeSupplier
   <> dup_x1 jstring runTimeExcpType
   <> swap runTimeExcpType jstring
   <> invokespecial (mkMethodRef runTimeException "<init>" [stringType] void)
+  <> gconv jobject runTimeExcpType
   <> gthrow runTimeExcpType
+  <> gconv runTimeExcpType jobject
+
 
 
 -- This doesn't work need to apply arg
-cgAlt :: Alt Binder -> Code -> CG Code
-cgAlt (DEFAULT, binders, e) otherBranch =
+cgAlt :: JType -> Code -> Alt Binder -> Code -> CG Code
+cgAlt _ _ (DEFAULT, binders, e) otherBranch =
   do if length binders /= 1 then fail "binder length not 1 for default" else return ()
      let arg = head binders
          binderType = (obj . fromString . varName) arg
@@ -294,14 +298,15 @@ cgAlt (DEFAULT, binders, e) otherBranch =
               <> gconv jobject supplierInterfaceType
      return code'
 
-cgAlt (LitAlt l,b,e) otherBranch = cgLitAlt (l,b,e) otherBranch
+cgAlt _ fCode (LitAlt l,b,e) otherBranch = cgLitAlt fCode (l,b,e) otherBranch
 
 -- Need to put in the if instance of stuff!
 
-cgAlt (DataAlt dc, binders, e) otherBranch =
+cgAlt ty fCode (DataAlt dc, binders, e) otherBranch =
   do let (MkDataCon { dName = name, tName = iface, DC.fields = f, conType = t }) = dc
          binderLen = length binders
      (pname,ptype) <- getParent
+     dcType        <- liftM obj (typeFromName (fromString name))
      envName <- newFunName $ (fromString name) `mappend` (fromString $ concatMap varName binders)
      let envType = obj envName
          envFields = zip (map fromString $ map varName binders) (repeat supplierInterfaceType)
@@ -309,11 +314,11 @@ cgAlt (DataAlt dc, binders, e) otherBranch =
          inner = map (\v -> ScopeVar (fromString $ varName v) supplierInterfaceType) binders
      updateScope (Scope sc inner)
      (c,jt) <- cgExpr e
-     logClass envName (mkScopeClass envName (envFields ++ [(pname,ptype)]) c)
+     logClass envName (mkScopeClass envName (envFields ++ [(pname,ptype)]) (c <> invokeSupplier))
      let argsCode = foldr (\(n,t) acc ->
                            dup jobject
                         <> invokeSupplier
-                        <> gconv jobject (obj $ fromString name)
+                        <> gconv jobject dcType
                         <> getfield (mkFieldRef (fromString name) (fromString $ name ++ (show n)) t)
                         <> swap t jobject
                         <> acc)
@@ -324,14 +329,19 @@ cgAlt (DataAlt dc, binders, e) otherBranch =
              <> swap envType jobject
              <> argsCode
              <> gload ptype 0
-             <> gconv jobject ptype
              <> invokespecial (mkMethodRef envName "<init>" (replicate binderLen supplierInterfaceType ++ [ptype]) void)
              <> invokevirtual (mkMethodRef envName runMethod [] (ret jobject))
+             <> new objThunkType
+             <> dup_x1 jt objThunkType
+             <> swap jt objThunkType
+             <> invokespecial objThunkConstructor
+             <> gconv jobject supplierInterfaceType
+             <> iconst jint 1
+             <> ifeq mempty fCode
+     let code = gconv jobject ty
+             <> dup jt
              <> invokeSupplier
-             <> greturn jobject
-     let code = dup jobject
-             <> invokeSupplier
-             <> ginstanceof (obj $ fromString name)
+             <> ginstanceof dcType
              <> ifeq otherBranch thisBranch
      return code
   where tyOf (TScheme _ t) = t
@@ -358,12 +368,12 @@ mkScopeClass name f code = mkClassFileV lamAccessors name Nothing [] fields meth
 
 runMethod = "__run__"
 
-cgLitAlt :: (Literal,[Binder],CoreExpr) -> Code -> CG Code
-cgLitAlt (LitInt i,bs,e) otherBranch =
-  cgGLit (fromInteger i) integerFieldName jIntType jint jIntValue e otherBranch
+cgLitAlt :: Code -> (Literal,[Binder],CoreExpr) -> Code -> CG Code
+cgLitAlt lbl (LitInt i,bs,e) otherBranch =
+  cgGLit (fromInteger i) integerFieldName jIntType jint jIntValue e otherBranch lbl
 
-cgLitAlt (LitChar c,bs,e) otherBranch =
-  cgGLit (fromIntegral $ ord c) charFieldName jCharType jchar jCharValue e otherBranch
+cgLitAlt lbl (LitChar c,bs,e) otherBranch =
+  cgGLit (fromIntegral $ ord c) charFieldName jCharType jchar jCharValue e otherBranch lbl
 
 cgGLit :: Int32     ->  -- value
           Text      ->  -- lit boxed name
@@ -372,11 +382,12 @@ cgGLit :: Int32     ->  -- value
           Text      ->  -- getter name
           CoreExpr  ->  -- branch expr
           Code      ->  -- other branch
+          Code      ->  -- Code to jump to
           CG Code
 
-cgGLit value boxedName boxedType primType getterName expr otherBranch =
+cgGLit value boxedName boxedType primType getterName expr otherBranch fCode =
   do (thisBranch,jt) <- cgExpr expr
-     let thisBranch' = pop boxedType <> thisBranch <> gconv jt supplierInterfaceType
+     let thisBranch' = pop boxedType <> thisBranch <> gconv jt supplierInterfaceType <> iconst jint 1 <> ifeq mempty fCode
      printStrCode <- printString ("Lit " ++ (show value))
      let code = printStrCode
              <> dup jobject

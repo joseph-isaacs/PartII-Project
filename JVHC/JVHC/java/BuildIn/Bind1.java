@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 
 
-public class Bind1 <A,B> implements Function<Supplier<Function<A,IO<B>>>,IO<B>> {
+public class Bind1 <A,B> implements Function<Supplier<Function<A,Supplier<IO<B>>>>,Supplier<IO<B>>> {
 
     private final Bind0<A> b0;
 
@@ -14,7 +14,7 @@ public class Bind1 <A,B> implements Function<Supplier<Function<A,IO<B>>>,IO<B>> 
     }
 
     @Override
-    public IO<B> apply(Supplier<Function<A,IO<B>>> o) {
-        return () -> o.get().apply(b0.ma.get().unsafePerformIO()).unsafePerformIO();
+    public Supplier<IO<B>> apply(Supplier<Function<A,Supplier<IO<B>>>> o) {
+        return new ObjThunk<>(() -> o.get().apply(b0.ma.get().get().unsafePerformIO()).get().unsafePerformIO());
     }
 }

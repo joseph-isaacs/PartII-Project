@@ -24,6 +24,7 @@ import Infer.TIProgram
 import Infer.TyAppFixer
 import Infer.TyFixerMonad
 import Infer.BuildInFunctionTypes
+import Infer.BuildInTypes
 
 import Opt.InlineMonad
 import Opt.Inlining
@@ -101,8 +102,9 @@ jvmPath :: Text
 jvmPath = "/Users/joeisaacs/Dropbox/git/JVMTesting/out/production/JVMTesting/"
 
 codeGen :: Bool -> (CoreExprDefs,[TyCon]) -> [(Text,ClassFile)]
-codeGen d (exprs,tyCons) =  (snd $ runCG (CGR { funMap = buildInMapping, debug = d }) (cgEnv exprs)) ++ concatMap mkDataType tyCons
+codeGen d (exprs,tyCons) = (snd $ runCG (CGR { funMap = buildInMapping, typeNameMap = tNM, debug = d }) (cgEnv exprs)) ++ concatMap mkDataType tyCons
   where buildInMapping = buildInMap ++ (concatMap buildInType tyCons)
+        tNM            = dataTypeNameMap
 
 buildInType :: TyCon -> PreDefFunctionMap
 buildInType tyCon = map buildMap ctrs
@@ -118,8 +120,12 @@ writeCodeFiles outPutDir = writeFiles outPutDir
 compilerSo :: Monad m => String -> m ((CoreExprDefs,[DataType]),M.Map Id [(CoreExpr,Type)], [Assumption])
 compilerSo = mkCore  . desugar . lexAndparse
 
+fromEither :: Show b => Either a b -> b
+fromEither (Right x) = x
+fromEither x         = error $ "cannot unwrap "
+
 compilerPreCodeGen :: OptimizeParams -> String -> (CoreExprDefs,[TyCon])
-compilerPreCodeGen op = (\((c,d),_,_) -> (optimize op c,map tCon d)) . fromJust . compilerSo
+compilerPreCodeGen op = (\((c,d),_,_) -> (optimize op c,map tCon d)) . fromEither . compilerSo
 
 compiler :: Bool -> OptimizeParams -> Text -> String -> IO ()
 compiler d op output = (writeCodeFiles output) . (codeGen d) . (compilerPreCodeGen op)
@@ -131,7 +137,9 @@ compileFromSourceFile d op outputPath fp =
 
 compileSoFar op fp =
   do fileContent <- readFile fp
-     compilerSo  fileContent
+     return $ compilerPreCodeGen op fileContent
+
+
 
 noOpt = (OP {inlineTimes = 0})
 

@@ -8,7 +8,7 @@ public class dec implements Function<Supplier<Integer>,Integer>, Supplier<dec> {
 
     @Override
     public Integer apply(Supplier<Integer> integer) {
-        return (integer.get() - 1);
+        return integer.get() - 1;
     }
 
     @Override

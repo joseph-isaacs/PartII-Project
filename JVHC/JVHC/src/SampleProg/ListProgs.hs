@@ -3,7 +3,6 @@ module ListProgs where
 
 listDataType = "data List a = Cons a (List a) | Nil"
 
-  -- list1 = Cons 1 Nil;
 nat = "nat :: Int -> List Int;\
       \ nat x = Cons x (nat (plus x 1))"
 

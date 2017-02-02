@@ -33,6 +33,7 @@ library
                      , SampleProg.EvenOdd
                      , SampleProg.Pairs
                      , SampleProg.ProgMaker
+                     , SampleProg.InlineProg
                      , SampleProg.Programs
                      , Printing.PPrint
                      , Desugar.DExpr
@@ -129,6 +130,7 @@ test-suite JVHC-bench
                      , codec-jvm
                      , MissingH
                      , lens
+                     , parsec
   default-language:    Haskell2010
 
 test-suite JVHC-test

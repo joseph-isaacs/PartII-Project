@@ -49,7 +49,10 @@ inline (App (Var id) a) =
      let isRec = case idE of {Just ide -> countVars id ide > 0; Nothing -> False}
      case wasInl || idE == Nothing || isRec of
        True  -> do {a' <- inline a; return (App (Var id) a')}
-       False -> let Just (ide,i') = fmap (runRenameExpr i) idE in do {addInlinedId id; setNewInt i';  inline (App ide a)}
+       False -> let Just (ide,i') = fmap (runRenameExpr i) idE
+                 in do addInlinedId id
+                       setNewInt i'
+                       inline (App ide a)
 
 inline (App e1 e2) =
   do before <- getInlined
@@ -65,13 +68,16 @@ inline (Lam b e)   =
   do e' <- inline e
      return $ Lam b e'
 
-inline l@(Let (ExprDef (MkVar { varName = n }) a) e) =
-  do addInlinedId n
-     a' <- inline a
+inline l@(Let (ExprDef v@(MkVar { varName = n }) a) e) =
+  do
      let numVars = countVars n a + countVars n e
-     let l' = (if numVars < 4 then (applyExpr (n,a') e) else e)
-     l'' <- inline l'
-     if l'' == l' then return l' else inline l''
+     l' <- (if numVars < 4
+               then do addInlinedId n
+                       a' <- inline a
+                       inline (applyExpr (n,a') e)
+               else do a' <- inline a
+                       return (Let (ExprDef v a') e))
+     if l' == l then return l' else inline l'
 
 inline (Case e t alts) =
   do inl <- getInlined

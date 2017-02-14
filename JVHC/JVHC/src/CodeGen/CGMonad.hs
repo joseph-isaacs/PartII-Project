@@ -28,7 +28,9 @@ type PreDefFunctionMap = [(Text,(Text,Bool))]
 
 data CodeGenReader = CGR { funMap :: PreDefFunctionMap
                          , typeNameMap :: [(Text,Text)]
-                         , debug :: Bool }
+                         , debug :: Bool
+                         , countThunks :: Bool
+                         , checkMaxStackHeight :: Bool }
 
 newtype CG a = CG (ReaderT CodeGenReader (WriterT [(Text,ClassFile)] (State ([Scope],Int))) a)
   deriving (Functor, Applicative, Monad
@@ -55,6 +57,12 @@ typeFromName n =
 
 isDebug :: CG Bool
 isDebug = liftM debug ask
+
+isCountThunks :: CG Bool
+isCountThunks = liftM countThunks ask
+
+isCountMaxStackHeight :: CG Bool
+isCountMaxStackHeight = liftM checkMaxStackHeight ask
 
 getCGReaderDef :: CG PreDefFunctionMap
 getCGReaderDef = liftM funMap ask

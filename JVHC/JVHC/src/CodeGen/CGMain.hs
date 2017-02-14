@@ -16,6 +16,8 @@ import CodeGen.JTypes
 import CodeGen.JInterfaces
 import CodeGen.CGMonad
 import CodeGen.CGLit
+import CodeGen.CGThunkCounter
+import CodeGen.CGMaxStackHeight
 import CodeGen.CodeGen
 import CodeGen.CGHelper
 import CodeGen.CodePrint
@@ -88,6 +90,8 @@ mkEnvClassFile topLevel =
                              <> gload jobject 0
                              <> invokespecial (mkMethodRef t "<init>" [envType] void)
                              <> putfield (mkFieldRef envName t supplierInterfaceType )) topLevel))
+     printTCCode <- printThunkCode
+     printMSCode <- printMaxStackCode
      let mCode =     ( newDup (obj envName)
                     <> invokespecial (mkMethodRef envName "<init>" [] void)
                     <> getfield (mkFieldRef envName mainName supplierInterfaceType)
@@ -107,20 +111,24 @@ mkEnvClassFile topLevel =
                     <> lsub
                     <> mathAbs
                     <> longConstructor
+                    <> newDup stringBuilder
+                    <> invokespecial stringBuilderConstructor
+                    <> sconst "Time Running: "
+                    <> invokevirtual (appendSB jstring)
+                    <> swap jLongType stringBuilder
+                    <> invokevirtual (appendSB jobject)
+                    <> invokevirtual toStringSB
                     <> getPrintStream
-                    <> swap jLongType printStreamType
+                    <> swap jstring printStreamType
                     <> getPrintStream
                     <> invokePrintLn []
                     <> invokePrintLn [jobject]
+                    <> printTCCode
+                    <> printMSCode
                     <> vreturn)
          mainFunction = mkMethodDef envName [Public,Static] "main" [jarray jstring] void mCode
      logClass envName $ mkClassFileV lamAccessors envName Nothing [] fields [ctr,mainFunction]
 
-getSystemTime :: Code
-getSystemTime = invokestatic (mkMethodRef "java/lang/System" "currentTimeMillis" [] (ret jlong))
-
-mathAbs :: Code
-mathAbs = invokestatic (mkMethodRef "java/lang/Math" "abs" [jlong] (ret jlong))
 
 
 unsafePeformIO :: Code
@@ -141,7 +149,10 @@ cgEnvMap (ExprDef b e) =
 
 cgExpr :: CodeGen CoreExpr
 
-cgExpr (Lit lit) = cgLit lit
+cgExpr (Lit lit) =
+  do (c,t) <- cgLit lit
+     cMS <- debugMaxStack
+     return (c <> cMS, t)
 
 -- creates class
 -- public class NAME(n) implements Function
@@ -208,10 +219,12 @@ cgExpr (App e1 e2) =
                   <> invokeFunction
          thunk = mkThunk thunkName (obj thunkName) pname ptype thunkCode
      logClass thunkName thunk
+     thunkInc <- debugThunkMadeInvoke
      let retCode = (newDup (obj thunkName)
                 <> gload ptype 0
                 <> gconv jobject ptype
                 <> invokespecial (mkMethodRef thunkName "<init>" [ptype] void)
+                <> thunkInc
                 <> gconv jobject (obj thunkName))
      return (retCode,obj thunkName)
 
@@ -228,9 +241,11 @@ cgExpr (Case e t alts) =
 cgExpr (Var i) =
   do let v = (fromString i)
      lookupResult <- getPreDefinedFunction v
-     case lookupResult of
-       Just x   -> cgBuildIn x
-       Nothing -> cgNormalVar v
+     (c,ty) <- case lookupResult of
+                    Just x   -> cgBuildIn x
+                    Nothing -> cgNormalVar v
+     countMaxStack <- debugMaxStack
+     return (c <> countMaxStack,ty)
 
 cgExpr x = error $ "failed " ++ show x
 

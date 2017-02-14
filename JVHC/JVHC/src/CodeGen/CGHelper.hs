@@ -111,3 +111,12 @@ mkThunk className classType parentName parentType codeBody =
         ctr       = mkConstructorDef className thunkName [parentType]
                       (fieldSetterCode 1 className parentName parentType)
         parentField = mkFieldDef [Protected] parentName parentType
+
+
+
+getSystemTime :: Code
+getSystemTime = invokestatic (mkMethodRef "java/lang/System" "currentTimeMillis" [] (ret jlong))
+
+
+mathAbs :: Code
+mathAbs = invokestatic (mkMethodRef "java/lang/Math" "abs" [jlong] (ret jlong))

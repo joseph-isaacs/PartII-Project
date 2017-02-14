@@ -115,3 +115,18 @@ printStreamType = obj printStreamName
 
 printStreamName :: Text
 printStreamName = "java/io/PrintStream"
+
+stringBuilderName :: Text
+stringBuilderName = "java/lang/StringBuilder"
+
+stringBuilder :: JType
+stringBuilder = obj stringBuilderName
+
+stringBuilderConstructor :: MethodRef
+stringBuilderConstructor = mkMethodRef stringBuilderName "<init>" [] void
+
+appendSB :: JType -> MethodRef
+appendSB t = mkMethodRef stringBuilderName "append" [t] (ret stringBuilder)
+
+toStringSB :: MethodRef
+toStringSB = mkMethodRef stringBuilderName "toString" [] (ret jstring)

@@ -1,99 +1,121 @@
 {
-  data List a = Cons a (List a) | Nil;
+   -- data List a = Cons a (List a) | Nil;
 
-  list1 = Cons 1 Nil;
+   -- list1 = Cons 1 Nil;
+   -- nat :: Int -> List Int;
+   -- nat natx = Cons natx (nat (plus natx 1));
 
-  -- nat x = Cons x (nat (plus x 1));
-
+  -- take :: Int -> List a -> List a;
   -- take number listS = case number of {
-  --   0 -> Cons 1 Nil;
-  --   un -> case listS of {
-  --           Cons listH listTail -> Cons listH (take (sub un 1) listTail);
-  --           dgs -> Nil
-  --   }
+   --  0 -> Nil;
+   --  un -> case listS of {
+   --          Cons listH listTail -> Cons listH (take (dec un) listTail);
+   --          dgs -> Nil
+   --  }
   -- };
 
--- comp fF fR aaa = fF (fR aaa);
+  -- -- comp :: (b -> c) -> (a -> b) -> a -> c;
+  -- -- comp fF fR aaa = fF (fR aaa);
 
---  multiply a b = case a of {
---    0 -> 0;
---    1 -> b;
---    uuu -> plus b (multiply (plus (neg 1) uuu) b)
---  };
-
-  -- sumList y = case y of { Cons h t -> plus (sumList t) h ; Nil -> 0 };
+  -- sumList :: List Int -> Int;
+  -- sumList sumy = case sumy of {
+   --  Cons sumh sumt -> plus (sumList sumt) sumh;
+   --  Nil -> 0
+  -- };
 
 
 --  map mapFun l = case l of { Cons first second -> Cons (mapFun first) (map mapFun second); Nil -> Nil };
-
+  -- map :: (a -> b) -> List a -> List b;
   -- map fMapF = foldr (comp Cons fMapF) Nil;
+  -- foldr :: (a -> b -> b) -> b -> List a -> b;
   -- foldr fFun acc fList = case fList of { Cons fh ft -> fFun fh (foldr fFun acc ft); Nil -> acc };
 
---  se fstSE sndSE = fstSE;
-  -- id =    (\asd -> asd) (\yyyyy -> yyyyy) id2 id2 id2;
---    case Cons 1 Nil of { Cons asdf asdfasd -> \idF -> idF };
-  -- id2 ttr = ttr;
 
---  undef = undef;
+   -- bind_ ma mb = bind ma (\uu -> mb);
 
- -- listTT = Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil))));
-
-  -- list1 = Cons 1 Nil;
-
---  list100 = take 100 (nat 0);
-
-  -- bind_ ma mb = bind ma (\uu -> mb);
-
---  undef = undef;
---
---
-
-  -- fib fibN = case fibN of {
-  --   0 -> 1;
-  --   1 -> 1;
-  --   n -> plus (fib (sub n 1)) (fib (sub n 2))
-  -- };
+  fib fibN = case fibN of {
+    0 -> 1;
+    1 -> 1;
+    n -> plus (fib (dec (dec n))) (fib (dec n))
+  };
 
   -- sumN numberN = case numberN of {
-  --   0 -> 0;
-  --    tt -> plus numberN (sumN (dec numberN))
-  --  };
+   --  0 -> 0;
+   --   tt -> plus numberN (sumN (dec numberN))
+   -- };
 
-  -- head2 headArg = case headArg of {
-  --   hardArgCase -> case hardArgCase of {
-  --     hardArgCCase -> case 1 of {
-  --       1 -> case hardArgCCase of {
-  --         Cons headHed headTaal -> case headHed of {
-  --           assdfasd -> assdfasd
-  --         }
-  --       }
-  --     }
-  --   }
+  -- -- head2 headArg = case headArg of {
+  -- --   hardArgCase -> case hardArgCase of {
+  -- --     hardArgCCase -> case 1 of {
+  -- --       1 -> case hardArgCCase of {
+  -- --         Cons headHed headTaal -> case headHed of {
+  -- --           assdfasd -> assdfasd
+  -- --         }
+  -- --       }
+  -- --     }
+  -- --   }
+  -- -- };
+
+   -- head ght = case ght of {
+   --   Cons hhht ttt2 -> hhht
+   -- };
+
+  -- isZero zd = case zd of {
+   --  0 -> 1;
+   --  4 -> 1;
+   --  nnn -> 0
   -- };
 
---  head ght = case ght of {
---    Cons hhht ttt2 ->  hhht
---  };
+-- boolToInt btiB = case btiB of {
+  -- True  -> 1;
+  -- False -> 0
+-- };
+
+
+-- odd odN = case odN of {
+--   oddn -> even (dec oddn)
+-- };
 --
--- id x = x;
 
-even eN = case eN of {
+
+
+-- foo fooX   = plus fooX 1;
+-- bar barX   = sub barX 3;
+-- even :: Int -> Bool;
+-- even evenX = intEq (mod evenX 2) 0;
+
+-- ifThenElse :: Bool -> a -> a -> a;
+-- ifThenElse ifEB ifET ifEF = case ifEB of {
+--   True  -> ifET;
+--   False -> ifEF
+-- };
+
+--  testN :: Int -> Int;
+--  testN tN = ifThenElse (intLT tN 0)
+--                 tN
+--                 (ifThenElse (even tN)
+--                   (testN (foo tN))
+--                   (testN (bar tN)));
+
+sumN :: Int -> Int;
+sumN sMn = case sMn of {
   0 -> 0;
-  enn -> odd (dec enn)
+  casesumNn -> plus (sumN (dec casesumNn)) casesumNn
 };
 
-odd odN = case odN of {
-  oddn -> even (dec oddn)
-};
+badProg :: Int -> Int;
+badProg bPp = let { bPx = sumN bPp } in plus bPx (plus bPx bPx);
 
---  main = bind_ (bind_ (bind getChar (\ee -> putChar ee)) (putChar 'n')) putNewLine
---  main = putInt (sumList (take 970 (nat 0)))
---  main = putInt (head (map (plus 1)(nat 1)))
---  main = putInt (id 500)
---  main = putInt (seq id (multiply 2 3))
---  main = putInt (plus (head (Cons   1 Nil)) 1)
--- main = putInt (head (take 40 list1))
-main = putInt (odd 3)
---main = putInt 2
+-- testN tN = case (intLT tN 0) of {
+--     False  -> tN
+
+-- };
+--
+id idX = id idX;
+
+main :: IO Unit;
+main = putInt ((badProg 50))
+
+
 
 }

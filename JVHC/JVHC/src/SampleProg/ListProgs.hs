@@ -1,5 +1,6 @@
-module ListProgs where
+module SampleProg.ListProgs where
 
+import SampleProg.ProgMaker
 
 listDataType = "data List a = Cons a (List a) | Nil"
 
@@ -22,13 +23,14 @@ sumList = "sumList :: List Int -> Int;\
          \ sumList y = case y of { Cons h t -> plus (sumList t) h ; Nil -> 0 }"
 
 
-map =   "map :: (a -> b) -> List a -> List b;\
+mapP =   "map :: (a -> b) -> List a -> List b;\
        \ map fMapF = foldr (comp Cons fMapF) Nil"
 
-foldr = "foldr :: (a -> b -> b) -> b -> List a -> b;\
+foldrP = "foldr :: (a -> b -> b) -> b -> List a -> b;\
        \ foldr fFun acc fList = case fList of {\
        \   Cons fh ft -> fFun fh (foldr fFun acc ft);\
        \   Nil -> acc\
        \ }"
 
+listProgs = functionsToProgFrag [listDataType, nat, take', comp, sumList, mapP, foldrP]
 

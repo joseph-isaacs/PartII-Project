@@ -102,7 +102,7 @@ jvmPath :: Text
 jvmPath = "/Users/joeisaacs/Dropbox/git/JVMTesting/out/production/JVMTesting/"
 
 codeGen :: Bool -> (CoreExprDefs,[TyCon]) -> [(Text,ClassFile)]
-codeGen d (exprs,tyCons) = (snd $ runCG (CGR { funMap = buildInMapping, typeNameMap = tNM, debug = d }) (cgEnv exprs)) ++ concatMap mkDataType tyCons
+codeGen d (exprs,tyCons) = (snd $ runCG (CGR { funMap = buildInMapping, typeNameMap = tNM, debug = False, countThunks = d, checkMaxStackHeight = False }) (cgEnv exprs)) ++ concatMap mkDataType tyCons
   where buildInMapping = buildInMap ++ (concatMap buildInType tyCons)
         tNM            = dataTypeNameMap
 

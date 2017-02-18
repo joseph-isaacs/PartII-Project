@@ -21,10 +21,10 @@ type CoreExpr = Expr Binder
 data Expr b
   = Var  !Id
   | Lit  !Literal
-  | App  !(Expr b) (Arg  b)
-  | Lam  !b        !(Expr b)
+  | App  !(Expr b)     (Arg  b)
+  | Lam  !b           !(Expr b)
   | Let  !(ExprDef b) !(Expr b)
-  | Case !(Expr b) !Type    ![Alt b]
+  | Case !(Expr b)    !Type     ![Alt b]
   | Type !Type
   deriving (Eq,Show,Generic)
 

@@ -42,8 +42,9 @@ compileAndRunProgram cmdLineOpts testDir
      copyFile mP (appendExtension tmpTestDir mP)
      buildJar tmpTestDir
      copyFile rTarPath (appendExtension tmpTestDir rTarPath)
+     threadDelay 100
      output <- runJar cmdLineOpts tmpTestDir
-     -- removeDirectoryRecursive tmpTestDir
+     removeDirectoryRecursive tmpTestDir
      return output
 
 runN :: Int            -> -- | Number of repititions

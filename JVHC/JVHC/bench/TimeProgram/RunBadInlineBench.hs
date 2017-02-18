@@ -1,4 +1,4 @@
-module TimeProgram.RunInlineBench where
+module TimeProgram.RunBadInlineBench where
 
 import Control.Monad
 
@@ -6,7 +6,7 @@ import Printing.CSVPrint
 
 import TimeProgram.RunProgram
 
-import SampleProg.InlineProg
+import SampleProg.BadInlineProg
 import SampleProg.ProgMaker
 
 import Pipeline.Compiler
@@ -24,21 +24,20 @@ saveBenchmark path =
 
 varyTestInline :: Fractional a =>  [Int] -> IO [(IsOp String,[a])]
 varyTestInline enum =
-  do opt  <- mapM (runTestInline normalOpt) enum
-     putStrLn "50%"
-     nOpt <- mapM (runTestInline noOpt)     enum
-     return $ opt ++ nOpt
+  do opt  <- mapM (runBadTestInline normalOpt) enum
+     -- nOpt <- mapM (runBadTestInline noOpt)     enum
+     return $ opt -- ++ nOpt
 
-runTestInline :: Fractional a => OptimizeParams -> Int -> IO (IsOp String,[a])
-runTestInline op n =
+runBadTestInline :: Fractional a => OptimizeParams -> Int -> IO (IsOp String,[a])
+runBadTestInline op n =
   do let src = buildProg n
      putStrLn (show n)
      res <- liftM (map fromIntegral) $  runN 50 src False op "-Xss400m" parseTime
      return ((inlineTimes op == 1 , show  n),res)
 
 buildProg :: Int -> String
-buildProg times = functionsToProg [mkPutIntMainMethod times "testN", testProg ]
+buildProg times = functionsToProg [mkPutIntMainMethod times "badProg",badTestProg  ]
 
 numb :: [Int]
-numb = 50 : map ( (\x -> x -10000 ) . floor . (*) 40000 . log . log) [4,6..80]
+numb = 50 : map ( (\x -> x -10000 ) . floor . (*) 100000 . log . log) [4,7..70]
 

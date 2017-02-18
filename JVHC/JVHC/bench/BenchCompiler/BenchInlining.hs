@@ -24,15 +24,13 @@ import Infer.Assumption
 
 import Pipeline.Compiler
 
+import BenchCompiler.BenchProgams
+
+
 mkCoreExpr = (\((c,_),_,_) -> c) . fromJust . compilerSo
 
-inlineBenchFib = bench "Inlining fib" $ nf (optimize normalOpt) e
-  where !e = mkCoreExpr (functionsToProg [fib,"main = putInt (fib 30)"])
-
-inlineBenchEvenOdd = bench "Inlining evenOdd" $ nf (optimize normalOpt) e
-  where !e = mkCoreExpr (functionsToProg [evenOdd,"main = putInt (odd 31)"])
+benchInline (n,p) = bench ("Inlining: " ++ n) $ nf (optimize normalOpt) e
+  where !e = mkCoreExpr p
 
 
-benchmark = bgroup "Inlining" [inlineBenchFib, inlineBenchEvenOdd]
-
-main = defaultMain [benchmark]
+benchmark = bgroup "Inlining" (map benchInline allProgs)

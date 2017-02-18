@@ -6,15 +6,87 @@ import Text.Parsec.Char
 import Text.Parsec.Combinator
 
 import Control.Applicative((*>),(<*))
-import Control.Monad (void)
+import Control.Monad (void,replicateM)
 
 import MemoryUsage.MemUsageTypes
 
-parseLines :: String -> [GCOutput]
-parseLines = (either (const []) id) . (parse parseGCLines "")
+import Parser.Helpers
 
-parseGCLines :: Parser [GCOutput]
-parseGCLines = whitespace *> sepEndBy eitherGC whitespace
+parseLines :: String -> GCParserOut
+parseLines s = either (const $ error $ "Cannot GCOutput parse: " ++ show s) id  (parse parseGCOutput "" s)
+
+parseLines2 s = either (const $ error $ "Cannot GCOutput parse: " ++ show s) id  (parse parseLine "" s)
+
+
+parseGCOutput :: Parser ([GCTimed],GCHeap)
+parseGCOutput =
+  do timed <- manyTill (try parseLine) (lookAhead gcHeap)
+     gcH <- gcHeap
+     return (concat timed,gcH)
+
+
+parseLine :: Parser [GCTimed]
+parseLine = choice [try parseGCLine, try parseAny]
+
+parseGCLine :: Parser [GCTimed]
+parseGCLine =
+  do l <- lexeme whitespace timedGC
+     return [l]
+
+parseAny :: Parser [GCTimed]
+parseAny =
+  do line
+     return []
+
+
+gcHeap :: Parser GCHeap
+gcHeap =
+  do void $ lexeme line $ string "Heap"
+     (yTotal,yUsed)     <- parseHeapLine "PSYoungGen"
+     replicateM 3 line
+     (parTotal,parUsed) <- parseHeapLine "ParOldGen"
+     line
+     (metaTotal,metaUsed) <- parseMetaspace
+     return $ GCHeap { youngUsed      = yUsed
+                     , youngTotal     = yTotal
+                     , parOldTotal    = parTotal
+                     , parOldUsed     = parUsed
+                     , metaspaceTotal = metaTotal
+                     , metaspaceUsed  = metaUsed  }
+
+
+parseMetaspace :: Parser (Integer,Integer)
+parseMetaspace =
+  do ws1
+     void $ lexeme whitespace $ string "Metaspace"
+     void $ lexemeWS $ string "used"
+     mUsed <- lexemeWS $ lexeme comma $ numK
+     void $ lexemeWS $ string "capacity"
+     mTotal <- numK
+     replicateM 2 line
+     return (mTotal,mUsed)
+
+
+
+parseHeapLine :: String -> Parser (Integer,Integer)
+parseHeapLine name =
+  do ws1
+     void $ lexeme whitespace $ string name
+     void $ lexemeWS $ string "total"
+     yTotal <- lexemeWS $ lexeme comma $ numK
+     void $ lexemeWS $ string "used"
+     yUsed <- numK
+     line
+     return (yTotal, yUsed)
+
+
+timedGC :: Parser GCTimed
+timedGC =
+  do time <- double
+     lexemeWS $ symbol ':'
+     gcOut <- eitherGC
+     return $ GCTimed time gcOut
+
 
 eitherGC :: Parser GCOutput
 eitherGC = choice [try gcAlloc, gcFull]
@@ -54,17 +126,6 @@ times =
      secs
      return $ Times user sys real
 
-lexemeWS :: Parser a -> Parser a
-lexemeWS = lexeme ws1
-
-lexeme :: Parser b -> Parser a -> Parser a
-lexeme pb p =
-  do v <- p
-     pb
-     return v
-
-
-
 secs :: Parser ()
 secs = void $ string "secs"
 
@@ -90,44 +151,3 @@ gcTriple =
      a <- numK
      t <- betweenPara numK
      return $ GCRun b a t
-
-betweenPara :: Parser a -> Parser a
-betweenPara p = between (symbol '(') (symbol ')') p
-
-betweenSqBrk :: Parser a -> Parser a
-betweenSqBrk p = between (symbol '[') (symbol ']') p
-
-symbol :: Char -> Parser ()
-symbol s =
-  do void $ char s
-     return ()
-
-ws1 :: Parser ()
-ws1 = symbol ' '
-
-whitespace :: Parser ()
-whitespace = void $ many $ oneOf " \n\t"
-
-comma :: Parser ()
-comma = symbol ','
-
-num :: Parser Integer
-num =
-  do n <- many1 digit
-     return (read n)
-
-numK :: Parser Integer
-numK =
-  do n <- num
-     void $ char 'K'
-     return n
-
-dot :: Parser ()
-dot = symbol '.'
-
-double :: Parser Double
-double =
-  do n <- many1 digit
-     void $ dot
-     n' <- many1 digit
-     return (read (n ++ "." ++ n'))

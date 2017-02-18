@@ -29,19 +29,13 @@ import Codec.JVM.Class
 
 import Pipeline.Compiler
 
+import BenchCompiler.BenchProgams
 
 mkCEDTC programSource = compilerPreCodeGen noOpt programSource
 
 codeGen' e = map (\(_,c) -> classFileBS c) (codeGen False e)
 
-codeGenBenchFib = bench "CodeGen fib" $ nf codeGen' e
-  where (!e) = mkCEDTC (functionsToProg [fib,"main = putInt (fib 30)"])
+benCGen (n,p) = bench ("CodeGen: " ++ show n) $ nf codeGen' e
+  where !e = mkCEDTC p
 
-codeGenBenchEvenOdd = bench "CodeGen EvenOdd" $ nf codeGen' e
-  where (!e) = mkCEDTC (functionsToProg [evenOdd,pair2,pair3,pair4,pair5,fib,"main = putInt (odd 31)"])
-
-
-benchmark = bgroup "CodeGen" [codeGenBenchFib, codeGenBenchEvenOdd]
-
-
-main = defaultMain [benchmark]
+benchmark = bgroup "CodeGen" (map benCGen allProgs)

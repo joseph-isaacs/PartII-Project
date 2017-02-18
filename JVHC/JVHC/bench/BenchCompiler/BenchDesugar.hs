@@ -11,17 +11,13 @@ import SampleProg.Programs
 
 import Pipeline.Compiler
 
+import BenchCompiler.BenchProgams
+
 desugar' b = show $ fromJust $ desugar b
 
-desugarBenchFib :: Benchmark
-desugarBenchFib = bench "desugar fib" $ nf desugar' body
-  where (!body) = (lexAndparse $ functionsToProg [fib,"main = putInt (fib 30)"])
+desugarB (n,p) = bench ("Desugar: " ++ show n) $ nf desugar' body
+  where (!body) = lexAndparse p
 
-desugarBenchEvenOdd :: Benchmark
-desugarBenchEvenOdd = bench "desugar even odd" $ nf desugar' body
-  where (!body) = (lexAndparse $ functionsToProg [evenOdd,"main = putInt (odd 31)"])
 
 benchmark :: Benchmark
-benchmark = bgroup "Desugar"  [ desugarBenchFib, desugarBenchEvenOdd ]
-
-main = defaultMain [benchmark]
+benchmark = bgroup "Desugar"  (map desugarB allProgs)

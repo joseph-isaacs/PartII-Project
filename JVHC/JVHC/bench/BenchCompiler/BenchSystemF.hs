@@ -24,16 +24,17 @@ import Infer.Assumption
 
 import Pipeline.Compiler
 
-mkAssAndDt programSource =
+import BenchCompiler.BenchProgams
+
+mkAssAndDt programSource = fromJust $
   do ((ced,as), idToCT)  <- (typeInference . desugar . lexAndparse) programSource
      let tlv = getTopLevelVars ced
      return (idToCT, tlv, ced)
 
-sysFBenchFib = bench "SystemF fib" $ nf (map (toSystemFExpr m tlv )) expr
-  where (!m,!tlv,!expr) = fromJust $ mkAssAndDt (functionsToProg [fib,"main = putInt (fib 30)"])
-
-sysFBenchEvenOdd = bench "SystemF evenOdd" $ nf (map (toSystemFExpr m tlv )) expr
-  where (!m,!tlv,!expr) = fromJust $ mkAssAndDt (functionsToProg [evenOdd,"main = putInt (odd 31)"])
 
 
-benchmark = bgroup "System F" [sysFBenchFib, sysFBenchEvenOdd]
+benchSysF (n,p) = bench ("SystemF: " ++ n) $ nf bSysFExprs exprs
+  where (!m,!tlv,!exprs) = mkAssAndDt p
+        bSysFExprs = map (toSystemFExpr m tlv)
+
+benchmark = bgroup "System F" (map benchSysF allProgs)

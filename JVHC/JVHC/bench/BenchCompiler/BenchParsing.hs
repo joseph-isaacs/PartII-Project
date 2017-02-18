@@ -7,17 +7,10 @@ import SampleProg.Programs
 
 import Pipeline.Compiler
 
-parseBench :: [String] -> Benchmark
-parseBench s = bench "parse fib" $ nf (show . lexAndparse)
-                         (functionsToProg s)
+import BenchCompiler.BenchProgams
 
-parseBenchFib :: Benchmark
-parseBenchFib = parseBench [fib,"main = putInt (fib 30)"]
-
-parseBenchEvenOdd :: Benchmark
-parseBenchEvenOdd = parseBench [evenOdd,"main = putInt (odd 31)"]
+parseBench :: (String, String) -> Benchmark
+parseBench (n,s) = bench ("Parse: " ++ n) $ nf (show . lexAndparse) s
 
 benchmark :: Benchmark
-benchmark = bgroup "Parsing"  [ parseBenchFib, parseBenchEvenOdd ]
-
-main = defaultMain [benchmark]
+benchmark = bgroup "Parsing"  (map parseBench allProgs)

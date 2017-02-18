@@ -32,8 +32,10 @@ library
                      , SampleProg.Fib
                      , SampleProg.EvenOdd
                      , SampleProg.Pairs
+                     , SampleProg.ListProgs
                      , SampleProg.ProgMaker
                      , SampleProg.InlineProg
+                     , SampleProg.BadInlineProg
                      , SampleProg.Programs
                      , Printing.PPrint
                      , Desugar.DExpr
@@ -73,6 +75,8 @@ library
                      , CodeGen.TypeToJType
                      , CodeGen.CGHelper
                      , CodeGen.CGMonad
+                     , CodeGen.CGThunkCounter
+                     , CodeGen.CGMaxStackHeight
                      , CodeGen.CGCustomDataType
                      , CodeGen.CodeGen
                      , CodeGen.CGLit
@@ -101,10 +105,9 @@ executable JVHC-exe
                      , JVHC
   default-language:    Haskell2010
 
-test-suite JVHC-bench
-  type:                exitcode-stdio-1.0
+executable JVHC-bench
   hs-source-dirs:      bench
-  main-is:             Benchmark.hs
+  main-is:             Main.hs
   other-modules:       TimeProgram.RunProgram
                      , TimeProgram.RunSumN
                      , TimeProgram.RunFibo
@@ -117,7 +120,7 @@ test-suite JVHC-bench
                      , BenchCompiler.BenchCodeGen
                      , BenchCompiler.BenchCompiler
                      , CountConstructs.OutputParser
-  ghc-options:         -threaded 
+  ghc-options:         -threaded
   build-depends:       base
                      , JVHC
                      , process

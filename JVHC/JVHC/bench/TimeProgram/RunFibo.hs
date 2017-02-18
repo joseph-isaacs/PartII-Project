@@ -1,25 +1,40 @@
 module TimeProgram.RunFibo where
 
-import TimeProgram.RunProgram
+import Control.Monad
 
 import Pipeline.Compiler
 
-runBenchmark = varyFibo [30]
+import SampleProg.Programs
+import SampleProg.ProgMaker
 
-varyFibo :: [Int] -> IO [(String,[Int])]
+import TimeProgram.RunProgram
+import TimeProgram.TimeRunningParser
+
+import Printing.CSVPrint
+
+input :: (Num a, Enum a) => [a]
+input = [1..35]
+
+saveBenchmark :: FilePath -> IO ()
+saveBenchmark path =
+  do out <- (liftM toCSV $ runBenchmark)
+     putStr out
+     writeFile path out
+
+
+runBenchmark = varyFibo input
+
+varyFibo :: (Show a, Num a) => [Int] -> IO [(IsOp String,[a])]
 varyFibo enum =
-  do opt  <- mapM (runFibo normalOpt) enum
-     nOpt <- mapM (runFibo noOpt)     enum
-     return $ opt ++ nOpt
+  do p  <- mapM (runFibo noOpt) enum
+     return p
 
-runFibo :: OptimizeParams -> Int -> IO (String,[Int])
+runFibo :: (Show a, Num a) => OptimizeParams -> Int -> IO (IsOp String,[a])
 runFibo op n =
-  do src <- buildFibo n
-     mean <- runN 2 src False op "-Xss400m" (\x -> read (last (lines x)) :: Int)
-     return ((if inlineTimes op == 1 then "OP" else "") ++ show  n,mean)
+  do let src = buildFibo n
+     res <- runN 40 src False op "-Xss400m" parseTime
+     putStrLn (show n ++ ": " ++ show res)
+     return ((inlineTimes op == 1 , show  n),res)
 
-buildFibo :: Int -> IO String
-buildFibo times =
-  do file <- readFile "test/TestProg/fibo.bhs"
-     let prog = file ++ "main = putInt (fib " ++ show times ++ ") }"
-     return prog
+buildFibo :: Int -> String
+buildFibo times = functionsToProg [mkPutIntMainMethod times "fib", fib ]

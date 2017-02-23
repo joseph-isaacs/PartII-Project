@@ -1,0 +1,155 @@
+\documentclass[12pt,a4paper,twoside,openright]{report}
+\usepackage[subpreambles=true]{standalone}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage{verbatim}
+\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{import}
+
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+%% the following commands are needed for some matlab2tikz features
+\usetikzlibrary{plotmarks}
+\usetikzlibrary{arrows.meta}
+\usepgfplotslibrary{patchplots}
+\usepackage{grffile}
+\usepackage{amsmath}
+
+\usepackage{csquotes}
+
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+
+\newlength\fwidth
+\setlength{\fwidth}{\textwidth}
+
+
+\raggedbottom                           % try to avoid widows and orphans
+\sloppy
+\clubpenalty1000%
+\widowpenalty1000%
+
+\renewcommand{\baselinestretch}{1.1}    % adjust line spacing to make
+
+\newlength\gwidth
+\newlength\gheight
+\setlength{\gwidth}{\textwidth}
+\setlength{\gwidth}{\textheight}
+
+\newcommand{\importMGraph}[3]{\setlength{\gwidth}{#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
+\newcommand{\namefig}{\textbf{Figure}~}
+
+
+\addbibresource{refs.bib}
+% more readable
+
+\begin{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title
+
+
+\pagestyle{empty}
+
+\rightline{\LARGE \textbf{Joe Isaacs}}
+
+\vspace*{60mm}
+\begin{center}
+\Huge
+\textbf{Haskell 98 to JVM bytecode compiler} \\[5mm]
+Computer Science Tripos -- Part II \\[5mm]
+Sidney Sussex College \\[5mm]
+\today  % today's date
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Proforma, table of contents and list of figures
+
+\pagestyle{plain}
+
+\chapter*{Proforma}
+
+{\large
+\begin{tabular}{ll}
+Name:               & \bf Joe Isaacs                            \\
+College:            & \bf Sidney Sussex College                 \\
+Project Title:      & \bf Haskell 98 to JVM bytecode compiler   \\
+Examination:        & \bf Computer Science Tripos -- Part II, July 2017  \\
+Word Count:         & \bf ?????\footnotemark[1]
+                    (well less than the 12000 limit)  \\
+Project Originator: & Joe Isaacs                        \\
+Supervisor:         & R.~Kovacsics                    \\ 
+\end{tabular}
+}
+\footnotetext[1]{This word count was computed
+by \texttt{detex diss.tex | tr -cd '0-9A-Za-z $\tt\backslash$n' | wc -w}
+}
+\stepcounter{footnote}
+
+
+\section*{Declaration}
+
+I, Joe Isaacs of Sidney Sussex College, being a candidate for Part II of the Computer Science Tripos, hereby declare
+that this dissertation and the work described in it are my own work,
+unaided except as may be specified below, and that the dissertation
+does not contain material that has already been used to any substantial
+extent for a comparable purpose.
+
+\bigskip
+\leftline{Signed Joe Isaacs}
+
+\medskip
+\leftline{Date \today}
+
+\tableofcontents
+
+\listoffigures
+
+\newpage
+
+\pagestyle{headings}
+
+\chapter{Preparation}
+
+This chapter is empty!
+\textcite{haskell98-spec}
+
+
+\chapter{Implementation}
+
+
+\chapter{Evaluation}
+
+\import{tex/evaluation/}{eval.tex}
+
+\chapter{Conclusion}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the bibliography
+\addcontentsline{toc}{chapter}{Bibliography}
+\printbibliography
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% the appendices
+\appendix
+
+
+\chapter{Programs of interest}
+
+\label{appendix:programs}
+
+\chapter{Project Proposal}
+
+\import{tex/proposal/}{proposal.tex}
+
+\end{document}

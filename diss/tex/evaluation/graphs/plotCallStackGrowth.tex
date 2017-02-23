@@ -1,0 +1,61 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+\definecolor{mycolor2}{rgb}{0.85000,0.32500,0.09800}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.951\gwidth,
+height=\gheight,
+at={(0\gwidth,0\gheight)},
+scale only axis,
+xmin=0,
+xmax=1000,
+xlabel style={font=\color{white!15!black}},
+xlabel={Input size $n$},
+ymin=0,
+ymax=12,
+ylabel style={font=\color{white!15!black}},
+ylabel={$\text{Greatest number of thunks build up 10}^{\text{3}}$},
+axis background/.style={fill=white},
+legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, fill=none, draw=none}
+]
+\addplot [color=mycolor1]
+  table[row sep=crcr]{%
+1	0.0299999999999727\\
+100	1.14099999999996\\
+199	2.20799999999997\\
+298	3.31899999999996\\
+397	4.38599999999997\\
+496	5.49699999999996\\
+595	6.56399999999996\\
+694	7.67499999999995\\
+793	8.74199999999996\\
+892	9.85299999999995\\
+991	10.92\\
+};
+\addlegendentry{Normal}
+
+\addplot [color=mycolor2]
+  table[row sep=crcr]{%
+1	0.0180000000000291\\
+100	0.523000000000025\\
+199	1.00800000000004\\
+298	1.51300000000003\\
+397	1.99800000000005\\
+496	2.50300000000004\\
+595	2.98800000000006\\
+694	3.49300000000005\\
+793	3.97799999999995\\
+892	4.48299999999995\\
+991	4.96799999999996\\
+};
+\addlegendentry{Optimized}
+
+\end{axis}
+\end{tikzpicture}%

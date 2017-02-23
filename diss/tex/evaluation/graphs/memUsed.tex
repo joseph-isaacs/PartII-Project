@@ -1,0 +1,73 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+\definecolor{mycolor2}{rgb}{0.85000,0.32500,0.09800}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.951\gwidth,
+height=\gheight,
+at={(0\gwidth,0\gheight)},
+scale only axis,
+xmin=0,
+xmax=35,
+xlabel style={font=\color{white!15!black}},
+xlabel={Input value $n$ in 1000s to \texttt{testN}},
+ymin=0,
+ymax=300,
+ylabel style={font=\color{white!15!black}},
+ylabel={Peak memory usage MB},
+axis background/.style={fill=white},
+legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, fill=none, draw=none}
+]
+\addplot [color=mycolor1]
+  table[row sep=crcr]{%
+0.005	7.9804\\
+6.5125	89.8473\\
+17.1054	173.8304\\
+21.3197	180.2402\\
+23.8381	210.3623\\
+25.5941	211.3282\\
+26.9245	210.0798\\
+27.9861	211.5013\\
+28.864	211.0833\\
+29.6091	213.6106\\
+30.2541	216.8573\\
+30.8213	220.392\\
+31.3263	226.2872\\
+31.7806	244.3999\\
+32.1929	231.4244\\
+32.5698	248.3354\\
+32.9166	270.4863\\
+};
+\addlegendentry{With Inlining}
+
+\addplot [color=mycolor2]
+  table[row sep=crcr]{%
+0.005	7.9557\\
+6.5125	70.5519\\
+17.1054	83.343\\
+21.3197	94.8822\\
+23.8381	107.11515\\
+25.5941	121.628325\\
+26.9245	149.1564\\
+27.9861	158.005\\
+28.864	158.12735\\
+29.6091	154.585\\
+30.2541	158.0787\\
+30.8213	158.48155\\
+31.3263	158.1226\\
+31.7806	158.0132\\
+32.1929	158.2155\\
+32.5698	157.9948\\
+32.9166	158.1758\\
+};
+\addlegendentry{Without Inlining}
+
+\end{axis}
+\end{tikzpicture}%

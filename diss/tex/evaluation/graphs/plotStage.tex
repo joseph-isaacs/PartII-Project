@@ -1,0 +1,90 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{1.00000,1.00000,0.00000}%
+\definecolor{mycolor2}{rgb}{1.00000,0.00000,1.00000}%
+\definecolor{mycolor3}{rgb}{0.00000,1.00000,1.00000}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.951\gwidth,
+height=\gheight,
+at={(0\gwidth,0\gheight)},
+scale only axis,
+bar width=0.8,
+xmin=0,
+xmax=26.528,
+xlabel style={font=\color{white!15!black}},
+xlabel={Time (ms)},
+ymin=0.6,
+ymax=1,
+ytick={\empty},
+axis background/.style={fill=white},
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot[xbar stacked, fill=mycolor1, draw=black, area legend] table[row sep=crcr] {%
+0.419	1\\
+0	2\\
+};
+\addplot[forget plot, color=white!15!black] table[row sep=crcr] {%
+0	0.6\\
+0	1\\
+};
+\addlegendentry{Parse}
+
+\addplot[xbar stacked, fill=mycolor2, draw=black, area legend] table[row sep=crcr] {%
+0.332	1\\
+0	2\\
+};
+\addplot[forget plot, color=white!15!black] table[row sep=crcr] {%
+0	0.6\\
+0	1\\
+};
+\addlegendentry{Desugar}
+
+\addplot[xbar stacked, fill=blue, draw=black, area legend] table[row sep=crcr] {%
+3.188	1\\
+0	2\\
+};
+\addplot[forget plot, color=white!15!black] table[row sep=crcr] {%
+0	0.6\\
+0	1\\
+};
+\addlegendentry{TI}
+
+\addplot[xbar stacked, fill=red, draw=black, area legend] table[row sep=crcr] {%
+0.312	1\\
+0	2\\
+};
+\addplot[forget plot, color=white!15!black] table[row sep=crcr] {%
+0	0.6\\
+0	1\\
+};
+\addlegendentry{SystemF}
+
+\addplot[xbar stacked, fill=green, draw=black, area legend] table[row sep=crcr] {%
+0.497	1\\
+0	2\\
+};
+\addplot[forget plot, color=white!15!black] table[row sep=crcr] {%
+0	0.6\\
+0	1\\
+};
+\addlegendentry{Inline}
+
+\addplot[xbar stacked, fill=mycolor3, draw=black, area legend] table[row sep=crcr] {%
+21.78	1\\
+0	2\\
+};
+\addplot[forget plot, color=white!15!black] table[row sep=crcr] {%
+0	0.6\\
+0	1\\
+};
+\addlegendentry{CodeGen}
+
+\end{axis}
+\end{tikzpicture}%

@@ -1,0 +1,89 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+\definecolor{mycolor2}{rgb}{0.85000,0.32500,0.09800}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.951\gwidth,
+height=\gheight,
+at={(0\gwidth,0\gheight)},
+scale only axis,
+xmin=1.98,
+xmax=5.02,
+xlabel style={font=\color{white!15!black}},
+xlabel={{Pair input number $n$}},
+separate axis lines,
+every outer y axis line/.append style={mycolor1},
+every y tick label/.append style={font=\color{mycolor1}},
+every y tick/.append style={mycolor1},
+ymin=0,
+ymax=8,
+ytick={0, 2, 4, 6, 8},
+ylabel style={font=\color{mycolor1}},
+ylabel={Type inference time in (s) for JVHC},
+axis background/.style={fill=white},
+legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, draw=none}
+]
+\addplot [color=mycolor1]
+  table[row sep=crcr]{%
+2	0.000445328314557791\\
+3	0.00165548165032003\\
+4	0.0236370119970983\\
+5	7.23552099154559\\
+};
+\addlegendentry{JVHC}
+
+\addplot [color=mycolor1, draw=none, mark=*, mark options={solid, mycolor1}, forget plot]
+ plot [error bars/.cd, y dir = both, y explicit]
+ table[row sep=crcr, y error plus index=2, y error minus index=3]{%
+2	0.000445328314557741	2.52335570631132e-05	2.52335570631132e-05\\
+3	0.00165548165031981	0.000102001616031773	0.000102001616031773\\
+4	0.0236370119970985	0.00112696070805906	0.00112696070805906\\
+5	7.23552099154559	0.0859425096350843	0.0859425096350843\\
+};
+\end{axis}
+
+\begin{axis}[%
+width=0.951\gwidth,
+height=\gheight,
+at={(0\gwidth,0\gheight)},
+scale only axis,
+xmin=1.98,
+xmax=5.02,
+every outer y axis line/.append style={mycolor2},
+every y tick label/.append style={font=\color{mycolor2}},
+every y tick/.append style={mycolor2},
+ymin=0,
+ymax=4,
+ytick={0, 1, 2, 3, 4},
+ylabel style={font=\color{mycolor2}},
+ylabel={Type inference time in (s) for GHC},
+axis x line*=bottom,
+axis y line*=right,
+legend style={at={(0.03,0.90)}, anchor=north west, legend cell align=left, align=left, draw=none}
+]
+\addplot [color=mycolor2]
+  table[row sep=crcr]{%
+2	0.44794415\\
+3	0.45102635\\
+4	0.46905295\\
+5	3.3984305\\
+};
+\addlegendentry{GHC}
+
+\addplot [color=mycolor2, draw=none, mark=*, mark options={solid, mycolor2}, forget plot]
+ plot [error bars/.cd, y dir = both, y explicit]
+ table[row sep=crcr, y error plus index=2, y error minus index=3]{%
+2	0.44794415	0.0366648378225687	0.0366648378225687\\
+3	0.45102635	0.0410690030254282	0.0410690030254282\\
+4	0.46905295	0.0327636284708565	0.0327636284708565\\
+5	3.3984305	0.23901154128608	0.23901154128608\\
+};
+\end{axis}
+\end{tikzpicture}%

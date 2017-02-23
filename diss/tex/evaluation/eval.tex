@@ -1,0 +1,362 @@
+% \documentclass[../../diss.tex]{subfiles}
+\documentclass[float=false, crop=false]{standalone}
+\usepackage[subpreambles=true]{standalone}
+\usepackage{import}
+
+\usepackage{subfiles}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage{docmute}   % only needed to allow inclusion of proposal.tex
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{import}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+%% the following commands are needed for some matlab2tikz features
+\usetikzlibrary{plotmarks}
+\usetikzlibrary{arrows.meta}
+\usepgfplotslibrary{patchplots}
+\usepackage{grffile}
+\usepackage{amsmath}
+
+\usepackage{verbatim}
+
+\newlength\gwidth
+\newlength\gheight
+\setlength{\gwidth}{\textwidth}
+\setlength{\gwidth}{\textheight}
+
+\newcommand{\namefig}{\textbf{Figure}~}
+
+\newcommand{\importMGraph}[3]{\setlength{\gwidth}{#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
+
+
+\begin{document}
+\section{Overview}
+
+The success criteria for this project full into three categories:
+\begin{itemize}
+  \item Correctness
+  \item Performance
+  \item Usability 
+\end{itemize}
+
+So I will split the evaluation into three parts also, first we will
+look at the correctness of the overall project. This was established 
+with unit tests of all stages of the compiler, I will
+also justify certain choices formally. The performance evaluation follows 
+with comparisons between JVHC and other already existing compilers such as
+GHC, there are also comparisons of different optimizations that my compiler
+implements. Usability is then mentioned.
+
+\section{Correctness}
+
+There are unit test for all stages of the compiler, these were implemented 
+using the Haskell library HUnit \cite{hunit-lib}. The test for code generation
+are worth mentioning, the best way to check that code generation is 
+successful is to run the outputted \texttt{.class} files and read 
+\texttt{stdout}, making sure the output was identical to the output
+expected. The tests checked about any printing to stdout was the correct
+value and in the correct order. The test also check that the program 
+terminates if it was required to.
+
+\section{Performance}
+
+I will look at the following peformance metrics and will compare with other compiles where
+approperate:
+
+\begin{itemize}
+  \item Compile time.
+  \item Type inference time.
+  \item Code size.
+  \item Program runtime.
+  \item Call stack height.
+  \item Memory usage.
+  \item Garbage collection times.
+  \item Comparison of inlining.
+\end{itemize}
+
+
+When a user first interacts with JVHC, they will notice the time taken to compile a program, so I will
+start the performance evaluation from there as in \namefig\ref{plot:TimeInStages}, there is also a comparison of type inference between
+GHC and JVHC showing only a $\times 2$ decrease in the runtime of JVHC's TI algorithm in 
+\namefig\ref{Plot:tiTime}.
+
+
+  \begin{samepage}
+\begin{figure}[ht]
+  \centering
+      \importMGraph{plotStage.tex}{0.7\textwidth}{0.25\textwidth}
+      \caption[Average time taken for an average program
+      at each stage in the compiler]{The time taken in each stage of the compiler pipeline. We note that
+      code generation is by far the most time consuming part of the pipeline.}
+      \label{plot:TimeInStages}
+\end{figure}
+  \end{samepage}
+
+  \begin{figure}
+  \begin{samepage}
+  \importMGraph{tiTime.tex}{0.93\textwidth}{0.4\textwidth}
+  \begin{verbatim}
+let f0 x f = f x x in
+let f1 x = f0 x in
+let f2 x = f1 (f1 x) in
+  \z -> f2 (\b -> b) z
+  \end{verbatim}
+  \caption[Plot of type inference runtime as a function of input size]
+  {A plot of number of pairs size (increasing \texttt{f$n$}) 
+    in program against time taken to run type inference algorithm.}
+  \label{Plot:tiTime}
+\end{samepage}
+\end{figure}
+
+There will be tree programs explicitly referenced throughout the evaluation section 
+[\texttt{fib}, \texttt{testN}, \texttt{badProg}] there are all in 
+\textbf{Appendix}~\ref{appendix:programs}.
+The code is a good measure of how efficiently a program can be converted
+into an executable format, however the comparison if not completely fair
+between JVHC and eta and GHC since the latter two will use dead code 
+elimination, the results are in \namefig\ref{plot:codeSize}. \texttt{-O0} was used when compiling however, 
+\cite{haskell-flag-ref} doesn't provide a way to disable what it calls
+\texttt{-fwarn-unused-binds}.
+
+
+\begin{figure}
+  \centering
+  \importMGraph{plotCodeSize.tex}{0.90\textwidth}{0.4\textwidth}
+  \caption[Plot of code size as a function of program input size in characters]{
+    Plot of code size against input size in characters. It can be  
+  seen that inlined code has a slightly higher code size than 
+   non inlined code, this is due to having 
+   both the inlined and non-inlined version of a function, 
+   to problem could be reduced with dead code elimination. 
+   GHC has a much larger code size than all other compilers
+   since this is a stand alone binary where as eta, and JVHC run 
+    on the JVM with extra support library and the garbage collection 
+  logic is in the JVM where as GHC must embed the logic in the 
+   binary. The runtime associated with eta and JVHC was
+    also taken into account, since GHC also includes its runtime
+    in the binary produced. When compiling GHC and eta the \texttt{-O0} 
+  command flag was used to specify no optimization should be carried out.}
+  \label{plot:codeSize}
+  \begin{tabular}{ c | c c }
+    Compiler& $a$ & $b$\\
+    \hline\\
+    JVHC & $39.9$ & $2.47 \times 10^{4}$ \\
+    JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
+    eta & $6.74$ & $1.45 \times 10^{4}$\\
+    GHC & $31.7$ & $1.69 \times 10^{6}$
+  \end{tabular}
+  \caption[Table of regression values for code size as a function of
+  program size]{Using Matlab's \texttt{polyfit(x,y,1)} function 
+    the equation of a straight line can be found from the data 
+    points. This shows that eta has a much lower code output size
+    than all other compilers. Then there is a slight 
+    cost to using inlining on JVHC. I only include GHC for a reference,
+    however the results don't seem very useful, since GHC applies 
+    dead-code elimination, which varies the resulting code size, 
+    since the programs inputted don't use all of the functions defined}
+\end{figure}
+
+We next compare the runtime of \texttt{fib}$n$ where $n$ ranges between 
+$1-35$ to show that the asymptotic runtime of the code output
+by each compiler is comparable in \namefig\ref{plot:fibTiming}, this data was also fitted to a 
+$a \cdot  \varphi^n$ (where $\varphi = \frac{1+\sqrt{5}}{2}$) curve so the  
+constant factor between different programs computing
+ the $n$th Fibonacci number can be compared. 
+
+\begin{figure}
+  \centering
+  \importMGraph{plotFibRuntime.tex}{0.93\textwidth}{0.4\textwidth}
+\begin{tabular}{c | c}
+  & $a$\\
+  \hline \\
+  JVHC & $1.13\times 10^{-7}$\\
+  GHC & $9.49\times 10^{-8}$\\
+  Java & $1.62 \times 10^{-9}$
+\end{tabular}
+  \caption[Plot of a comparison between runtime for findin the $n$th Fibonacci number na\"ively as a 
+  function of the $n$]
+  {Plot of time taken to run na\"ive Fibonnacci Program, in Haksell
+  and Java, against input size. We see the asymptotic complexity is the same.
+  Least square regression was carried about against $a \cdot \varphi^n$ using the 
+  \texttt{lsqcurvefit} Matlab function and the results in the table.
+  We see that JVHC is about $10^2 \times$ slower than the native
+  Java program and $10\times $ slower than the GHC program.
+  This data was obtained using \texttt{-O0} flag on GHC and no inlining
+  in JVHC.
+}
+  \label{plot:fibTiming}
+\end{figure}
+
+
+I will next look at the effect that inlining has on the runtime of the 
+program, to notice a large different very large values of $n$ (the 
+argument to the function being benchmarked). The result for this
+example is clear that the runtime is improved when inlining is used shown in \namefig\ref{plot:inlinePlot}.
+
+\begin{figure}
+  \centering
+  \importMGraph{inlinePlot}{0.96\textwidth}{0.4\textwidth}
+  \caption[Plot of runtime of \texttt{testN} as a function on input size $n$]
+  {A plot of input value passed to \texttt{testN} against time to run in seconds,
+    also included in the time that the garbage collection (GC) ran in the program without
+    functional inlining, GC never ran during the execution of the 
+    program with functional inlining. This
+  shows that there is a definite benefit, in term of runtime, applying inlining to this
+  program. Fitting at straight line $y=ax+b$ to both curves gives 
+  \{[Inlined, $a=1.11\times 10^{-6}, b = 0.076$]\} and 
+  \{[Not Inlined, $a = 1.36\times 10^{5}, b= -0.04$]\}, leading to a speed up of $12 \times$ speed up.
+  There is a notable jump in runtime for the inlined program, this is due to a GC 
+  executing at one point through out the execution larger values of $n$. }
+  \label{plot:inlinePlot}
+
+\end{figure}
+
+A factor that effects the qualify of compiled program is how much memory
+is used when executing the program. I will look at the maximum call stack size
+of a running program in \namefig\ref{plot:stackSize}, and then we will look at memory usage in 
+\namefig\ref{plot:memUsed} both of \texttt{testN}. 
+
+\begin{figure}
+  \centering
+  \importMGraph{plotCallStackGrowth}{0.96\textwidth}{0.3\textwidth}
+  \begin{tabular}{ c | c c}
+  & $a$ & $b$\\
+  \hline\\
+  JHVC & 11 & 29 \\
+  JHVC with inlining & 5 & 18 
+  \end{tabular}
+  \caption[Plot of maximum call stack height for \texttt{testN} as a function of $n$]
+  {This is a graph of the maximum call stack height. The program
+  which was run was the Fibonacci program used in the compiler performance
+  analysis previously. We notice that the maximum call stack height
+  linearly increases with $n$. This was fit to a straight line curve
+  with the equation $a\cdot x + b$ resulting in the above table and a about a $2\times$ reduction
+  in the maximum thunks allocated and therefore maximum call stack height. This data
+  was gathered by, generating a call stack at any point in the computation that could 
+  be a maximum thunk depth, this could be at a \texttt{Var} or \texttt{Lit} construct from
+  the \texttt{CoreExpr} data type. The JVM flag \texttt{MaxJavaStackTraceDepth} was used to increase
+  the stack height to a value greater than the maximum value returns from running this test.}
+  \label{plot:stackSize}
+\end{figure}
+
+
+\begin{figure}
+  \centering
+  \importMGraph{memUsed}{0.96\textwidth}{0.3\textwidth}
+  \caption[Plot of memory used in \texttt{testN} as a function of $n$]
+  {This is a graph of memory usage against input value $n$ in 1000s. 
+  Again there is a noticeable different is peak memory usage, showing a
+  reduced memory usage when inlining is enabled. This was gathered 
+  by looking at JVM traces, enabled with the flag \texttt{PrintGCDetails}. This is therefore an 
+  over estimate of peak memory usage. This show there is a very high correlation between maximum
+  stack height and memory usage, which leads to the conclusion, that reducing the 
+  max stack height would reduce memory usage and hopefully lead to less garbage collections.}
+  \label{plot:memUsed}
+\end{figure}
+
+Finally in the performance section, functional inlining it now always a good idea.
+It is possible that inlining functions may lead to increased runtime as shown in 
+Figure~\ref{plot:badInline}. The heuristics are very simple
+that the inliner uses it would be possible to come up with better heuristics that can be
+used to decide whether to inline a function.
+
+\begin{figure}
+  \centering
+  \importMGraph{plotBadInline}{0.96\textwidth}{0.3\textwidth}
+  \caption[Plot of \texttt{badProg} as a function of $n$, to comparing inlined and non-inlined
+  version of the compiled program]
+  {Plot of input value in 1000s against runtime in seconds with and without inlining.
+    This shows that inlining can cause problems, this is due to inlining the expensive function
+    \texttt{sumNProg} will mean the function will be evaluated three times adding the results each time
+    where as no inlining will only compute \texttt{sumNProg} once and then add the result 3 times, 
+    which will be faster. The drop in the inlined program performance at about $120 \times 10^3$, 
+    could be due to the JVM optimizing the bytecode when it notices common execution patterns.
+    }
+    \label{plot:badInline}
+\end{figure}
+
+\section{Usability}
+
+Usability is harder to measure analytically, so the best measure I can think of is extra code size
+compared to using Haskell or Java without JVHC.
+There are three burdens on the programmer that this compiler introduces:
+\begin{itemize}
+  \item Exposing Java functions in to the Haskell world.
+  \item Exposing Java functions to the JVHC compiler, by passing type information and the name 
+    of the function.
+
+  \item Using the generated JVM bytecode from a Java program.
+\end{itemize}
+
+\subsection{Exposing Java functions to the Haskell world}
+
+This is the code required to expose integer plus to the JVHC compiler. 
+This can definitely be reduced, if there was time it would benefit to instead of defining the plus
+this was to instead just defined the line where the addition takes places, all
+the other code is just boiler place.
+
+\begin{verbatim}
+public class plus0 implements Function<Supplier<Integer>,plus1>, 
+                              Supplier<plus0> {
+    @Override
+    public plus1 apply(Supplier<Integer> integer) 
+      { return new plus1(integer); }
+    @Override
+    public plus0 get() { return new plus0(); }
+}
+
+public class plus1 implements Function<Supplier<Integer>,Integer>{
+    Supplier<Integer> i0;
+    plus1(Supplier<Integer> i0) { this.i0 = i0; }
+    @Override
+    public Integer apply(Supplier<Integer> i1) 
+      { return i0.get() + i1.get(); }
+}
+\end{verbatim}
+
+\subsection{Exposing Java functions to the JVHC compiler}
+
+Currently there is a list of all the custom types defined for the compilation stage
+instead this should be moved to a separate definition file, or better still 
+add new syntax to the Haskell like language accepted by JVHC allowing new type
+definitions to be included.
+
+\begin{verbatim}
+foreign import java "add" add :: Int -> Int -> Int
+\end{verbatim}
+
+This syntax is a slightly modified declaration used in the foreign function interface (FFI) \cite{ghc_ffi} 
+in GHC. The FFI is used to specify the name and type of C functions which can be called from 
+instead the GHC compiled Haskell.
+
+\subsection{Using the generated JVM bytecode from Java}
+
+The current Java interface produced by JVHC is harder to use than it could be
+\begin{enumerate}
+  \item Every argument passed into each function must first be wrapped in a thunk. 
+  \item Generic information is not added to the bytecode (this is possible using 
+signatures defined in the JVM spec \cite[\textsection4.7.9]{jvm-spec8}) meaning that
+the return values from function calls (\texttt{apply}) and thunk evaluation (\texttt{get}) require casting.
+\end{enumerate}
+
+The first of these problems could be solved by generating a function $f_J$ for each 
+function exposed from Haskell $f$ compiled by JVHC which uncurry 
+(go from \mbox{$\tau_1 \rightarrow \dotsc \rightarrow \tau_n \rightarrow \tau$} to
+\mbox{$(\tau_1,\dotsc,\tau_n) \rightarrow \tau$} the arguments of the function, and 
+wrap then values passed as argument to $f_J$ in thunks, finally calling the function $f$. 
+Uncurrying is done to fit with the idiom in Java of write functions that take 
+$n$-tuple instead of a set of $n$ curried functions. 
+
+The other problem could be solved by keeping generic information would be used by 
+the Java compiler \texttt{javac} infer a return type of each \texttt{apply} and \texttt{get}
+which is closer to the true values of the return type (still might not be the correct type 
+since Java allows sub-typing). This could be achieved by modifying the Codec-JVM library 
+\cite{codec-jvm-link} adding support for tracking of generic types.
+
+\end{document}

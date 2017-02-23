@@ -1,0 +1,93 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+\definecolor{mycolor2}{rgb}{0.85000,0.32500,0.09800}%
+\definecolor{mycolor3}{rgb}{0.92900,0.69400,0.12500}%
+\definecolor{mycolor4}{rgb}{0.49400,0.18400,0.55600}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=0.951\gwidth,
+height=\gheight,
+at={(0\gwidth,0\gheight)},
+scale only axis,
+xmin=0,
+xmax=1200,
+xlabel style={font=\color{white!15!black}},
+xlabel={Input size in bytes},
+ymin=-1,
+ymax=100,
+ytick={  0,  50, 100},
+ylabel style={font=\color{white!15!black}},
+ylabel={Outputted code size kB},
+axis background/.style={fill=white},
+legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, draw=none}
+]
+\addplot [color=mycolor1]
+  table[row sep=crcr]{%
+142	29.73\\
+128	29.875\\
+385	41.7860000000001\\
+725	51.7260000000001\\
+1168	71.943\\
+};
+\addlegendentry{Inline}
+
+\addplot [color=mycolor2]
+  table[row sep=crcr]{%
+142	33.492\\
+128	29.875\\
+385	43.0650000000001\\
+725	58.8800000000001\\
+1168	77.596\\
+};
+\addlegendentry{No Inline}
+
+\addplot [color=mycolor3]
+  table[row sep=crcr]{%
+142	14.46\\
+128	14.6179999999999\\
+385	18.702\\
+725	20.3219999999999\\
+1168	21.3779999999999\\
+};
+\addlegendentry{eta}
+
+\end{axis}
+
+\begin{axis}[%
+width=0.951\gwidth,
+height=\gheight,
+at={(0\gwidth,0\gheight)},
+scale only axis,
+xmin=0,
+xmax=1200,
+every outer y axis line/.append style={mycolor4},
+every y tick label/.append style={font=\color{mycolor4}},
+every y tick/.append style={mycolor4},
+ymin=1.649,
+ymax=1.75,
+ytick={1.65,  1.7, 1.75},
+ylabel style={font=\color{mycolor4}},
+ylabel={Outputted code size MB},
+axis x line*=bottom,
+axis y line*=right,
+legend style={at={(0.03,0.78)}, anchor=north west, legend cell align=left, align=left, draw=none}
+]
+\addplot [color=mycolor4]
+  table[row sep=crcr]{%
+142	1.68598399999996\\
+128	1.68576800000005\\
+385	1.73083199999996\\
+725	1.68678399999999\\
+1168	1.73142400000006\\
+};
+\addlegendentry{GHC}
+
+\end{axis}
+\end{tikzpicture}%

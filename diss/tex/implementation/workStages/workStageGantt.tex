@@ -1,0 +1,125 @@
+\documentclass[float=false, crop=false]{standalone}
+\usepackage[subpreambles=false]{standalone}
+\usepackage{import}
+
+\usepackage{subfiles}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage[pdfborder={0 0 0}]{hyperref}   
+\usepackage[margin=25mm]{geometry} 
+\usepackage{graphicx}  
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{import}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\usepackage{stmaryrd}
+\usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{sansmath}
+\usepackage{mathtools}
+
+\usepackage{color}
+
+\usepackage{pgfgantt}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\ganttset{group/.append style={orange},
+          milestone/.append style={red},
+          progress label node anchor/.append style={text=red}}
+
+\newlength\gwidth
+\newlength\gheight
+\setlength{\gwidth}{\textwidth}
+\setlength{\gwidth}{\textheight}
+
+\newcommand{\namefig}{\textbf{Figure}~}
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\newcommand{\thunk}[1]{\lceil #1 \rceil}
+\newcommand{\unwrap}[1]{\lfloor #1 \rfloor}
+\newcommand{\tcbn}{\rightarrow_N}
+\newcommand{\tcbv}{\rightarrow_V}
+\newcommand{\tccbv}{\rightarrow_V^*}
+\newcommand{\tthunk}{\rightarrow_\tlang}
+\newcommand{\tlthunk}{\rightsquigarrow_\tlang}
+
+\begin{document}
+
+\begin{figure}
+  \centering
+     \begin{ganttchart}[%Specs
+     y unit title=0.5cm,
+     y unit chart=0.7cm,
+     vgrid,hgrid,
+     title height=1,
+%     title/.style={fill=none},
+     title label font=\bfseries\footnotesize,
+     bar/.style={fill=blue},
+     bar height=0.7,
+%   progress label text={},
+     group right shift=0,
+     group top shift=0.7,
+     group height=.3,
+     group peaks width={0.2},
+     inline]{1}{19}
+    %labels
+    % \gantttitle{A two-years project}{24}\\  % title 1
+    \gantttitle[]{Michaelmas Term}{6}                 % title 2
+    \gantttitle[]{Christmas Holiday}{7}              
+    \gantttitle[]{Lent Term}{6} \\              
+    \gantttitle{3,4}{2}                      % title 3
+    \gantttitle{5,6}{2}
+    \gantttitle{7,8}{2}
+    \gantttitle{1,2}{2}
+    \gantttitle{3,4,5}{3}
+    \gantttitle{6,7}{2}
+    \gantttitle{1,2}{2} 
+    \gantttitle{3,4}{2} 
+    \gantttitle{5,6}{2} 
+    % Setting group if any
+    \ganttgroup[inline=false]{WP: 1(Lex, Parse)}{1}{2}\\ 
+    \ganttbar[inline=false]{Actual WP 1}{1}{2}\\
+
+    \ganttgroup[inline=false]{WP: 2(Desugar)}{3}{4}\\ 
+    \ganttbar[inline=false]{Actual WP 2}{3}{3}\\
+    
+    
+    \ganttgroup[inline=false]{WP: 3(TI 1)}{5}{6}\\ 
+    \ganttbar[inline=false]{Actual WP 3}{4}{4}\\
+    
+    \ganttgroup[inline=false]{WP: 4(TI 2)}{7}{8}\\ 
+    \ganttbar[inline=false]{Actual WP 4}{5}{6}\\
+    
+    \ganttgroup[inline=false]{WP: 5 (Slack)}{9}{11}\\ 
+   
+
+    \ganttgroup[inline=false]{WP: 6 (CodeGen 1)}{12}{13}\\ 
+    \ganttbar[inline=false]{Actual WP 6}{7}{7}\\
+    
+    \ganttgroup[inline=false]{WP: 7 (CodeGen 2)}{14}{15}\\ 
+    \ganttbar[inline=false]{Actual WP 7}{8}{9}\\
+
+
+    \ganttgroup[inline=false]{WP: 8 (Inline)}{16}{17}\\ 
+    \ganttbar[inline=false]{Actual WP 8}{10}{12}\\
+
+    \ganttgroup[inline=false]{WP: 9}{18}{19}\\ 
+    \ganttbar[inline=false]{Actual WP 9}{13}{15}
+\end{ganttchart}
+\caption[Gantt Chart of work packages compared to actual time taken]{Comparison of predicted timetable
+ given in the project proposal with the time taken by me to implement each work package. 
+ This invoked implementing a I/O monad. The orange is proposed progress and the blue is the
+ actual progress of the project. \textbf{WP: 9}
+ was implementing both pure and non pure function interface between the JVM and the JVHC compiler.}
+\label{figure:ganttchar}
+\end{figure}
+
+\end{document}

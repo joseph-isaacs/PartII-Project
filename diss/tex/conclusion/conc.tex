@@ -1,0 +1,65 @@
+\documentclass[float=false, crop=false]{standalone}
+\usepackage[subpreambles=true]{standalone}
+\usepackage{import}
+
+\usepackage{subfiles}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{import}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\usepackage{amsmath}
+
+\usepackage{csquotes}
+\usepackage{color}
+
+\usepackage{verbatim}
+
+\newlength\gwidth
+\newlength\gheight
+\setlength{\gwidth}{\textwidth}
+\setlength{\gwidth}{\textheight}
+
+\newcommand{\namefig}{\textbf{Figure}~}
+
+\begin{document}
+\section{Successes}
+
+\begin{itemize}
+  \item Fully working compiler.
+
+  \item Completed all stretch goals.
+
+  \item Written unit tests which pass.
+
+  \item Partially formally verified part of the bytecode transformation.
+
+  \item Order of magnitude of GHC in Fibonacci program implementation.
+
+  \item Integrated code from JVHC and JVM worlds.
+
+\end{itemize}
+
+\section{Thing to improve}
+
+\begin{itemize}
+  \item Need to reduce time in Code Gen stage.
+
+  \item Need to improve the heuristic for inlining, could look at if the function
+    or any possible function that be called in the inlined code is
+    recursive. Trying to find a way to define cost a function when inlining.
+\end{itemize}
+
+\section{Possible future work}
+\begin{itemize}
+  \item Would like to implement type classes.
+
+  \item Would like a better Java JVHC interface, generic supported bytecode
+    maybe generated Java wrapper classes which display a idiomatic Java 
+    interface.
+\end{itemize}
+\end{document}

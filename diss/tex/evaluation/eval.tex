@@ -38,35 +38,37 @@
 \begin{document}
 \section{Overview}
 
-The success criteria for this project full into three categories:
+The success criteria for this project fall into three categories:
 \begin{itemize}
-  \item Correctness
-  \item Performance
-  \item Usability 
+  \item Correctness.
+  \item Performance.
+  \item Usability.
 \end{itemize}
 
-So I will split the evaluation into three parts also, first we will
+So I will split the evaluation into three parts, first we will
 look at the correctness of the overall project. This was established 
-with unit tests of all stages of the compiler, I will
-also justify certain choices formally. The performance evaluation follows 
+with unit tests of every stage of the compiler in isolation. I 
+have justified certain choices formally (the mapping from a lazy to eager semantics
+shown in Appendix~\ref{appendix:bytecodetranslationdoc}). The performance evaluation follows 
 with comparisons between JVHC and other already existing compilers such as
-GHC, there are also comparisons of different optimizations that my compiler
-implements. Usability is then mentioned.
+GHC, there is also a comparison of functional inlining. Usability is then discussed in more detail.
 
 \section{Correctness}
 
 There are unit test for all stages of the compiler, these were implemented 
-using the Haskell library HUnit \cite{hunit-lib}. The test for code generation
-are worth mentioning, the best way to check that code generation is 
-successful is to run the outputted \texttt{.class} files and read 
-\texttt{stdout}, making sure the output was identical to the output
-expected. The tests checked about any printing to stdout was the correct
-value and in the correct order. The test also check that the program 
-terminates if it was required to.
-
+using the Haskell library HUnit \cite{hunit-lib}. The test framework for code generation
+was written by me to check:
+\begin{itemize}
+  \item the returned value was identical to the output expected. 
+  \item that anything printed to \texttt{stdout} was the correct value in the correct order. 
+  \item the program terminated if it was expected to.
+\end{itemize}
+  The framework compiles a given program to a set of \texttt{.class} files, then 
+  starts an instance of the JVM which will execute these class files
+  and check that all the above conditions hold.
 \section{Performance}
 
-I will look at the following peformance metrics and will compare with other compiles where
+I will look at the following peformance metrics and will compare with other compilers where
 approperate:
 
 \begin{itemize}
@@ -80,20 +82,18 @@ approperate:
   \item Comparison of inlining.
 \end{itemize}
 
-
 When a user first interacts with JVHC, they will notice the time taken to compile a program, so I will
-start the performance evaluation from there as in \namefig\ref{plot:TimeInStages}, there is also a comparison of type inference between
-GHC and JVHC showing only a $\times 2$ decrease in the runtime of JVHC's TI algorithm in 
+start the performance evaluation from there as in \namefig\ref{plot:TimeInStages}. We note that code generation is by far the most time consuming part of the pipeline. There is then a comparison 
+of type inference between GHC and JVHC showing only a $\times 2$ 
+decrease in the runtime cost of JVHC's TI algorithm in 
 \namefig\ref{Plot:tiTime}.
 
-
-  \begin{samepage}
+\begin{samepage}
 \begin{figure}[ht]
   \centering
       \importMGraph{plotStage.tex}{0.7\textwidth}{0.25\textwidth}
       \caption[Average time taken for an average program
-      at each stage in the compiler]{The time taken in each stage of the compiler pipeline. We note that
-      code generation is by far the most time consuming part of the pipeline.}
+      at each stage in the compiler]{The time taken in each stage of the compiler pipeline. }
       \label{plot:TimeInStages}
 \end{figure}
   \end{samepage}
@@ -114,52 +114,45 @@ let f2 x = f1 (f1 x) in
 \end{samepage}
 \end{figure}
 
-There will be tree programs explicitly referenced throughout the evaluation section 
-[\texttt{fib}, \texttt{testN}, \texttt{badProg}] there are all in 
+There will be three programs explicitly referenced throughout the evaluation section 
+[\texttt{fib}, \texttt{testN}, \texttt{badProg}] they are all defined in 
 \textbf{Appendix}~\ref{appendix:programs}.
-The code is a good measure of how efficiently a program can be converted
-into an executable format, however the comparison if not completely fair
-between JVHC and eta and GHC since the latter two will use dead code 
-elimination, the results are in \namefig\ref{plot:codeSize}. \texttt{-O0} was used when compiling however, 
-\cite{haskell-flag-ref} doesn't provide a way to disable what it calls
-\texttt{-fwarn-unused-binds}.
+The code size is a good measure of how efficiently a program can be converted
+into an executable format. The comparison is not completely fair
+between JVHC, Eta and GHC since the latter two will use dead code 
+elimination. The results are in \namefig\ref{plot:codeSize}. \texttt{-O0} (No optimizations flag) 
+was used when compiling however, the GHC flag guide \cite{haskell-flag-ref}
+does not provide a way to disable what it calls \texttt{-fwarn-unused-binds}.
+It can be seen that inlined code has a slightly higher code size than non inlined code.
+This extra code size is due to having both the inlined and non-inlined version of a function compiled to
+bytecode. The problem could be solved with dead code elimination. GHC has a much larger 
+and more varied code size than all other compilers since this must produce a stand alone binary 
+whereas Eta, and JVHC run on the JVM with extra support libraries (not included in this comparison) 
+and the garbage collection logic is in the JVM whereas GHC must embed the logic in the binary. 
+We can also see from \namefig\ref{table:codeSize}
+that Eta has the smallest code size increase. Since the variation of GHC is so large I have not
+included straight line fit coefficients for this compiler.
 
 
 \begin{figure}
   \centering
   \importMGraph{plotCodeSize.tex}{0.90\textwidth}{0.4\textwidth}
   \caption[Plot of code size as a function of program input size in characters]{
-    Plot of code size against input size in characters. It can be  
-  seen that inlined code has a slightly higher code size than 
-   non inlined code, this is due to having 
-   both the inlined and non-inlined version of a function, 
-   to problem could be reduced with dead code elimination. 
-   GHC has a much larger code size than all other compilers
-   since this is a stand alone binary where as eta, and JVHC run 
-    on the JVM with extra support library and the garbage collection 
-  logic is in the JVM where as GHC must embed the logic in the 
-   binary. The runtime associated with eta and JVHC was
-    also taken into account, since GHC also includes its runtime
-    in the binary produced. When compiling GHC and eta the \texttt{-O0} 
-  command flag was used to specify no optimization should be carried out.}
+    Plot of code size against input size in characters. 
+    }
   \label{plot:codeSize}
   \begin{tabular}{ c | c c }
     Compiler& $a$ & $b$\\
     \hline\\
     JVHC & $39.9$ & $2.47 \times 10^{4}$ \\
     JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
-    eta & $6.74$ & $1.45 \times 10^{4}$\\
-    GHC & $31.7$ & $1.69 \times 10^{6}$
+    eta & $6.74$ & $1.45 \times 10^{4}$
   \end{tabular}
   \caption[Table of regression values for code size as a function of
   program size]{Using Matlab's \texttt{polyfit(x,y,1)} function 
     the equation of a straight line can be found from the data 
-    points. This shows that eta has a much lower code output size
-    than all other compilers. Then there is a slight 
-    cost to using inlining on JVHC. I only include GHC for a reference,
-    however the results don't seem very useful, since GHC applies 
-    dead-code elimination, which varies the resulting code size, 
-    since the programs inputted don't use all of the functions defined}
+    points. }
+  \label{table:codeSize}
 \end{figure}
 
 We next compare the runtime of \texttt{fib}$n$ where $n$ ranges between 
@@ -179,7 +172,7 @@ constant factor between different programs computing
   GHC & $9.49\times 10^{-8}$\\
   Java & $1.62 \times 10^{-9}$
 \end{tabular}
-  \caption[Plot of a comparison between runtime for findin the $n$th Fibonacci number na\"ively as a 
+  \caption[Plot of a comparison between runtime for finding the $n$th Fibonacci number na\"ively as a 
   function of the $n$]
   {Plot of time taken to run na\"ive Fibonnacci Program, in Haksell
   and Java, against input size. We see the asymptotic complexity is the same.
@@ -269,15 +262,14 @@ used to decide whether to inline a function.
 \begin{figure}
   \centering
   \importMGraph{plotBadInline}{0.96\textwidth}{0.3\textwidth}
-  \caption[Plot of \texttt{badProg} as a function of $n$, to comparing inlined and non-inlined
-  version of the compiled program]
+  \caption[Plot of \texttt{badProg} as a function of $n$. Comparing the inlined and non-inlined
+  versions of the compiled program]
   {Plot of input value in 1000s against runtime in seconds with and without inlining.
     This shows that inlining can cause problems, this is due to inlining the expensive function
     \texttt{sumNProg} will mean the function will be evaluated three times adding the results each time
-    where as no inlining will only compute \texttt{sumNProg} once and then add the result 3 times, 
+    whereas no inlining will only compute \texttt{sumNProg} once and then add the result 3 times, 
     which will be faster. The drop in the inlined program performance at about $120 \times 10^3$, 
-    could be due to the JVM optimizing the bytecode when it notices common execution patterns.
-    }
+    could be due to the JVM optimizing the bytecode when it notices common execution patterns.}
     \label{plot:badInline}
 \end{figure}
 
@@ -348,7 +340,7 @@ the return values from function calls (\texttt{apply}) and thunk evaluation (\te
 The first of these problems could be solved by generating a function $f_J$ for each 
 function exposed from Haskell $f$ compiled by JVHC which uncurry 
 (go from \mbox{$\tau_1 \rightarrow \dotsc \rightarrow \tau_n \rightarrow \tau$} to
-\mbox{$(\tau_1,\dotsc,\tau_n) \rightarrow \tau$} the arguments of the function, and 
+\mbox{$(\tau_1,\dotsc,\tau_n) \rightarrow \tau$}) the arguments of the function, and 
 wrap then values passed as argument to $f_J$ in thunks, finally calling the function $f$. 
 Uncurrying is done to fit with the idiom in Java of write functions that take 
 $n$-tuple instead of a set of $n$ curried functions. 

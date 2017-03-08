@@ -12,6 +12,13 @@
 \usepackage[english]{babel}
 \usepackage{import}
 
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{sansmath}
+\usepackage{mathtools}
+\usepackage{stmaryrd}
+
 
 \usepackage{pgfplots}
 \pgfplotsset{compat=newest}
@@ -24,9 +31,107 @@
 
 \usepackage{csquotes}
 
+\usepackage{pgfgantt}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\ganttset{group/.append style={orange},
+          milestone/.append style={red},
+          progress label node anchor/.append style={text=red}}
+
 \usepackage{lmodern}
 \usepackage{textcomp}
 \usepackage[T1]{fontenc}
+\usepackage{listings}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\usepackage{listings}
+\lstnewenvironment{JavaLst}
+{\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  escapeinside={&}{&},
+  moredelim=[il][\textcolor{pgrey}]{$$},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}}{}
+
+\lstnewenvironment{HaskellLst}
+{\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=haskell,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  showspaces=false,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}} {}
+
+\lstnewenvironment{JVMLst}
+{\lstset{
+  frame=none,
+  numbers=none,
+  xleftmargin=2pt,
+  language=JVMIS,
+  emphstyle={\bf},
+  stringstyle=\mdseries\rmfamily,
+  commentstyle=\color{pgreen},
+  stringstyle=\color{pred},
+  keywordstyle=\color{black},
+  basicstyle=\ttfamily,
+  basicstyle=\small\sffamily
+}} {}
+
+
+\renewcommand{\rmdefault}{bch} % change default font
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz} 
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,fit,positioning,shapes.symbols,chains}
+
+% Proof 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{case}{Case}
+\newtheorem{subcase}{Case}
+\numberwithin{subcase}{case}
+
+\newcommand{\tlang}{\star}
+\newcommand{\thunk}[1]{\lceil #1 \rceil}
+\newcommand{\unwrap}[1]{\lfloor #1 \rfloor}
+\newcommand{\tcbn}{\rightarrow_N}
+\newcommand{\tcbv}{\rightarrow_V}
+\newcommand{\tccbv}{\rightarrow_V^*}
+\newcommand{\tthunk}{\rightarrow_\tlang}
+\newcommand{\tlthunk}{\rightsquigarrow_\tlang}
+% End Proof
 
 \newlength\fwidth
 \setlength{\fwidth}{\textwidth}
@@ -50,6 +155,19 @@
 
 \addbibresource{refs.bib}
 % more readable
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+\tikzset{
+  treenode/.style = {shape=rectangle, rounded corners,
+                     draw, align=center,
+                     top color=white, bottom color=blue!20},
+  root/.style     = {treenode, font=\Large},
+  env/.style      = {treenode, font=\ttfamily\normalsize},
+  dummy/.style    = {circle,draw}
+}
+
 
 \begin{document}
 
@@ -116,22 +234,28 @@ extent for a comparable purpose.
 
 \newpage
 
+
 \pagestyle{headings}
+
+\chapter{Introduction}
+
+\import{tex/introduction/}{intro.tex}
 
 \chapter{Preparation}
 
-This chapter is empty!
-\textcite{haskell98-spec}
-
+\import{tex/preparation/}{prep.tex}
 
 \chapter{Implementation}
 
+\import{tex/implementation/}{impl.tex}
 
 \chapter{Evaluation}
 
 \import{tex/evaluation/}{eval.tex}
 
 \chapter{Conclusion}
+
+\import{tex/conclusion/}{conc.tex}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,10 +267,31 @@ This chapter is empty!
 % the appendices
 \appendix
 
+\chapter{Byte Code Translation Document}
+
+\label{appendix:bytecodetranslationdoc}
+
+\import{tex/bytecodetranslation/}{bytecodetranslation.tex}
+
 
 \chapter{Programs of interest}
 
+Note that for the reader convenience the programs as displayed as standard
+Haskell 98 dialect, not JVHC valid Haskell.
+
+\section*{fib}
+\lstinputlisting[language=Haskell]{progs/fib.hs}
+\section*{testN}
+\lstinputlisting[language=Haskell]{progs/testN.hs}
+
+
 \label{appendix:programs}
+
+\chapter{Thunk Proof}
+
+\label{appendix:thunkProof}
+
+\import{tex/evaluation/proof/}{thunkProof.tex}
 
 \chapter{Project Proposal}
 

@@ -1,0 +1,142 @@
+\documentclass[float=false, crop=false]{standalone}
+\usepackage[subpreambles=true]{standalone}
+\usepackage{import}
+
+\usepackage{subfiles}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
+\usepackage[margin=25mm]{geometry}  % adjusts page layout
+\usepackage{graphicx}  % allows inclusion of PDF, PNG and JPG images
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{import}
+\usepackage[font=small,labelfont=bf]{caption}
+
+\usepackage{amsmath}
+
+\usepackage{csquotes}
+\usepackage{color}
+
+\usepackage{listings}
+
+\newlength\gwidth
+\newlength\gheight
+\setlength{\gwidth}{\textwidth}
+\setlength{\gwidth}{\textheight}
+
+\newcommand{\namefig}{\textbf{Figure}~}
+
+\begin{document}
+\section{Motivation}
+
+Functional programming has a strong basis in mathematics, it is
+loosely influenced by Church's Lambda calculus, this means
+programs written in Haskell are very easy to reason about mathematically.
+There are marked trends of programmers moving towards functional 
+languages as correctness properties are usually much easier to verify.
+Haskell is a functional language first appearing in the 1990s.
+It is a pure, lazy functional language. By pure it is meant 
+that there are no side effects when functions are run, which means
+when a function is run the result will always be the same, every time 
+the function is run. Lazy language means that
+expressions in the language are only evaluated at the latest possible
+point, meaning if an expression is never required by a function, then 
+the expression will never be reduced to a value.
+The project proposes to implement a Haskell to JVM compiler called 
+the Java Virtual-machine Haskell Compiler (JVHC), 
+which will allow the benefit's of Haskell to be used on the JVM. This means
+Haskell code can be run on the JVM, but moreover Haskell code
+can take advantage of libraries already written for the JVM. 
+The JVM is widely used in industry, and large software companies
+have invested heavily into software that works on the JVM. This project
+will benefit people with large investments in the JVM, 
+but also will allow the industry to benefit from Haskell for new and
+existing projects.
+
+
+% \begin{itemize}
+%   \item 
+%       Functional programming languages can be very useful in solving
+%       problems, same for \textcolor{red}{imperative or 
+%         object oriented languages}.
+%       Having Haskell on the JVM will allow fusion between all 
+%       libraries written in JVM based language and the dialect of Haskell
+%       supported by JVHC.
+%   \item 
+%     Haskell is lazy, so can be useful in some problem domains to 
+%     use a lazy language, gives more options to users of the JVM.
+% \end{itemize}
+
+\section{Overview of Haskell and its runtime}
+
+The Haskell 98\cite{haskell98-spec} report defines the Haskell language 
+and a small standard library.
+Haskell can be thought of as a lambda calculus, with an ML-like type system,
+but with qualified types\cite{qualified-types}, known in 
+Haskell as Type Classes. This compiler will
+leave out parts of the standard library, however in the future 
+iterations of the compiler these 
+features could be implemented, since the features are available via the JVM.
+The compiler will also not support Type classes. The interesting
+part of the compiler will be implementing a lazy language (Haskell)
+on the JVM with eager semantics.
+
+Haskell allows definition of infinite data structures:
+
+\begin{lstlisting}
+nat :: Int -> [Int]
+nat x = x : nat (x+1)
+\end{lstlisting}
+
+This will be a list of all the integers starting from \texttt{x}, 
+and going on forever. Since this list has no 
+bound on the length it must be the case that values are computed
+only when required, this is possible due to the lazy nature
+of Haskell. The first line is an optional type signature, Haskell
+uses \verb|::| to denote ``is of type'' and a single \verb|:| to denote cons (list
+append), unlike ML-like languages.
+
+% \begin{itemize}
+%   \item Explanation of simple Haskell features.
+
+%   \item Define terms, lazy, pure, and functional.
+
+%   \item Overview of writing idiomatic Haskell.
+
+%   \item Talk about monads, since they are used throughout the 
+%     implementation of the project.
+  
+%   \item Find an example of code that can be implemented more 
+%     elegantly in Haskell then in Java.
+% \end{itemize}
+
+\section{Related work}
+
+There are many implementations of the Haskell 98 report.
+The de-facto standard implementation is GHC\cite{ghc} (Glasgow Haskell
+Compiler), this compiler generates native machine code. There
+are implementations that compile Haskell to JVM bytecode, including Eta\cite{eta}
+and Frege\cite{frege}. I can then compare my implementation to these compilers
+in the evaluation stage of the project. 
+
+One of the proposed extensions would be to implement an optimization,
+I chose functional inlining, however there are other optimizations, which
+would work especially well for this compiler. One of these
+optimization would be strictness analysis and
+then transformations that can be associated with this analysis. 
+However implementing this was not possible given the timescale of the project.
+
+
+% \begin{itemize}
+%   \item Other implementations of Haskell on the JVM include eta and
+%     Frege. Then the baseline implementation of Haskell
+%     is GHC, which the code for both Frege and eta is forked from (both
+%     with their custom back-ends).
+
+%   \item 
+%     Could talk about other possible optimizations, such as strictness
+%     analysis, maybe compare to with inlining and justify why
+%     inlining was a good choice.
+% \end{itemize}
+
+\end{document}

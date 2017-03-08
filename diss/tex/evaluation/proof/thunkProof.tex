@@ -1,0 +1,377 @@
+\documentclass[float=false, crop=false]{standalone}
+
+\usepackage[subpreambles=true]{standalone}
+\usepackage{import}
+
+\usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{sansmath}
+\usepackage{mathtools}
+
+\usepackage{color}
+
+\usepackage{lmodern}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+ 
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{case}{Case}
+\newtheorem{subcase}{Case}
+\numberwithin{subcase}{case}
+
+\newcommand{\tlang}{\star}
+\newcommand{\thunk}[1]{\lceil #1 \rceil}
+\newcommand{\unwrap}[1]{\lfloor #1 \rfloor}
+\newcommand{\tcbn}{\rightarrow_N}
+\newcommand{\tcbv}{\rightarrow_V}
+\newcommand{\tccbv}{\rightarrow_V^*}
+\newcommand{\tthunk}{\rightarrow_\tlang}
+\newcommand{\tlthunk}{\rightsquigarrow_\tlang}
+
+\begin{document}
+\section{Language definitions}
+
+First define the core calculus 
+\begin{align*}
+  e ::=&\ c\ |\ x\ |\ \lambda x.e\ |\ e e'\
+  \\ &|\ \mathtt{let}\ (x_1\ \mathtt{=}\ e_1,\dotsc, x_n\ \mathtt{=}\ e_n)\ \mathtt{in}\ e\
+  \\ &|\ \mathtt{case}\ e\ \mathtt{of}\ b_1 \rightarrow e_1; \dots; b_n \rightarrow e_n
+\end{align*} 
+where 
+\begin{itemize}
+  \item $c\in\mathbb{Z}\cup\mathbb{CH}$ 
+  \item $x\in \mathbb{L}$
+  \item $e\in\mathbb{E}$ 
+  \item $b$ is a possible case expression match called a binder.
+  \item $\mathbb{L}$ is a set of labels.
+  \item $\mathbb{CH}$ is the set of ASCII characters.
+\end{itemize} 
+
+Binders $b = (\mathit{TyCon},\{b^1,\dotsc,b^n\})$ is a $n$ size list of variables 
+\mbox{$\{b^1,\dotsc,b^n \}\in \mathbb{L}^n$}. Tagged with its data type. If the expression
+being considered is \mbox{\texttt{x :: xs -> e}} then this will be an arty 2 function
+$\lambda x.\lambda \mathit{xs}. e$ with $b^1$ matching $x$ and $b^2$ matching $xs$.
+The tag is either a custom data type constructor, a variable or a constant literal. 
+Then values are defined as \[v_N ::= c\ |\ \lambda x.e \]
+There is a finite map $\Sigma : \mathbb{L} 
+\rightarrow \mathbb{E}$, that maps label to expressions. 
+$\Sigma,x:e$ means add the pair $(x,e)$ to $\Sigma$ if $x \not\in\text{dom}(\Sigma)$
+otherwise replace the current values in $\Sigma$ with the pair $(x,e)$.
+There is also an with the following call-by-name transition relation 
+\mbox{$\tcbn : \mathbb{E} \rightarrow \mathbb{E}$} is defined in Figure~\ref{t:cbn}. 
+
+\begin{figure}
+\begin{align*}
+  &\frac{}{\Sigma \vdash (\lambda x.e)e' \tcbn \Sigma,x:e' \vdash e } && \mathsf{Lam}_N \\ \\
+  &\frac{\Sigma(x) = e}{\Sigma \vdash x \tcbn \Sigma \vdash e} && \mathsf{Var}_N\\ \\
+  &\frac{\Sigma \vdash   e_1\tcbn \Sigma' \vdash e_1' \quad fv(e_2) \cap 
+    (\Sigma' \setminus \Sigma) = \emptyset
+  }{\Sigma \vdash e_1 e_2 \tcbn 
+    \Sigma' \vdash e_1' e_2} && \mathsf{App}_N  \\ \\
+  &\dfrac{}{\splitdfrac{\Sigma \vdash 
+\mathtt{let}\ (x_1\ \mathtt{=}\ e_1,\dotsc, x_n\ \mathtt{=}\ e_n)\ \mathtt{in}\ e'}
+    {\tcbn \Sigma,(x_1:e_1,\dotsc,x_n:e_n) \vdash e'}} && \mathsf{Let}_N  \\ \\
+  &\dfrac{\Sigma \vdash e \rightarrow \Sigma' \vdash e'}{\splitdfrac{\Sigma \vdash 
+  \mathtt{case}\ e\ \mathtt{of}\ b_1 \rightarrow e_1; \dots; b_n \rightarrow e_n}
+  {\Sigma' \vdash\mathtt{case}\ e'\ \mathtt{of}\ b_1 \rightarrow e_1; \dots; b_n \rightarrow e_n}} 
+      && \mathsf{Case\ 1}_N \\\\
+  &\dfrac{b_i = \mathit{ctrType}(ty)}{\splitdfrac{\Sigma \vdash 
+  \mathtt{case}\ (ty,\{a_1,\dotsc,a_m\}) \ \mathtt{of}\ b_1 \rightarrow e_1; \dots; b_n \rightarrow e_n}
+  {\tcbn \Sigma,(b_i^1:a_1,\dotsc,b_i^m:a_m) \vdash e_i}} && \mathsf{Case\ 2}_N 
+\end{align*}
+\caption[The definition of the call-by-name semantics used by the core calculus]{The Call-By-Name semantics of the core calculus above.
+  Here $b_i^j$ $j$th label in the $i$th binder in a case statement. And $\textit{ctrType}(ty) = b_i$ will
+  find the smallest $b_i$ such that $ty_i = ty$ given $b_i = (ty_i,bs_i)$, 
+  if the $\mathit{ty_i}$ is a variable then then it will match any \textit{ty}.
+   Note the condition on $\mathsf{App}_N$, which says that any label 
+ expression pairs added to $\Sigma$ to make $\Sigma'$ must not
+ also appear free in $e_2$, if those values do appear in $e_2$ then we can
+ just $\alpha$-rename them.}
+\label{t:cbn}
+\end{figure}
+
+
+Since I want to emulate these semantics using thunks, represented as $\thunk{e}$ in a call-by-value scheme, 
+Then thunks must be unwrapped, represented as $\unwrap{e}$. 
+the new calculus will have the following syntax:
+\begin{align*} 
+  e_\tlang ::=&\ c\ |\ \lambda x.e_\tlang\ |\ e_\tlang e'_\tlang\ |\ \thunk{e_\tlang}\ |\ \unwrap{e_\tlang}
+  \\ &|\ \mathtt{let}\ (x_1\ \mathtt{=}\ e_1,\dotsc, x_n\ \mathtt{=}\ e_n)\ \mathtt{in}\ e\
+  \\ &|\ \mathtt{case}\ e\ \mathtt{of}\ b_1 \rightarrow e_1; \dots; b_n \rightarrow e_n
+\end{align*}
+with values 
+\[ v_V ::= c\ |\ x\ |\ \thunk{e_\tlang}\ |\ \lambda x. e_\tlang \]
+There is also another variable map $\Sigma_\tlang : \mathbb{L} \rightarrow \mathbb{E}_\tlang$, 
+binders are the same as before.
+There will be a translation relation $\tlthunk: \mathbb{E} \rightarrow \mathbb{E}_\tlang$
+defined in Figure~\ref{t:translation}
+
+\begin{figure}
+\begin{align*}
+  &\frac{}{c \tlthunk \thunk{c}}\\ \\
+  &\frac{}{x \tlthunk \thunk{x}}\\ \\
+  &\frac{e \tlthunk e_\tlang}
+     {\lambda x . e \tlthunk \thunk{\lambda x_\tlang.\unwrap{e_\tlang}}}\\ \\
+  &\frac{e  \tlthunk e_\tlang \quad e' \tlthunk e'_\tlang}
+  {e e' \tlthunk \thunk{\unwrap{e_\tlang} e'_\tlang}}\\ \\
+  &\dfrac{e_1  \tlthunk e_{1_\tlang} \quad \dots \quad e_n \tlthunk e_{n_\tlang} \quad e' \tlthunk e_\tlang}
+  {\splitdfrac{\mathtt{let}\ (x_1\ \mathtt{=}\ e_1,\dotsc, x_n\ \mathtt{=}\ e_n)\ \mathtt{in}\ e \tlthunk}
+    {\thunk{\mathtt{let}\ 
+        (x_1\ \mathtt{=}\ e_{1_\tlang},\dotsc, x_n\ \mathtt{=}\ e_{n_\tlang}) \ \mathtt{in}\ \unwrap{e_\tlang}}}}\\ \\
+  &\dfrac{e_1  \tlthunk e_{1_\tlang} \quad \dots \quad e_n \tlthunk e_{n_\tlang} \quad e' \tlthunk e'_\tlang}
+  {\splitdfrac{\mathtt{case}\ e\ \mathtt{of}\ b_1 \rightarrow e_1; \dots; b_n \rightarrow e_n \tlthunk}
+  {\thunk{\mathtt{case}\ \unwrap{e_\tlang}\ \mathtt{of}\ b_1 \rightarrow \unwrap{e_{1_\tlang}}; 
+      \dots; b_n \rightarrow \unwrap{e_{n_\tlang}}}}}
+\end{align*}
+\caption[Definition of translation relation from the core calculus to  calculus$_\tlang$]{Translation relation from the core calculus to the calculus$_\tlang$, Also
+extend the translation relation over expression of the form $\Sigma \vdash e \tlthunk \Sigma_\tlang 
+\vdash e_\tlang$ by applying $\tlthunk$ for every expression in $\Sigma$ to make $\Sigma_\tlang$ and
+then apply the relation as usual to $e$ to get $e_\tlang$.}
+\label{t:translation}
+\end{figure}
+
+The call-by-value semantics for the calculus of expression $e_\tlang$ 
+will be defined as in Figure~\ref{t:cbv}.
+
+\begin{figure}
+\begin{align*}
+  &\frac{}{\Sigma_\tlang \vdash (\lambda x.e_\tlang)v \tcbv \Sigma_\tlang,x:v \vdash e_\tlang } && \mathsf{Lam}_V \\ \\
+  &\frac{}{\Sigma_\tlang \vdash \unwrap{\thunk{e_\tlang}} \tcbv \Sigma_\tlang \vdash e_\tlang} 
+  && \mathsf{Thunk}_V \\ \\
+  &\frac{\Sigma_\tlang(x) = e_\tlang}{\Sigma_\tlang \vdash x \tcbv \Sigma_\tlang \vdash \unwrap{e_\tlang} } 
+     && \mathsf{Var}_V\\ \\
+  &\frac{\Sigma_\tlang \vdash   e_{1_\tlang}\tcbv \Sigma_\tlang' \vdash 
+    e_{1_\tlang}' \quad fv(e_{2_\tlang}) 
+    \cap (\Sigma'_\tlang \setminus \Sigma_\tlang) = 
+    \emptyset }{\Sigma_\tlang \vdash e_{1_\tlang} e_{2_\tlang} \tcbv 
+    \Sigma_\tlang' \vdash e_{1_\tlang}' e_{2_\tlang}} && \mathsf{App\ 1}_V\\\\
+  &\frac{\Sigma_\tlang \vdash e_{2_\tlang} \tcbv \Sigma_\tlang'\vdash 
+    e_{2_\tlang}}
+  {\Sigma_\tlang \vdash v e_{2_\tlang} \tcbv 
+    \Sigma_\tlang' \vdash v e_{2_\tlang}} && \mathsf{App\ 2}_V  \\ \\
+  &\dfrac{}{\splitdfrac{\Sigma_\tlang \vdash 
+\mathtt{let}\ (x_1\ \mathtt{=}\ e_{1_\tlang},\dotsc, x_n\ \mathtt{=}\
+e_{n_\tlang})\ \mathtt{in}\ e_\tlang}
+    {\tcbv \Sigma_\tlang,(x_1:e_{1_\tlang},\dotsc,x_n:e_{n_\tlang})
+      \vdash e_\tlang}} && \mathsf{Let}_V  \\ \\
+  &\dfrac{\Sigma_\tlang \vdash e_\tlang \tcbv \Sigma_\tlang' \vdash e'_\tlang}
+  {\splitdfrac{\Sigma_\tlang \vdash 
+  \mathtt{case}\ e_\tlang\ \mathtt{of}\ b_1 \rightarrow e_{1_\tlang}; 
+  \dots; b_n \rightarrow e_{n_\tlang}}
+  {\tcbv \Sigma_\tlang' \vdash\mathtt{case}\ e_\tlang'\ 
+    \mathtt{of}\ b_1 \rightarrow e_{1_\tlang}; 
+    \dots; b_n \rightarrow e_{n_\tlang}}} 
+      && \mathsf{Case\ 1}_V \\\\
+  &\dfrac{ty = \mathit{ctrType}(b_i)}{\splitdfrac{\Sigma_\tlang \vdash 
+  \mathtt{case}\ (ty,\{a_{1_\tlang},\dotsc,a_{m_\tlang}\})
+  \ \mathtt{of}\ b_1 \rightarrow e_{1_\tlang};
+  \dots; b_n \rightarrow e_{n_\tlang}}
+  {\tcbv \Sigma_\tlang,(b_i^1:a_{1_\tlang},\dotsc,b_i^m:a_{m_\tlang})
+    \vdash e_{i_\tlang}}} && \mathsf{Case\ 2}_V 
+\end{align*}
+\caption[The call-by-value semantics of calculus$_\tlang$]{The call-by-value semantics of the core calculus above. In the 
+  $\mathsf{App\ 2}_V$ rule $v$ is any value defined by the grammar $v_V$.}
+\label{t:cbv}
+\end{figure}
+
+
+
+Define $\tccbv: \mathbb{E}_\tlang \rightarrow \mathbb{E}_\tlang$ as the transitive closure of $\tcbv$
+\begin{align*}
+  &\frac{}{e_\tlang \tccbv e_\tlang} \\ \\
+  &\frac{e_\tlang \tcbv e'_\tlang}{e_\tlang \tccbv e'_\tlang} \\ \\
+  &\frac{e_\tlang \tccbv e'_\tlang \quad e'_\tlang \tccbv e_\tlang'' }{e_\tlang \tccbv e''_\tlang}
+\end{align*}
+
+\section{Proofs}
+
+For the purpose of this proof I will use the term well typed to mean a program which the 
+type can be inferred, but will not formally define the notion of being well-typed.
+
+\begin{theorem}[Evaluation equivalence]
+If the expression $e$ is well typed and
+\mbox{$\Sigma \vdash e \tcbn \Sigma' \vdash e'$}, $\Sigma \tlthunk \Sigma_\tlang$ and \mbox{$e \tlthunk e_\tlang$} 
+then for some $a_\tlang \in \mathbb{E}_\tlang$ 
+\mbox{$\Sigma_\tlang \vdash \unwrap{e_\tlang}\tccbv \Sigma'_\tlang \vdash \unwrap{e_\tlang'}$},
+\mbox{$\Sigma' \tlthunk \Sigma'_\tlang$}, \mbox{$e' \tlthunk a_\tlang$} where 
+\mbox{$\Sigma'_\tlang \vdash a_\tlang \tccbv \Sigma'_\tlang \vdash  e'_\tlang$}.
+\end{theorem}
+
+
+
+This will be proved by rule induction over the $\tcbn$ relation. 
+
+\begin{proof}
+  \begin{case}[$\mathbf{Lam}_N$]
+    This is the form of the lambda reduction rule under call-by-name semantics.
+    \[\frac{}{\Sigma \vdash (\lambda x.a)a' \tcbn \Sigma,(x:a') \vdash a }\]
+    Then \[ \frac{\Sigma \tlthunk \Sigma' \quad 
+        a \tlthunk a_\tlang \quad a' \tlthunk a'_\tlang}
+      {\Sigma \vdash (\lambda x .a)a' 
+        \tlthunk \Sigma \vdash \thunk{\unwrap{
+            \thunk{\lambda x. \unwrap{ a_\tlang}}} a'_\tlang} } \]
+    And \[ \frac{\Sigma \tlthunk \Sigma_\tlang \quad a 
+        \tlthunk a_\tlang \quad a' \tlthunk a'_\tlang}
+      {\Sigma,(x,a') \vdash a\tlthunk \Sigma_\tlang,
+        (x,a'_\tlang) \vdash a_\tlang} \]
+   Then looking at the reduction set of  
+   ${\unwrap{\thunk{\unwrap{
+        \thunk{\lambda x. \unwrap{ a_\tlang}}} a'_\tlang}}}$
+    \begin{align*}
+     &\frac{}{ 
+       \Sigma_\tlang \vdash \unwrap{\thunk{\unwrap{\thunk{\lambda x.
+               \unwrap{ a_\tlang}}} a'_\tlang}} \tcbv 
+       \Sigma_\tlang \unwrap{\thunk{\lambda x.
+               \unwrap{ a_\tlang}}} a'_\tlang} && \mathsf{Thunk}_V \\ \\
+     &\cfrac{\cfrac{}{\Sigma_\tlang \vdash \unwrap{\thunk{\lambda x.
+           \unwrap{ a_\tlang}}} \tcbv  \Sigma_\tlang \vdash \lambda x.
+       \unwrap{a_\tlang}}}{ 
+       \Sigma_\tlang \vdash \unwrap{\thunk{\lambda x.
+               \unwrap{ a_\tlang} a'_\tlang}} \tcbv 
+           \Sigma_\tlang \vdash (\lambda x.\unwrap{a_\tlang}) a'_\tlang} && 
+         \frac{\mathsf{Thunk}_V}{\mathsf{App\ 1}_V}\\ \\
+     &\frac{}{\Sigma_\tlang \vdash (\lambda x.\unwrap{a_\tlang})a'_\tlang \tcbv 
+       \Sigma_\tlang, (x:a_\tlang') \vdash \unwrap{a_\tlang}} && \mathsf{Lam}_V
+    \end{align*}
+    This case then holds.
+  \end{case}
+
+  \begin{case}[$\mathsf{App}_N$]
+    This is the rule for $\textsf{App}_N$ is of the form
+    \begin{align*}
+      \frac{\Sigma \vdash a \tcbn \Sigma' \vdash a'}
+      {\Sigma \vdash ab \tcbn \Sigma' \vdash a' b} 
+    \end{align*}
+    Then $e$ is of the form $e = a b$, looking at the $\tlthunk$ relation.
+    \[\frac{\Sigma \tlthunk \Sigma_\tlang \quad a 
+        \tlthunk a_\tlang \quad b \tlthunk a_\tlang}
+      { \Sigma \vdash a b\tlthunk \Sigma_\tlang \vdash 
+        \thunk{\unwrap{a_\tlang }b_\tlang}}\]
+    and applying the reduction relation to the result of the translation 
+    relation gives
+    \begin{align*}
+      &\frac{}{\Sigma_\tlang \vdash \unwrap{\thunk{\unwrap{a_\tlang} b_\tlang} }  
+        \tcbv \Sigma_\tlang  \unwrap{a_\tlang} b_\tlang} && \mathsf{Thunk}_V\\ \\
+      &\frac{\Sigma_\tlang \vdash \unwrap{a_\tlang} \tccbv \Sigma'_\tlang \vdash \unwrap{a'_\tlang}}{
+      \Sigma_\tlang \vdash \unwrap{a_\tlang} b_\tlang \tccbv \Sigma'_\tlang \vdash 
+      \unwrap{a'_\tlang} b_\tlang } &&
+      \mathsf{Induction\ Hypothesis}
+    \end{align*}
+    then it can be concluded that 
+    \[ \frac{}{\unwrap{\thunk{\unwrap{a_\tlang} b_\tlang}} \tccbv 
+            \unwrap{a'_\tlang} b_\tlang  } \]
+    Finally \[ \frac{\Sigma' \tlthunk \Sigma'_\tlang \quad a' \tlthunk a'_\tlang \quad b \tlthunk b_\tlang}
+      {\Sigma' \vdash a' b \tlthunk \Sigma'_\tlang \vdash \thunk{\unwrap{a'_\tlang} b_\tlang} } \]
+    Which will reduce to
+    \[\Sigma'_\tlang \vdash \unwrap{\thunk{\unwrap{a'_\tlang}b_\tlang}} \tcbv \Sigma'_\tlang \vdash
+    \unwrap {a'_\tlang} b_\tlang\]
+
+  \end{case}
+
+  \begin{case}[$\mathsf{Var}_N$]
+    \[ \frac{\Sigma(x) = e}{\Sigma \vdash x \tcbn \Sigma \vdash e}  \]
+    The translation relation says that \[ \frac{}{x \tlthunk \thunk{x}} \]
+    Then 
+    \begin{align*}
+    & \Sigma_\tlang \vdash \unwrap{\thunk{x}} \tcbv \Sigma_\tlang \vdash x  && \mathsf{Thunk}_V \\ \\
+    & \frac{\Sigma_\tlang(x) = e_\tlang}
+    {\Sigma_\tlang \vdash x  \tcbv \Sigma_\tlang \vdash \unwrap{e_\tlang}} && \mathsf{Var}_V 
+  \end{align*}
+    This is the same as produced by the translation relation 
+    \mbox{$e \tlthunk e_\tlang$}
+  \end{case}
+
+\begin{case}[$\mathsf{Let}_N$]
+    This is the form of the rule:
+    \[
+  \dfrac{}{\splitdfrac{\Sigma \vdash \mathtt{let}\ 
+      (x_1\ \mathtt{=}\ a_1,\dotsc, x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ e'}
+    {\tcbn \Sigma,(x_1:a_1,\dotsc,x_n:a_n) \vdash e'}} \]
+
+  Then have expressions of the from above 
+  $e = \mathtt{let}\ (x_1\ \mathtt{=}\ a_1,\dotsc, x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ e$
+  
+\[\dfrac{\Sigma \tlthunk \Sigma_\tlang \quad a_1  \tlthunk a_{1_\tlang} 
+    \quad \dots \quad a_n \tlthunk a_{n_\tlang} \quad a' \tlthunk a_\tlang}
+  {\splitdfrac{\Sigma \vdash \mathtt{let}\ (x_1\ \mathtt{=}\ a_1,\dotsc, 
+      x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ a \tlthunk}
+    {\Sigma_\tlang \vdash \thunk{\mathtt{let}\ 
+        (x_1\ \mathtt{=}\ a_{1_\tlang},\dotsc, x_n\ \mathtt{=}\ a_{n_\tlang})
+        \ \mathtt{in}\ \unwrap{a_\tlang}}}} \]
+
+\begin{align*} 
+  & \Sigma_\tlang \vdash \unwrap{\thunk{\mathtt{let}\ 
+        (x_1\ \mathtt{=}\ a_{1_\tlang},\dotsc, x_n\ \mathtt{=}\ a_{n_\tlang})
+        \ \mathtt{in}\ \unwrap{a_\tlang}}}\\ \tcbv &\Sigma_\tlang \vdash
+    \mathtt{let}\ (x_1\ \mathtt{=}\ a_{1_\tlang},
+    \dotsc, x_n\ \mathtt{=}\ a_{n_\tlang})
+    \ \mathtt{in}\ \unwrap{a_\tlang} && \mathsf{Thunk}_V \\ \\
+  & \Sigma_\tlang \vdash \mathtt{let}\ 
+    (x_1\ \mathtt{=}\ a_{1_\tlang},\dotsc, x_n\ \mathtt{=}\ a_{n_\tlang})
+    \ \mathtt{in}\ \unwrap{a_\tlang}\\ \tcbv &\Sigma_\tlang,
+    (x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash 
+    \unwrap{a_\tlang} && \mathsf{Let}_V
+\end{align*}
+
+Then also note that 
+\[
+  \dfrac{\Sigma \tlthunk \Sigma_\tlang \quad a_1  
+    \tlthunk a_{1_\tlang} \quad \dots \quad a_n 
+    \tlthunk a_{n_\tlang} \quad a' \tlthunk a_\tlang}
+  {\splitdfrac{\Sigma,(x_1:a_1,\dotsc,x_n:a_n) \vdash a \tlthunk}
+   {\Sigma_\tlang,(x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash a_\tlang} }
+\]
+
+    Hence done.
+\end{case}
+
+\begin{case}[$\mathsf{Case\ 1}_N$]
+Similar to $\mathsf{App\ 1}_N$
+\end{case}
+
+\begin{case}[$\mathsf{Case\ 2}_N$]
+  Note the form of the transition rule:
+  \[ \dfrac{ty = \mathit{ctrType}(b_i)}{\splitdfrac{\Sigma \vdash 
+  \mathtt{case}\ (ty,\{a_1,\dotsc,a_m\}) \ \mathtt{of}\ b_1 \rightarrow c_1; \dots; b_n \rightarrow c_n}
+  {\tcbn \Sigma,(b_i^1:a_1,\dotsc,b_i^m:a_m) \vdash c_i}} \]
+  We have $e = 
+  \mathtt{case}\ (ty,\{a_1,\dotsc,a_m\}) \ \mathtt{of}\ b_1 \rightarrow c_1;
+  \dots; b_n \rightarrow c_n$ and
+  $e' = c_i$
+  Consider the translation relation
+  \[ \dfrac{c_1  \tlthunk c_{1_\tlang} \quad \dots \quad c_n \tlthunk c_{n_\tlang} 
+      \quad c' \tlthunk c'_\tlang}
+  {\splitdfrac{\mathtt{case}\ (ty,\{a_1,\dotsc,a_n\})\ \mathtt{of}\ 
+      b_1 \rightarrow c_1; \dots; b_n \rightarrow c_n \tlthunk}
+  {\thunk{\mathtt{case}\ c_\tlang\ \mathtt{of}\ b_1 \rightarrow \unwrap{c_{1_\tlang}}; 
+      \dots; b_n \rightarrow \unwrap{c_{n_\tlang}}}}} \]
+  for $\unwrap{e}$
+  \begin{align*} 
+  &\Sigma_\tlang \vdash \unwrap{\thunk{\mathtt{case}\ c_\tlang\ 
+      \mathtt{of}\ b_1 \rightarrow \unwrap{c_{1_\tlang}}; 
+      \dots; b_n \rightarrow \unwrap{c_{n_\tlang}}}}\\ \tcbv 
+  &\Sigma_\tlang \vdash
+  \mathtt{case}\ c_\tlang\ \mathtt{of}\ b_1 \rightarrow \unwrap{c_{1_\tlang}};  
+      \dots; b_n \rightarrow \unwrap{c_{n_\tlang}} && \mathsf{Thunk}_V\\ \\
+ & \Sigma_\tlang \vdash  \mathtt{case}\ c_\tlang\ \mathtt{of}\ b_1 \rightarrow \unwrap{c_{1_\tlang}};  
+      \dots; b_n \rightarrow \unwrap{c_{n_\tlang}}\\ \tcbv
+      &\Sigma_\tlang,(x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash \unwrap{c_{i_\tlang}}
+      &&\mathsf{Case\ 2}_V\\ \\
+\end{align*}
+  Note that \[ \frac{\Sigma \tlthunk \Sigma_\tlang \quad c_1 \tlthunk c_{1_\tlang} \quad \dots \quad
+    c_n \tlthunk c_{n_\tlang}}{\Sigma (x_1:a_1,\dotsc,x_n:a_n) \vdash c_i \tlthunk \Sigma_\tlang \vdash 
+    (x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash c_{i_\tlang}} \]
+Hence this case holds.
+\end{case}
+
+\end{proof}
+
+
+
+\end{document}

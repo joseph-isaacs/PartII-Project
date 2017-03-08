@@ -1,0 +1,474 @@
+\documentclass[12pt,a4paper,twoside]{article}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage[margin=25mm]{geometry}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{parskip}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[normalem]{ulem}
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\usepackage{listings}
+\lstnewenvironment{JavaLst}
+{\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  moredelim=[il][\textcolor{pgrey}]{$$},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}}{}
+
+\lstnewenvironment{HaskellLst}
+{\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  captionpos=b,
+  escapeinside={*'}{'*},
+  language=haskell,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  showspaces=false,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]\%,
+}} {}
+
+
+\lstnewenvironment{JVMLst}
+{\lstset{
+  frame=none,
+  xleftmargin=2pt,
+  language=JVMIS,
+  commentstyle=\color{pgreen},
+  emphstyle={\bf},
+  stringstyle=\mdseries\rmfamily,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{black},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  basicstyle=\small\sffamily
+}} {}
+
+\begin{document}
+
+\section{Expressions}
+
+An expression $E$ in this compiler can be:
+
+\begin{align*}
+E ::&= \lambda\ V . E' \\
+   &|\ \texttt{let } x = E_1 \texttt{ in} \ E_2\\ 
+   &|\ \texttt{case}\ E \ \texttt{of} \ (A_1 \rightarrow E_1, A_2 \rightarrow E_2, \mathellipsis, A_n \rightarrow E_n)\\
+   &|\ E\ E'\\
+   &|\ V\\\\
+V ::&=\ x &&\text{(variable)}\\
+   &|\ (\textit{Constructor}\ E_1, \mathellipsis, E_n )\\
+   &|\ \textit{literal}
+\end{align*}
+
+where $A_i$ is the alternative type constructors for the of the expression $E$ with a type $\tau$
+(e.g. if $\Gamma \vdash E : \texttt{bool}$, then $A_i \in \{ \texttt{True},  \texttt{False} \}$).
+
+
+Variables will be contained inside thunks, such that the expression the variable points to is only reduced 
+when needed.
+
+\subsection{Thunk}
+
+A thunk can be thought of as a nullary function (one which takes no arguments) and when required will 
+perform a computation. If we have an expression $E$ we can wrap it inside a thunk \[ \lambda (). E \] then 
+only when we apply $()$ to this thunk does the computation take place, this allows the
+simulation of call-by-name semantics
+when the program is being run with call-by-value operation semantics. 
+
+Haskell and my compiler will use an optimization of this, call-by-need (CBNe), where the value in the thunk is only evaluated once and the 
+result is cached. When the thunk is evaluated a second time the result of the computation is returned without needing to compute the value again.
+
+
+\subsection{JVM Bytecode}
+
+Thunks will be implemented as objects, one object for each thunk needed 
+(that is for each variable there will be a thunk that will wrap each variable).
+I will use the Java 8 supplier interface have a interface for a thunk before as:
+
+
+\begin{JavaLst}
+public interface Supplier<T> {
+  T get();
+}
+\end{JavaLst}
+
+Then the definition of the \verb|Thunk| its self will be:
+
+\begin{JavaLst}
+public abstract class Thunk<T> implements Supplier<T> {
+    private T value;
+    protected abstract T force();
+    public T get() {
+        if( value == null ) {
+            return value = force();
+        }
+        return value;
+    }
+}
+\end{JavaLst}
+
+% Variables are created using the \texttt{let} construct and also with named funtion. If there is a function defined \texttt{x a = plus a 1} then a
+% variable \texttt{x} will be created and bound to the following lambda
+% \texttt{\textbackslash a -> plus a 1}.
+
+\subsubsection{Constructor}
+
+There will be an interface created for each user defined type. 
+For each defined type there will be a class for each type constructor. 
+Then the class will contain any parameters (wrapped in a thunk) that exists in there definition.
+
+For example \texttt{data T = A a | B | C int} will generate one interface and three classes:
+
+\begin{JavaLst}
+interface T {
+}
+class A {
+  private Thunk a;
+  Thunk getA() {
+    a;
+  }
+}
+...
+class C {
+  private int a;
+  Thunk getInt() {
+    return new Thunk(a);
+  }
+\end{JavaLst}
+
+\subsubsection{literal}
+
+Literal will be represented as the Object type (\verb|Integer| and 
+\verb|Character|).
+
+\subsubsection{case}
+
+For user defined types the code would look a bit like this:
+
+\begin{HaskellLst}
+y x = case x of
+  True  -> 1
+  False -> 2
+\end{HaskellLst}
+
+\begin{JavaLst}
+public Function_x implements Function<HBoolean,Integer> {
+  private Thunk<HBoolean> x;
+  Function_x(Thunk<HBoolean> x) {this.x = x;}
+  public Integer apply() {
+    HBoolean n = x.get();
+    if(n instanceof True) {
+      return new IntThunk(1);
+    } else (n instanceof False) {
+      return new IntThunk(2);
+    }
+    throw new MatchFailedException();
+  }
+}
+\end{JavaLst}
+
+\begin{JVMLst}
+apply():
+0  aload_0
+1  getfield        #2   // this.x
+4  invokevirtual   #3   // x.get()
+5  astore_1             // store to n x.get()
+6  aload_1              // load n
+7  instanceof      #4   // check if n is of type True
+10 ifeq            18   // jump to false branch 
+13 iconst_1 
+14 invokestatic    #10  // IntThunk.valueOf
+17 areturn
+18 aload_1 
+19 instanceof      #5   // instanceof False
+22 ifeq            30
+25 iconst_2       
+26 invokestatic    #10  // IntThunk.valueOf
+29 areturn
+30 new             #20  // New MatchFailedException();
+33 dup
+34 invokespecial   #21  // MatchFailedException."<init>"
+37 athrow
+\end{JVMLst}
+
+where \texttt{n} is of type \texttt{HBoolean} (\texttt{data HBoolean = True | False}).
+
+
+\begin{HaskellLst}
+case y of
+  2  -> 0
+  45 -> 1
+  x  -> 2
+\end{HaskellLst}
+
+for build-in types I will use a set of cmp instructions such as
+
+\begin{JVMLst}
+1  bipush 2       
+2  if_icmpne 5   // 2 == y
+3  bipush 0      
+4  returni       // return 0
+5  bipush 45
+6  pop           // remove 2 from stack
+7  if_icmpne 10  // 45 == y
+8  bipush 1    
+9  returni       // return 1
+10 pop
+11 istore_0      // x := y
+12 bipush 2      
+13 returni       // return 2
+\end{JVMLst}
+
+This assumes that y is already on the top of the stack, and will store the value of \texttt{x} in the local
+variable 0.
+
+\subsubsection{Let} 
+
+I will translate the expression (\texttt{let x = E1 in E2}) to (\texttt{(\textbackslash x -> E2)E1}), then 
+this can be compiled using the compilation scheme for \textbf{function} (below).
+
+\subsection{Function and Application}
+
+If we have a function then this will take a single argument which will be a thunk and return a single expression. 
+This would be implemented as follows:
+
+I will use the Java 8 functional interface for all functions.
+
+(https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html)
+
+\begin{HaskellLst}
+g y = 2
+  
+x a = \b -> plus (g a) b
+
+main = x 1 2
+\end{HaskellLst}
+
+\begin{JavaLst}
+public class Environment {
+    Thunk_x x;
+    Thunk_g g;
+}
+
+public class Thunk_x extends Thunk<Function_a>{
+    public Environment env;
+
+    public Thunk_x(Environment e) {env=e;}
+
+    @Override
+    protected Function_a force() {
+        return new Function_a(env);
+    }
+}
+
+public class Thunk_g extends Thunk<Function<Object,Integer>> {
+    Environment e;
+
+    Thunk_g(Environment e) {
+        this.e = e;
+    }
+    @Override
+    protected Function<Object, Integer> force() {
+        return new Function_g(e);
+    }
+}
+
+public class Function_g implements Function<Object,Integer> {
+    Environment e;
+
+    public Function_g (Environment e) {
+      this.e = e
+    }
+    @Override
+    public Integer apply(Object o) {
+        return 2;
+    }
+}
+
+public class Function_a implements Function<Thunk<Object>, Function_b> {
+    public Environment e;
+    Thunk<Object>  a;
+    Function_a(Environment e) {
+        this.e = e;
+    }
+    @Override
+    public Function_b apply(Thunk<Object> a) {
+        this.a = a;
+        return new Function_b(this);
+    }
+}
+
+public class Function_b implements Function<Thunk<Integer>,Integer>{
+    Function_a a;
+    public Function_b(Function_a a) {
+        this.a = a;
+    }
+
+    @Override
+    public Integer apply(Thunk<Integer> bThunk) {
+        Function<Object,Integer> g = a.e.g.get();
+        Function_Plus plus = new Function_Plus();
+        return plus.apply(g.apply(a.a.get())).apply(bThunk.get());
+    }
+}
+\end{JavaLst}
+
+\begin{JVMLst}
+Part of constant pool for Function_b:
+#2 = Fieldref      #20.#40   // Function_b.a:LFunction_a;
+...
+#20= Class         #21
+#21= Uft8          #Function_b
+...
+#40=NameAndType    #41.#42
+#41=Uft8           a
+#42=Utf8           LFunction_a
+
+Integer apply(Thunk<Integer>)
+0  aload_0
+1  getfield #2          // this.a Function_b  -> Function_a
+4  getfield #3          // a.t    Function_a  -> Thunk_x
+7  getfield #4          // t.env  Thunk_x     -> Environment
+10 getfield #5          // env.g  Environment -> Thunk_g
+13 invokevirtual #6     // Thunk_g:get()
+16 astore_2             // save g to 2
+19 new           #8     // new Function_Plus
+20 dup
+21 invokespecial #9     // Function_Plus."<init>":
+24 astore_3             // save plus to 3
+25 aload_3              // load plus
+26 aload_2              // load g
+27 aload_0              // load this
+28 getfield      #2     // get a
+31 getfield      #10    // get Function_a
+34 invokevirtual #11    // get() will return Object
+37 inv.interface #12, 2 // g.apply
+42 invokevirtual #14    // Function_Plus apply
+51 aload_1              // load bThunk
+52 invokevirtual #11    // bThunk.get()
+55 inv.interface #12, 2 // apply
+61 areturn 
+\end{JVMLst}
+
+\begin{JavaLst}
+public class main {
+    public static void main(String[] args) {
+        Environment e = new Environment();
+
+        e.g = new Thunk_g(e);
+        e.x = new Thunk_x(e);
+
+        Thunk<Object> a = new Thunk<Object>() {
+            @Override
+            protected Object force() {
+                return null;
+            }
+        };
+
+        Thunk<Integer> b = new Thunk<Integer>() {
+            @Override
+            protected Integer force() {
+                return 2;
+            }
+        };
+        
+        return e.x.get().apply(a).apply(b); //main call
+    }
+}
+\end{JavaLst}
+
+I have included bytecode for one of the function call apply as an example, only part of the constant pool is
+included
+
+
+The environment will passed down by via chaining, that is the object in a given scope
+having a references to the object in the scope above. If the current scope is $i$ then scope above is
+$i-1$, if the scope is $0$ then the scope above is the top level scope (represented by TopLevelEnv in the above example).
+
+\begin{JavaLst}
+f x = g x
+g y = f y
+
+public class Thunk_f extends Thunk<Function_x> {
+    Env e;
+    Thunk_f(Env e) {this.e=e;}
+
+    @Override
+    protected Function_x force() {
+        return new Function_x(this);
+    }
+}
+
+public class Function_x implements Function<Object,Object> {
+    Thunk_f f;
+    Function_x(Thunk_f f){this.f = f;}
+    @Override
+    public Object apply(Object o) {
+        Function_y g = f.e.g.get();
+        return g.apply(o);
+    }
+}
+
+public class Thunk_g extends Thunk<Function_y> {
+    Env e;
+    Thunk_g(Env e) {this.e=e;}
+
+    @Override
+    protected Function_y force() {
+        return new Function_y(this);
+    }
+}
+
+public class Function_y implements Function<Object,Object> {
+    Thunk_g g;
+    Function_y(Thunk_g g){this.g = g;}
+    @Override
+    public Object apply(Object o) {
+        Function_x x = g.e.f.get();
+        return x.apply(o);
+    }
+}
+
+public class Env {
+    Thunk_f f;
+    Thunk_g g;
+}
+\end{JavaLst}
+
+This show how recursively defined functions would be compiled.
+
+
+
+
+\end{document}

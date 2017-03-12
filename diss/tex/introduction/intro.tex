@@ -44,12 +44,12 @@ point, meaning if an expression is never required by a function, then
 the expression will never be reduced to a value.
 The project proposes to implement a Haskell to JVM compiler called 
 the Java Virtual-machine Haskell Compiler (JVHC), 
-which will allow the benefit's of Haskell to be used on the JVM. This means
+this will allow the benefits of Haskell to be used on the JVM. This means
 Haskell code can be run on the JVM, but moreover Haskell code
 can take advantage of libraries already written for the JVM. 
 The JVM is widely used in industry, and large software companies
 have invested heavily into software that works on the JVM. This project
-will benefit people with large investments in the JVM, 
+will, therefore, benefit people with large investments in the JVM, 
 but also will allow the industry to benefit from Haskell for new and
 existing projects.
 
@@ -77,8 +77,10 @@ Haskell as Type Classes. This compiler will
 leave out parts of the standard library, however in the future 
 iterations of the compiler these 
 features could be implemented, since the features are available via the JVM.
+The library is incomplete due to time constraints of the project and
+also adding new functionality will not show any new skills.
 The compiler will also not support Type classes. The interesting
-part of the compiler will be implementing a lazy language (Haskell)
+part of the compiler project will be implementing a lazy language (Haskell)
 on the JVM with eager semantics.
 
 Haskell allows definition of infinite data structures:
@@ -116,13 +118,14 @@ There are many implementations of the Haskell 98 report.
 The de-facto standard implementation is GHC\cite{ghc} (Glasgow Haskell
 Compiler), this compiler generates native machine code. There
 are implementations that compile Haskell to JVM bytecode, including Eta\cite{eta}
-and Frege\cite{frege}. I can then compare my implementation to these compilers
-in the evaluation stage of the project. 
+and Frege\cite{frege}. As other implementations exist I can then 
+compare my implementation to these compilers in the evaluation stage
+of the project. 
 
 One of the proposed extensions would be to implement an optimization,
 I chose functional inlining, however there are other optimizations, which
 would work especially well for this compiler. One of these
-optimization would be strictness analysis and
+optimizations would be strictness analysis and
 then transformations that can be associated with this analysis. 
 However implementing this was not possible given the timescale of the project.
 
@@ -131,7 +134,7 @@ However implementing this was not possible given the timescale of the project.
 %   \item Other implementations of Haskell on the JVM include eta and
 %     Frege. Then the baseline implementation of Haskell
 %     is GHC, which the code for both Frege and eta is forked from (both
-%     with their custom back-ends).
+%     with their custom back-ends),.
 
 %   \item 
 %     Could talk about other possible optimizations, such as strictness

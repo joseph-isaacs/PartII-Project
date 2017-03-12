@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper,twoside,openright]{report}
+\documentclass[12pt,a4paper,twoside,openright]{book}
 \usepackage[subpreambles=true]{standalone}
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex}
 \usepackage[pdfborder={0 0 0}]{hyperref}    % turns references into hyperlinks
@@ -35,6 +35,7 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 
+
 \ganttset{group/.append style={orange},
           milestone/.append style={red},
           progress label node anchor/.append style={text=red}}
@@ -69,8 +70,7 @@
   moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
 }}{}
 
-\lstnewenvironment{HaskellLst}
-{\lstset{
+\lstdefinestyle{HaskellStyle}{
   frame=none,
   xleftmargin=2pt,
   stepnumber=1,
@@ -90,8 +90,11 @@
   showspaces=false,
   columns=flexible,
   showstringspaces=false,
-  morecomment=[l]\%,
-}} {}
+  morecomment=[l]
+}
+
+\lstnewenvironment{HaskellLst}{%
+  \lstset{style=HaskellStyle}}{}
 
 \lstnewenvironment{JVMLst}
 {\lstset{
@@ -175,8 +178,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Title
 
+\thispagestyle{empty}
 
 \pagestyle{empty}
+\begingroup
 
 \rightline{\LARGE \textbf{Joe Isaacs}}
 
@@ -189,10 +194,17 @@ Sidney Sussex College \\[5mm]
 \today  % today's date
 \end{center}
 
+
+\newpage
+
+\thispagestyle{empty}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Proforma, table of contents and list of figures
 
 \pagestyle{plain}
+
+\frontmatter
 
 \chapter*{Proforma}
 
@@ -204,7 +216,7 @@ Project Title:      & \bf Haskell 98 to JVM bytecode compiler   \\
 Examination:        & \bf Computer Science Tripos -- Part II, July 2017  \\
 Word Count:         & \bf ?????\footnotemark[1]
                     (well less than the 12000 limit)  \\
-Project Originator: & Joe Isaacs                        \\
+Project Originator: & Joe Isaacs                      \\
 Supervisor:         & R.~Kovacsics                    \\ 
 \end{tabular}
 }
@@ -231,9 +243,14 @@ extent for a comparable purpose.
 \tableofcontents
 
 \listoffigures
+\begingroup
+\let\clearpage\relax
+\listoftables
+\endgroup
 
 \newpage
 
+\mainmatter
 
 \pagestyle{headings}
 
@@ -279,11 +296,12 @@ extent for a comparable purpose.
 Note that for the reader convenience the programs as displayed as standard
 Haskell 98 dialect, not JVHC valid Haskell.
 
-\section*{fib}
-\lstinputlisting[language=Haskell]{progs/fib.hs}
-\section*{testN}
-\lstinputlisting[language=Haskell]{progs/testN.hs}
-
+\section*{Fib}
+\lstinputlisting[language=Haskell,style=HaskellStyle]{progs/fib.hs}
+\section*{TestN}
+\lstinputlisting[language=Haskell,style=HaskellStyle]{progs/testN.hs}
+\section*{TiExpr}
+\lstinputlisting[language=Haskell,style=HaskellStyle]{progs/tiExpr.hs}
 
 \label{appendix:programs}
 

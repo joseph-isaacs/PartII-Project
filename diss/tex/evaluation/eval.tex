@@ -25,12 +25,15 @@
 
 \usepackage{verbatim}
 
+\usepackage{csquotes}
+
 \newlength\gwidth
 \newlength\gheight
 \setlength{\gwidth}{\textwidth}
 \setlength{\gwidth}{\textheight}
 
 \newcommand{\namefig}{\textbf{Figure}~}
+\newcommand{\nametable}{\textbf{Table}~}
 
 \newcommand{\importMGraph}[3]{\setlength{\gwidth}{#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
 
@@ -45,7 +48,7 @@ The success criteria for this project fall into three categories:
   \item Usability.
 \end{itemize}
 
-So I will split the evaluation into three parts, first we will
+I will split the evaluation into three parts, first we will
 look at the correctness of the overall project. This was established 
 with unit tests of every stage of the compiler in isolation. I 
 have justified certain choices formally (the mapping from a lazy to eager semantics
@@ -55,7 +58,7 @@ GHC, there is also a comparison of functional inlining. Usability is then discus
 
 \section{Correctness}
 
-There are unit test for all stages of the compiler, these were implemented 
+There are unit tests for all stages of the compiler, these were implemented 
 using the Haskell library HUnit \cite{hunit-lib}. The test framework for code generation
 was written by me to check:
 \begin{itemize}
@@ -68,8 +71,41 @@ was written by me to check:
   and check that all the above conditions hold.
 \section{Performance}
 
-I will look at the following peformance metrics and will compare with other compilers where
-approperate:
+\subsection{Methodology}
+
+Haskell is as mentioned before a lazy language, this means expression as build up and only
+evaluated when required. This can be a problem for benchmarking since timing how long a
+computation takes it not a straight forward as just executing that line
+of code finding the different between the system time before and after the line. Since 
+the expression may not have been evaluated. 
+To formalise this both \textit{weak head normal form} (WHNF) and \textit{normal form} (NF) must be 
+defined.
+\begin{displayquote}
+  An expression is in weak head normal form, if it is either:
+  \begin{itemize}
+    \item A data constructor.
+
+    \item A built-in function applied to too few arguments.
+
+    \item A lambda abstraction \verb|\x ->| expression.
+  \end{itemize}
+\end{displayquote}
+Definition from Haskell wiki \cite{haskell-whnf}.
+\begin{displayquote}
+  An expression is in normal form, if it contains not $\beta$-redexes. A $\beta$-redex is an
+  expression of the form $(\lambda x.e)e'$, this is a possible application that has not been reduced.
+\end{displayquote}
+Then when benchmarking we want all expression to be reduced to \textit{normal form}. If expressions
+are reduced to normal form then the timing will show how long it takes to evaluate the expression
+with the lazy nature of Haskell. Haskell provides a function called \verb|seq| which is used to 
+reduce an expression to WHNF, this is not sufficient for benchmarking. GHC provides a function
+called \verb|deepseq| to reduce expression to NF, meaning benchmarks can be taken of the 
+correct value.
+
+\subsection{Results}
+
+I will look at the following performance metrics and will compare with other compilers where
+appropriate:
 
 \begin{itemize}
   \item Compile time.
@@ -86,7 +122,7 @@ When a user first interacts with JVHC, they will notice the time taken to compil
 start the performance evaluation from there as in \namefig\ref{plot:TimeInStages}. We note that code generation is by far the most time consuming part of the pipeline. There is then a comparison 
 of type inference between GHC and JVHC showing only a $\times 2$ 
 decrease in the runtime cost of JVHC's TI algorithm in 
-\namefig\ref{Plot:tiTime}.
+\namefig\ref{plot:tiTime}.
 
 \begin{samepage}
 \begin{figure}[ht]
@@ -98,19 +134,14 @@ decrease in the runtime cost of JVHC's TI algorithm in
 \end{figure}
   \end{samepage}
 
-  \begin{figure}
+\begin{figure}
   \begin{samepage}
   \importMGraph{tiTime.tex}{0.93\textwidth}{0.4\textwidth}
-  \begin{verbatim}
-let f0 x f = f x x in
-let f1 x = f0 x in
-let f2 x = f1 (f1 x) in
-  \z -> f2 (\b -> b) z
-  \end{verbatim}
-  \caption[Plot of type inference runtime as a function of input size]
-  {A plot of number of pairs size (increasing \texttt{f$n$}) 
-    in program against time taken to run type inference algorithm.}
-  \label{Plot:tiTime}
+  \caption[Type inference runtime as a function of input size]
+  {Plot of number of pairs size (increasing $n$ in \texttt{f$n$}) 
+    of the tiExpr program in Appendix~\ref{appendix:programs} against time taken 
+    to run type inference algorithm.}
+  \label{plot:tiTime}
 \end{samepage}
 \end{figure}
 
@@ -121,7 +152,7 @@ The code size is a good measure of how efficiently a program can be converted
 into an executable format. The comparison is not completely fair
 between JVHC, Eta and GHC since the latter two will use dead code 
 elimination. The results are in \namefig\ref{plot:codeSize}. \texttt{-O0} (No optimizations flag) 
-was used when compiling however, the GHC flag guide \cite{haskell-flag-ref}
+was used when compiling, however the GHC flag guide \cite{haskell-flag-ref}
 does not provide a way to disable what it calls \texttt{-fwarn-unused-binds}.
 It can be seen that inlined code has a slightly higher code size than non inlined code.
 This extra code size is due to having both the inlined and non-inlined version of a function compiled to
@@ -129,18 +160,20 @@ bytecode. The problem could be solved with dead code elimination. GHC has a much
 and more varied code size than all other compilers since this must produce a stand alone binary 
 whereas Eta, and JVHC run on the JVM with extra support libraries (not included in this comparison) 
 and the garbage collection logic is in the JVM whereas GHC must embed the logic in the binary. 
-We can also see from \namefig\ref{table:codeSize}
+We can also see from \nametable\ref{table:codeSize}. 
 that Eta has the smallest code size increase. Since the variation of GHC is so large I have not
-included straight line fit coefficients for this compiler.
+included straight line fit coefficients for this compiler. The data in the table
+was generated using the Matlab function \verb|polyfit(x,y,1)|.
 
 
 \begin{figure}
   \centering
   \importMGraph{plotCodeSize.tex}{0.90\textwidth}{0.4\textwidth}
-  \caption[Plot of code size as a function of program input size in characters]{
-    Plot of code size against input size in characters. 
-    }
+  \caption{Code size as a function of program input size in characters}
   \label{plot:codeSize}
+\end{figure}
+\begin{table}
+  \centering
   \begin{tabular}{ c | c c }
     Compiler& $a$ & $b$\\
     \hline\\
@@ -148,23 +181,33 @@ included straight line fit coefficients for this compiler.
     JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
     eta & $6.74$ & $1.45 \times 10^{4}$
   \end{tabular}
-  \caption[Table of regression values for code size as a function of
-  program size]{Using Matlab's \texttt{polyfit(x,y,1)} function 
-    the equation of a straight line can be found from the data 
-    points. }
+  \caption[Regression values for code size as a function of
+  program size]
   \label{table:codeSize}
-\end{figure}
+\end{table}
 
-We next compare the runtime of \texttt{fib}$n$ where $n$ ranges between 
-$1-35$ to show that the asymptotic runtime of the code output
-by each compiler is comparable in \namefig\ref{plot:fibTiming}, this data was also fitted to a 
-$a \cdot  \varphi^n$ (where $\varphi = \frac{1+\sqrt{5}}{2}$) curve so the  
-constant factor between different programs computing
- the $n$th Fibonacci number can be compared. 
+Next I compare the runtime of \texttt{fib}$n$ where $n$ ranges between 
+$[1,35]$ to show that the asymptotic runtime of the code output
+by each compiler is comparable in \namefig\ref{plot:fibTiming}, 
+  We see the asymptotic complexity is the same across compiled programs.
+  Least square regression was carried out fit the data to the curve
+  $a \cdot \varphi^n$, using the \texttt{lsqcurvefit} Matlab function.
+  The results in the table \nametable\ref{table:fibCoef}. We see that JVHC is 
+  about $10^2 \times$ slower than the native
+  Java program and $10\times $ slower than the GHC program.
+  This data was obtained using \texttt{-O0} flag on GHC and no inlining
+  in JVHC.
 
 \begin{figure}
   \centering
   \importMGraph{plotFibRuntime.tex}{0.93\textwidth}{0.4\textwidth}
+  \caption{Comparison between runtime for finding the $n$th Fibonacci number na\"ively as a 
+  function of the $n$}
+  \label{plot:fibTiming}
+\end{figure}
+
+\begin{table}
+  \centering
 \begin{tabular}{c | c}
   & $a$\\
   \hline \\
@@ -172,110 +215,112 @@ constant factor between different programs computing
   GHC & $9.49\times 10^{-8}$\\
   Java & $1.62 \times 10^{-9}$
 \end{tabular}
-  \caption[Plot of a comparison between runtime for finding the $n$th Fibonacci number na\"ively as a 
-  function of the $n$]
-  {Plot of time taken to run na\"ive Fibonnacci Program, in Haksell
-  and Java, against input size. We see the asymptotic complexity is the same.
-  Least square regression was carried about against $a \cdot \varphi^n$ using the 
-  \texttt{lsqcurvefit} Matlab function and the results in the table.
-  We see that JVHC is about $10^2 \times$ slower than the native
-  Java program and $10\times $ slower than the GHC program.
-  This data was obtained using \texttt{-O0} flag on GHC and no inlining
-  in JVHC.
-}
-  \label{plot:fibTiming}
-\end{figure}
+  \caption{Coefficients generated from fitting the above curves
+    to the line $a\cdot \varphi^n$}
+  \label{table:fibCoef}
+\end{table}
 
 
 I will next look at the effect that inlining has on the runtime of the 
-program, to notice a large different very large values of $n$ (the 
-argument to the function being benchmarked). The result for this
+program, to notice a difference input runtime very large values of $n$ (the 
+argument to the function) were benchmarked. The result for this
 example is clear that the runtime is improved when inlining is used shown in \namefig\ref{plot:inlinePlot}.
-
-\begin{figure}
-  \centering
-  \importMGraph{inlinePlot}{0.96\textwidth}{0.4\textwidth}
-  \caption[Plot of runtime of \texttt{testN} as a function on input size $n$]
-  {A plot of input value passed to \texttt{testN} against time to run in seconds,
-    also included in the time that the garbage collection (GC) ran in the program without
-    functional inlining, GC never ran during the execution of the 
-    program with functional inlining. This
-  shows that there is a definite benefit, in term of runtime, applying inlining to this
-  program. Fitting at straight line $y=ax+b$ to both curves gives 
+Fitting at straight line $y=ax+b$ to both curves gives 
   \{[Inlined, $a=1.11\times 10^{-6}, b = 0.076$]\} and 
   \{[Not Inlined, $a = 1.36\times 10^{5}, b= -0.04$]\}, leading to a speed up of $12 \times$ speed up.
   There is a notable jump in runtime for the inlined program, this is due to a GC 
-  executing at one point through out the execution larger values of $n$. }
-  \label{plot:inlinePlot}
+  executing at one point through out the execution larger values of $n$. 
+  This figure shows that there is a definite benefit, 
+  in term of runtime, applying inlining to this program, however
+  it is not always the case the inlining improves performance as will 
+  be seen later. 
 
+\begin{figure}
+\begin{samepage}
+  \centering
+  \importMGraph{inlinePlot}{0.96\textwidth}{0.4\textwidth}
+  \caption[Runtime of \texttt{testN} as a function on input size $n$]
+  {Plot of input value passed to \texttt{testN} against time to run in seconds,
+    also included in the time that the garbage collection (GC) ran in the program 
+    without functional inlining, GC never ran during the execution of the 
+    program with functional inlining. }
+  \label{plot:inlinePlot}
+\end{samepage}
 \end{figure}
 
 A factor that effects the qualify of compiled program is how much memory
 is used when executing the program. I will look at the maximum call stack size
 of a running program in \namefig\ref{plot:stackSize}, and then we will look at memory usage in 
 \namefig\ref{plot:memUsed} both of \texttt{testN}. 
+We notice that the maximum call stack height linearly increases with $n$. 
+This data was also fit to a straight line curve
+with the equation $a\cdot x + b$ resulting in the table in \nametable\ref{table:stackGrowth} 
+and a about a $2\times$ reduction in the maximum thunks allocated and therefore
+maximum call stack height. There is also a noticeable different is peak memory usage, 
+showing reduced memory usage when inlining is enabled.
+This show there is a very high correlation between maximum
+stack height and memory usage, which leads to the conclusion, that reducing the 
+max stack height would reduce memory usage and hopefully lead to less garbage collections.
+
+This data was gathered for max stack height by, 
+generating a call stack at any point in the computation that could 
+be a maximum thunk depth, this could be at a \texttt{Var} or \texttt{Lit} construct from
+the \texttt{CoreExpr} data type. The JVM flag \texttt{MaxJavaStackTraceDepth} was used to increase
+the stack height to a value greater than the maximum value returns from running this test.
+The data for memory usage was gathered by looking at JVM traces, 
+enabled with the flag \texttt{PrintGCDetails}. This is therefore an over estimate of
+peak memory usage. 
 
 \begin{figure}
   \centering
   \importMGraph{plotCallStackGrowth}{0.96\textwidth}{0.3\textwidth}
+  \caption{Maximum call stack height for \texttt{testN} as a function of $n$}
+  \label{plot:stackSize}
+\end{figure}
+
+\begin{table}
+  \centering
   \begin{tabular}{ c | c c}
   & $a$ & $b$\\
   \hline\\
   JHVC & 11 & 29 \\
   JHVC with inlining & 5 & 18 
   \end{tabular}
-  \caption[Plot of maximum call stack height for \texttt{testN} as a function of $n$]
-  {This is a graph of the maximum call stack height. The program
-  which was run was the Fibonacci program used in the compiler performance
-  analysis previously. We notice that the maximum call stack height
-  linearly increases with $n$. This was fit to a straight line curve
-  with the equation $a\cdot x + b$ resulting in the above table and a about a $2\times$ reduction
-  in the maximum thunks allocated and therefore maximum call stack height. This data
-  was gathered by, generating a call stack at any point in the computation that could 
-  be a maximum thunk depth, this could be at a \texttt{Var} or \texttt{Lit} construct from
-  the \texttt{CoreExpr} data type. The JVM flag \texttt{MaxJavaStackTraceDepth} was used to increase
-  the stack height to a value greater than the maximum value returns from running this test.}
-  \label{plot:stackSize}
-\end{figure}
+  \caption{Fitting of the data from stack growth to the line $y = a\cdot x + b$.}
+  \label{table:stackGrowth}
+\end{table}
 
 
 \begin{figure}
   \centering
   \importMGraph{memUsed}{0.96\textwidth}{0.3\textwidth}
-  \caption[Plot of memory used in \texttt{testN} as a function of $n$]
-  {This is a graph of memory usage against input value $n$ in 1000s. 
-  Again there is a noticeable different is peak memory usage, showing a
-  reduced memory usage when inlining is enabled. This was gathered 
-  by looking at JVM traces, enabled with the flag \texttt{PrintGCDetails}. This is therefore an 
-  over estimate of peak memory usage. This show there is a very high correlation between maximum
-  stack height and memory usage, which leads to the conclusion, that reducing the 
-  max stack height would reduce memory usage and hopefully lead to less garbage collections.}
+  \caption[Memory used in \texttt{testN} as a function of $n$]
   \label{plot:memUsed}
 \end{figure}
 
 Finally in the performance section, functional inlining it now always a good idea.
 It is possible that inlining functions may lead to increased runtime as shown in 
-Figure~\ref{plot:badInline}. The heuristics are very simple
-that the inliner uses it would be possible to come up with better heuristics that can be
-used to decide whether to inline a function.
+Figure~\ref{plot:badInline}. 
+This shows that inlining can cause a reduction in performance, 
+this is due to inlining the expensive function \texttt{sumNProg}. The current implementation 
+will inline the function \texttt{testN} causing it be evaluated three times adding the results each time
+whereas no inlining will only compute \texttt{sumNProg} once and then add the result 3 times, 
+which will be faster. The drop in the inlined program performance at about $120 \times 10^3$, 
+could be due to the JVM optimizing the bytecode when it notices common execution patterns.
+The heuristics are very simple that the inliner uses it would be possible to 
+come up with better heuristics that can be used to decide whether to inline a function.
 
 \begin{figure}
   \centering
   \importMGraph{plotBadInline}{0.96\textwidth}{0.3\textwidth}
-  \caption[Plot of \texttt{badProg} as a function of $n$. Comparing the inlined and non-inlined
-  versions of the compiled program]
-  {Plot of input value in 1000s against runtime in seconds with and without inlining.
-    This shows that inlining can cause problems, this is due to inlining the expensive function
-    \texttt{sumNProg} will mean the function will be evaluated three times adding the results each time
-    whereas no inlining will only compute \texttt{sumNProg} once and then add the result 3 times, 
-    which will be faster. The drop in the inlined program performance at about $120 \times 10^3$, 
-    could be due to the JVM optimizing the bytecode when it notices common execution patterns.}
+  \caption{\texttt{badProg} as a function of $n$. Comparing the inlined and non-inlined
+  versions of the compiled program}
     \label{plot:badInline}
 \end{figure}
 
 \section{Usability}
 
-Usability is harder to measure analytically, so the best measure I can think of is extra code size
+Usability is harder to measure analytically, so an analytic measure that can be used is extra code size
 compared to using Haskell or Java without JVHC.
 There are three burdens on the programmer that this compiler introduces:
 \begin{itemize}

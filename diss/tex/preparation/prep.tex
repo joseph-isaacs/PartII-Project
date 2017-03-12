@@ -122,9 +122,8 @@ The layout of the project divided itself cleanly into five stages, the five stag
 \begin{figure}
   \centering
   \subimport{stageDiagram/}{stageDiagram.tex}
-  \caption{The five stages of the compiler}
+  \caption{The five stages of the compiler pipeline.}
 \end{figure}
-
 Each of these stages could be thought about in separation, therefore I will actively 
 reduce code sharing between the pipeline stages and only have pipeline stages dependent 
 on the previous stage, this will help reduce complexity between the stages and 
@@ -132,21 +131,37 @@ allow development of stages without relying on future
 stages. I will use a waterfall model, where I implement a stage
 at a time in the order given above, while writing tests to help check
 correctness of implementation.
-
 I will in turn look at specific preparations made for each stage in the pipeline.
-
-\textcolor{red}{Justify not including Type Classes.}
+Type classes are a core element of the Haskell language, I didn't include Type classes
+in the JVHC implementation of Haskell, since I already had plenty of work packages in
+the project schedule. Without type classes I still believe I can show all
+the same skills with or without implementing type classes, but with a more manageable work schedule.
 
 \section{Tools Used}
 
-\begin{itemize}
-  \item Git -- branch for new ideas.
-  \item Vim + Haskell plugin -- No better IDE.
-  \item IntelliJ Java IDE and decompiler -- Examine generated code and writing separate libraries.
-  \item Cabal, manage complex project.
-\end{itemize}  
+There were many tools used throughout the project, git was used for 
+code management version control and new idea exploration. Every time
+I had a new idea about how to implement something I could create a branch
+was on the feature, then it this implementation idea was successful, it
+would be merged back into the main branch. The git history was used when
+writing the dissertation, I used commit history to create the time line
+of work activity. Finally I created a Github repository and used this 
+to backup milestones reached along the project. 
+Dropbox was used through the project to backup code files and data generated 
+through the project.
+IntelliJ \cite{intellij-ide} was used as an IDE when writing the Java
+runtime library associated with JVHC. IntelliJ was also used to decompile
+bytecode generated from JVHC, this was very useful in checking logical
+bugs in outputted bytecode.
 
-  Haskell's default build system is called Cabal\cite{cabal}, I 
+% \begin{itemize}
+%   \item Git -- branch for new ideas.
+%   \item Vim + Haskell plugin -- No better IDE.
+%   \item IntelliJ Java IDE and decompiler -- Examine generated code and writing separate libraries.
+%   \item Cabal, manage complex project.
+% \end{itemize}  
+
+  Haskell's default build system is called Cabal \cite{cabal}, I 
   decided Cabal 
   since there would be multiple included external libraries,
   many code files from my project and a benchmarking and test project
@@ -163,16 +178,14 @@ I will in turn look at specific preparations made for each stage in the pipeline
 
     \item Benchmark.
   \end{itemize}
-
-  For writing unit tests I am using HUnit\cite{hunit},
+  For writing unit tests I am using HUnit \cite{hunit},
   this provides a unit test framework and 
   also a quick-check framework. 
   I will use the unit test framework of the library, 
   to write tests for all stages of the compiler.
-
   Multiple parts of the compiler and outputted code will
   need to be benchmarked. I used a benchmarking library called
-  Criterion\cite{criterion} for micro-benchmarks (running a function
+  Criterion \cite{criterion} for micro-benchmarks (running a function
   multiple times and finding the mean runtime with accuracy bounds).
 
 \section{General}
@@ -192,7 +205,7 @@ I decided to write the compiler in Haskell, this choice was made for two reasons
   noting the need for kind inference, I then decided to 
   place this process in the desugaring stage of the pipeline. 
   Then after reading the JVM 
-  specification\cite{jvm-spec8} to figure out how each of the 
+  specification \cite{jvm-spec8} to figure out how each of the 
   Haskell constructs could be implemented on the JVM. I produced a
   document which my supervisor and I looked over and agreed
   on the fact this would be a simple and efficient implementation
@@ -204,9 +217,10 @@ I decided to write the compiler in Haskell, this choice was made for two reasons
 
 \section{Lexing and Parsing}
 
-I chose to use a lexing generator called Alex\cite{alex-lib} and a parsing generator called 
-Happy\cite{happy-lib}.
-These two libraries are very similar to Lex\cite{lex-lib} and Yacc\cite{yacc-lib}, but target
+I chose to use a lexing generator called Alex \cite{alex-lib} and a parsing generator called 
+Happy \cite{happy-lib}.
+These two libraries are very similar to Lex \cite{lex-lib} and Yacc
+\cite{yacc-lib}, but target
 Haskell.
 They both have manuals on their respective webpages which document creating a simple example and then
 moving onto more complex examples.
@@ -279,7 +293,7 @@ Type inference is the problem:
 Given an expression $e$ find the type $\tau$ for the expression or return an error if not possible to
 find a type for $e$.
 \end{displayquote}
-The solution to this section came mostly from a paper called `Typing Haskell in Haskell'\cite{thih-paper}. 
+The solution to this section came mostly from a paper called `Typing Haskell in Haskell' \cite{thih-paper}. 
 This provides a very clear outline on how to implement type inference. 
 There are a few modifications that will be made to the approach.
 Firstly I will remove any reference of type classes since they are not to be implemented in JVHC.
@@ -287,13 +301,13 @@ Secondly in the type checker a new expression data type called \texttt{CoreExpr}
 is generated which contains the type information discovered when running the type checker.
 
 \texttt{CoreExpr} is a datatype with seven simple constructs which can express any expression in Haskell.
-This data type was inspired by GHC\cite{typedcorelink}. This is a System F like typed lambda calculus with
+This data type was inspired by GHC \cite{typedcorelink}. This is a System F like typed lambda calculus with
 built in support for constant values and data type deconstructors, in the form of \texttt{case} expressions.
 
 \section{Inlining}
 
 This section was inspired by a paper called ``Secrets of the 
-Glasgow Haskell Compiler inliner''\cite{ghc-inliner}. This outlines the basic idea of functional 
+Glasgow Haskell Compiler inliner'' \cite{ghc-inliner}. This outlines the basic idea of functional 
 inlining. The idea is given an expression:
 \begin{HaskellLst}
 let f x = x + 2 in 
@@ -320,7 +334,7 @@ I familiarized myself with the JVM8 specification \cite{jvm-spec8}, and finally 
 document\ref{appendix:bytecodetranslationdoc} about how I would implement code generation, 
 at a high level before starting to write any code.
 
-To generate bytecode I will use the library Codec-JVM\cite{codec-jvm-link}. This library 
+To generate bytecode I will use the library Codec-JVM \cite{codec-jvm-link}. This library 
 required me to specify the bytecode and the library would handle formatting the bytecode into
 the \texttt{.class} file format accepted by the JVM as defined in the JVM specification. 
 

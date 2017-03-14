@@ -151,6 +151,13 @@
 % of parsing rules, which again I implemented a subset of, this time using
 % the parsing generator Happy\cite{happy-lib}.
 
+
+% \section{New notes}
+
+% Maybe add a code diagram UML like or something...
+% Maybe outline in slightly more details how pipeline maps to code.
+
+
 \section{Work division}
 
 A waterfall model was used to develop the compiler, since I was the only 
@@ -159,30 +166,46 @@ completed. \namefig\ref{figure:ganttchar} shows how to project progressed. The f
 few weeks matched up to the proposed timetable given the project proposal, however implementing
 the type inference (TI) was quicker than expected meaning that the only slack given (over the Christmas
 holidays) was not needed and I started work on future work projects. The slack time was very generous, if 
-without the slack time this project would have been delivered only one week early.
+no slack time was allocated to this project it would have been delivered only one week early. The code generation section took a little
+longer than usual. This is due to in part to implementing the
+translation from the core calculus to JVM bytecode. To fully understand
+the problem I formalised this translation as reference soon. This 
+made the code generation work packages longer than expected. It also
+took longer than expected to implement the bytecode translation due
+to me not fully understanding the types used in JVM bytecode.
 
 \subimport{workStages/}{workStageGantt.tex}
 
-\section{Lexing and Parsing}
+% \section{Lexing and Parsing}
 
-\begin{itemize}
-  \item Maybe show a small subset of the grammar and expression and how
-    that can be implemented in Alex and Happy. 
+% \begin{itemize}
+%   \item Maybe show a small subset of the grammar and expression and how
+%     that can be implemented in Alex and Happy. 
 
-  \item Talk about how it can be implemented as an LR(0) parser.
-\end{itemize}
+%   \item Talk about how it can be implemented as an LR(0) parser.
+% \end{itemize}
 
-\section{Desugaring}
+% \section{Desugaring}
 
-\begin{itemize}
-  \item Talk about kind inference, this can be related closely to 
-    TI, so used a very similar method as used in TI.
+% \begin{itemize}
+%   \item Talk about kind inference, this can be related closely to 
+%     TI, so used a very similar method as used in TI.
 
-  \item Maybe talk about simple different between desugared before and after.
+%   \item Maybe talk about simple different between desugared before and after.
 
-  \item Talk about build-in data types being added to the desugaring.
+%   \item Talk about build-in data types being added to the desugaring.
 
-\end{itemize}
+% \end{itemize}
+
+\section{Lexing, Parsing and Desugaring}
+
+The Lexer was simple to implement with the help of Alex \cite{alex-lib}.
+The Haskell grammar accepted by JVHC will possible to express using an
+LR(0) grammar and therefore could be implemented in Happy \cite{happy-lib}
+without much trouble. The desugaring stage involved kind inference
+mentioned in the preparation section (this was very similar to type inference).
+The desugaring also involved a simple set syntax tree transformations, 
+which I will not go into detail about.
 
 \section{Type Inference}
 
@@ -360,6 +383,19 @@ metrics
     If there are less than four free occurrences then inline.
 \end{itemize}
 
+A function is syntactically recursive if there is mention of the
+function name inside the function body. This is an over approximation
+since it may be the case that the function never recurses, however
+that cannot be known at compile time, hence a safe to over approximation is
+made instead.
+When counting the number of times a variable is free in an expression, 
+it suffices to count each time to variable name exists in the tree, until
+it is named in a $\lambda$ function at which point return the count for
+than given path in the tree. The case expression can have multiple
+branches in the tree each which may have a different counts
+of the occurrence of a variable name, the maximum occurrence over all these
+branches is passed up to the parent.
+
 \section{Code Generation}
 
 % \begin{itemize}
@@ -421,8 +457,8 @@ the result was a mathematical framework for expression both
 core calculus$_\star$ respectively. This is included 
 Appendix~\ref{appendix:thunkProof}. 
 The notation $\thunk{e}$ means, the value $e$ is wrapped in a thunk. Then
-$\unwrap{t}$ means, get the value from the thunk $t$. This would mean calling
-\texttt{get} in JVM bytecode.
+$\unwrap{t}$ means, get the value from the thunk $t$. This would direct map to
+calling \texttt{get} then implemented in JVM bytecode.
 The translation relation $\tlthunk$ from core calculus to core 
 calculus$_\star$ is defined as:
 
@@ -445,8 +481,10 @@ calculus$_\star$ is defined as:
 
 Then from this it can proved in Appendix~\ref{appendix:thunkProof} 
 that the call-by-name transition relation that Haskell should implement
-will map directly to a finite number of call-by-value transition relation steps, which 
-will run in the same way the JVM does.
+will map directly to a finite number of call-by-value 
+transition relation steps, which will run in the same way the JVM does.
+This is the JVM and the mapping run under eager (call-by-value)
+semantics.
 
 
 
@@ -507,6 +545,23 @@ The top level functions of the program will be stored in an \verb|Env| class, th
 possibly mutually recursive function will have a reference to every other function, via the \verb|Env| class.
 
 \subsection{CoreExpr Constructs}
+
+When generating bytecode each construct in the \verb|CoreExpr| type is 
+considered in turn. For each construct if will result in returning an
+amount of bytecode which will be expected the parents of this node.
+It is also possible that a separate \verb|.class| file will
+be created in the case of a $\lambda$-function say. Then at parent
+of a \verb|CoreExpr| tree will be the top level scope called \verb|Env|.
+This will contain references to all top level functions
+and a \verb|main| method. The main method allows this program
+to be run as a standalone program. The \verb|Env| class
+can also be accessed from other JVM compatible programming
+languages and will expose the top level functions
+defined in the source file. I will not go over 
+each of the 6 constructs in turn explaining how they are 
+translated into JVM bytecode:
+
+
 \begin{itemize}
 \item The \texttt{Lit} construct will be represented as either a
 \texttt{CharThunk} or an \texttt{IntThunk} containing the value
@@ -575,6 +630,62 @@ new &\textit{AppName}&(&\textit{Parent}&);
 
 \end{itemize}
 
+\subsection{Using Codec-JVM}
+
+The library used to format JVM bytecode was Codec-JVM. This provides
+a simple to use Haskell interface to write JVM bytecode.
+The library exposes a type called \verb|Code| which was a monoid. 
+In Haskell terms all a monoid means is that the type exports two functions
+\verb|mempty| and \verb|<>|, the first return an empty value and then 
+second takes two variables of type \verb|Code| and combines them.
+Variables with type \verb|Code| maps closely to JVM bytecode instructions.
+For example there is a function \verb|new| which takes a Java type 
+and returns a variable
+of type \verb|Code|, this is very similar to the JVM bytecode instruction
+\verb|new|. The JVM \verb|new| instructions create an object of the type
+passed as an operand to this bytecode instruction. 
+Then the following Haskell code:
+\begin{HaskellLst}
+   new             &\textit{ObjType}& 
+<> dup             &\textit{ObjType}&
+<> invokespecial &\textit{ObjTypeConstructor}&
+\end{HaskellLst}
+maps directly to
+\begin{JVMLst}
+new           #2            // class ObjType
+dup
+invokespecial #3            // Method ObjType."<init>":()V
+\end{JVMLst}
+This continent Haskell interface and control flow handling 
+are main the features that I used from this library.
+
+\subsection{Generating Correct JVM Bytecode}
+
+When loading \verb|.class| files the JVM will run a verifier (as defined
+by the JVM specification \cite[\S 4.10]{jvm-spec8}) on the 
+loaded bytecode. The verifier will check things such as:
+\begin{itemize}
+  \item There are no operand stack overflows or underflows.
+
+  \item All local variables uses and stores are valid.
+
+  \item The arguments to all the JVM instructions are of valid types.
+\end{itemize}
+These verification conditions helped to debug the outputted code. 
+When I started out generating bytecode I was generating code
+which didn't conform to some of all of these verification conditions.
+Since each \verb|CoreExpr| construct generates a small piece of
+code $C$ this meant it was hard a first to made sure
+that no $C$ would add or remove too many operands. It was very
+helpful that when the \verb|.class| file was loaded the verifier
+would give immediate feedback. The verifier also checks that
+after each branch the type of each element on the stack
+are the same, this again was very helpful when debugging \verb|case|
+statements. This means I can be sure that each branch of a case statement
+will return a stack with each element of the same type (or sharing a 
+common parent type).
+
+
 \section{Runtime Library}
 
 There is a small runtime library included with JVHC, this library is implemented in Java code.
@@ -623,17 +734,17 @@ not already implemented. I added support for \verb|instanceof|,
 the change was merged into the master branch of the library 
 \cite{codec-contrib}.
 
-\section{Benchmarking}
+% \section{Benchmarking}
 
-\begin{itemize}
-  \item Talk about fully evaluating expression in Haskell, not just
-    weak head normal form.
+% \begin{itemize}
+%   \item Talk about fully evaluating expression in Haskell, not just
+%     weak head normal form.
 
-  \item Talk about Criterion for simple Haskell benchmark.
+%   \item Talk about Criterion for simple Haskell benchmark.
 
-  \item Talk about how the benchmarker was implemented to test
-    multiple run of compiled Haskell program. Could talk
-    about Haskell system programming.
-\end{itemize}
+%   \item Talk about how the benchmarker was implemented to test
+%     multiple run of compiled Haskell program. Could talk
+%     about Haskell system programming.
+% \end{itemize}
 
 \end{document}

@@ -87,7 +87,7 @@ defined.
 
     \item A built-in function applied to too few arguments.
 
-    \item A lambda abstraction \verb|\x ->| expression.
+    \item A lambda abstraction \verb|\x -> expression|.
   \end{itemize}
 \end{displayquote}
 Definition from Haskell wiki \cite{haskell-whnf}.
@@ -101,6 +101,23 @@ with the lazy nature of Haskell. Haskell provides a function called \verb|seq| w
 reduce an expression to WHNF, this is not sufficient for benchmarking. GHC provides a function
 called \verb|deepseq| to reduce expression to NF, meaning benchmarks can be taken of the 
 correct value.
+
+When taking timing measurements of outputted code running on the JVM care
+must be taken to produce repeatable results. The JVM will optimize loaded
+in bytecode finding common control flow paths and optimizing the translated
+bytecode for this path. The JVM will also after multiple executions
+of the same \verb|.class| file the JVM will compile the bytecode
+into native code for the architecture that the JVM is running on. 
+The native compilation is slower than interpretation if the file
+is only run a few times, since the compilation takes longer than
+interpreting the \verb|.class| file once.
+To reduce the variation is timings, the JVM will be started up for 
+each individual timing test. The timing code is embedded into the
+generated program. The timing just finds the difference in 
+system clock before and after running the main method. The 
+system clock value is collected using the system call
+\verb|java/lang/System/currentTimeMillis:()J|.
+
 
 \subsection{Results}
 
@@ -122,7 +139,11 @@ When a user first interacts with JVHC, they will notice the time taken to compil
 start the performance evaluation from there as in \namefig\ref{plot:TimeInStages}. We note that code generation is by far the most time consuming part of the pipeline. There is then a comparison 
 of type inference between GHC and JVHC showing only a $\times 2$ 
 decrease in the runtime cost of JVHC's TI algorithm in 
-\namefig\ref{plot:tiTime}.
+\namefig\ref{plot:tiTime}. To show that the implementation of
+type inference algorithm for the \verb|tiExpr| program is exponential
+it would be more convincing with more data points.
+Running the TI algorithm for values of $n$ larger than 5,
+caused problems since it used all the memory available to the system.
 
 \begin{samepage}
 \begin{figure}[ht]
@@ -176,13 +197,13 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
   \centering
   \begin{tabular}{ c | c c }
     Compiler& $a$ & $b$\\
-    \hline\\
+    \hline
     JVHC & $39.9$ & $2.47 \times 10^{4}$ \\
     JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
     eta & $6.74$ & $1.45 \times 10^{4}$
   \end{tabular}
-  \caption[Regression values for code size as a function of
-  program size]
+  \caption{Regression values for code size as a function of
+  program size}
   \label{table:codeSize}
 \end{table}
 
@@ -210,7 +231,7 @@ by each compiler is comparable in \namefig\ref{plot:fibTiming},
   \centering
 \begin{tabular}{c | c}
   & $a$\\
-  \hline \\
+  \hline 
   JVHC & $1.13\times 10^{-7}$\\
   GHC & $9.49\times 10^{-8}$\\
   Java & $1.62 \times 10^{-9}$
@@ -282,7 +303,7 @@ peak memory usage.
   \centering
   \begin{tabular}{ c | c c}
   & $a$ & $b$\\
-  \hline\\
+  \hline
   JHVC & 11 & 29 \\
   JHVC with inlining & 5 & 18 
   \end{tabular}
@@ -294,7 +315,7 @@ peak memory usage.
 \begin{figure}
   \centering
   \importMGraph{memUsed}{0.96\textwidth}{0.3\textwidth}
-  \caption[Memory used in \texttt{testN} as a function of $n$]
+  \caption{Memory used in \texttt{testN} as a function of $n$}
   \label{plot:memUsed}
 \end{figure}
 
@@ -377,9 +398,11 @@ instead the GHC compiled Haskell.
 The current Java interface produced by JVHC is harder to use than it could be
 \begin{enumerate}
   \item Every argument passed into each function must first be wrapped in a thunk. 
-  \item Generic information is not added to the bytecode (this is possible using 
-signatures defined in the JVM spec \cite[\textsection4.7.9]{jvm-spec8}) meaning that
-the return values from function calls (\texttt{apply}) and thunk evaluation (\texttt{get}) require casting.
+  \item Generic information is not added to the bytecode meaning that
+the return values from function calls (\texttt{apply}) and thunk evaluation (\texttt{get}) require casting in the Java world which means the programmer
+must know the return type of each function and thunk. This will
+make mixing these \verb|.class| files with Java
+code hard than it need be.
 \end{enumerate}
 
 The first of these problems could be solved by generating a function $f_J$ for each 
@@ -390,10 +413,35 @@ wrap then values passed as argument to $f_J$ in thunks, finally calling the func
 Uncurrying is done to fit with the idiom in Java of write functions that take 
 $n$-tuple instead of a set of $n$ curried functions. 
 
-The other problem could be solved by keeping generic information would be used by 
-the Java compiler \texttt{javac} infer a return type of each \texttt{apply} and \texttt{get}
-which is closer to the true values of the return type (still might not be the correct type 
-since Java allows sub-typing). This could be achieved by modifying the Codec-JVM library 
-\cite{codec-jvm-link} adding support for tracking of generic types.
+
+Generic types are not directly supported by JVM bytecode for example
+\verb|List<Object>| will undergo type erasure to give \verb|List| which
+will have a collection of \verb|java/lang/object|. 
+The generics exist at compile time (they are used by the compiler to enforce 
+certain correctness properties), but not at runtime.
+However it is possible to store generic type information
+in JVM bytecode, this will be ignored by the JVM, but can be used by tools
+which inspect bytecode and also by the Java compiler when trying to compile
+Java code that references this bytecode.
+
+Then a solution to problem (2) would be keeping generic information so it 
+could be used by the Java compiler \texttt{javac} infer a return type of 
+each \texttt{apply} and \texttt{get} which is closer to the true 
+values of the return type (still might not be the correct type 
+since Java allows sub-typing). 
+This could be achieved by modifying the Codec-JVM library 
+\cite{codec-jvm-link} adding support for tracking of generic types and then 
+writing these generic types to the \textit{signature} data structure in 
+\verb|.class| files. \textit{Signatures} defined in the JVM spec
+\cite[\textsection4.7.9]{jvm-spec8} and is used to 
+\begin{displayquote}
+  records generic signature information for any class, interface, 
+  constructor or member whose generic signature in the Java 
+  programming language would include references to type variables 
+  or parameterized types.
+\end{displayquote}
+\begin{flushright}
+Exert from the JVM specification cited just above (\textsection4.7.9).
+\end{flushright}
 
 \end{document}

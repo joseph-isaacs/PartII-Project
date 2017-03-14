@@ -82,7 +82,7 @@
   stringstyle=\color{pred},
   basicstyle=\ttfamily,
   captionpos=b,
-  escapeinside={*'}{'*},
+  escapeinside={&}{&},
   language=haskell,
   tabsize=2,
   emphstyle={\bf},
@@ -103,12 +103,14 @@
   xleftmargin=2pt,
   language=JVMIS,
   emphstyle={\bf},
-  stringstyle=\mdseries\rmfamily,
+  basicstyle=\ttfamily,
+  commentstyle=\it,
+  % stringstyle=\mdseries\rmfamily,
   commentstyle=\color{pgreen},
   stringstyle=\color{pred},
   keywordstyle=\color{black},
-  basicstyle=\ttfamily,
-  basicstyle=\small\sffamily
+  basicstyle=\ttfamily
+  % basicstyle=\small\sffamily
 }} {}
 
 
@@ -152,9 +154,10 @@
 \setlength{\gwidth}{\textwidth}
 \setlength{\gwidth}{\textheight}
 
-\newcommand{\importMGraph}[3]{\setlength{\gwidth}{#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
+\newcommand{\importMGraph}[3]{\setlength{\gwidth}
+  {#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
 \newcommand{\namefig}{\textbf{Figure}~}
-
+\newcommand{\nametable}{\textbf{Table}~}
 
 \addbibresource{refs.bib}
 % more readable
@@ -290,7 +293,6 @@ extent for a comparable purpose.
 
 \import{tex/bytecodetranslation/}{bytecodetranslation.tex}
 
-
 \chapter{Programs of interest}
 
 Note that for the reader convenience the programs as displayed as standard
@@ -307,12 +309,15 @@ Haskell 98 dialect, not JVHC valid Haskell.
 
 \chapter{Thunk Proof}
 
-\label{appendix:thunkProof}
-
 \import{tex/evaluation/proof/}{thunkProof.tex}
+
+\label{appendix:thunkProof}
 
 \chapter{Project Proposal}
 
 \import{tex/proposal/}{proposal.tex}
+
+\label{appendix:proposal}
+
 
 \end{document}

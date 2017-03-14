@@ -98,6 +98,9 @@
 
 \section{Starting Point}
 
+% Maybe look at a specific use case.
+% Define success more clearly.
+% Maybe move version control and backup to separate section.
 
   I have taken the Compiler Construction course in Part IB and am currently taking the Part II course Types. I have spent the summer
   learning Haskell from various places including CIS 194 University of Pennsylvania \cite{cis194} and Real World Haskell \cite{realworldhaskell}.
@@ -136,6 +139,24 @@ Type classes are a core element of the Haskell language, I didn't include Type c
 in the JVHC implementation of Haskell, since I already had plenty of work packages in
 the project schedule. Without type classes I still believe I can show all
 the same skills with or without implementing type classes, but with a more manageable work schedule.
+
+\section{Success Criteria}
+
+The success criteria have changed very little since they were outlined in
+Appendix~\ref{appendix:proposal}. 
+The success criteria can be summarised as testing for correctness
+with the aid of unit tests. The work in all of the work package of each fall into
+one of the following major piece of the compiler that must be implemented
+[Lexing, Parsing, Desugaring, Type Inference,
+Code Generation, Optermization, Expose Java functions to Haskell,
+Support for I/O (via IO Monad)]. 
+Then the extra success criteria are that the solution should 
+comparable in runtime performance to existing Haskell implementations 
+such as GHC. 
+Then the success criteria can be extended still further again, I will
+pay some attention to the resulting interface provided by the generated
+code which is exposed to other language on the JVM, I will look
+at the Java interface.
 
 \section{Tools Used}
 
@@ -331,12 +352,13 @@ reduce to a term with no $\beta$-redexes in a finite number of steps.
 \section{Code Generation}
 
 I familiarized myself with the JVM8 specification \cite{jvm-spec8}, and finally wrote a 
-document\ref{appendix:bytecodetranslationdoc} about how I would implement code generation, 
+document in Appendix~\ref{appendix:bytecodetranslationdoc} about how I would implement code generation, 
 at a high level before starting to write any code.
 
 To generate bytecode I will use the library Codec-JVM \cite{codec-jvm-link}. This library 
 required me to specify the bytecode and the library would handle formatting the bytecode into
 the \texttt{.class} file format accepted by the JVM as defined in the JVM specification. 
+
 
 
 

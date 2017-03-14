@@ -231,9 +231,15 @@ I decided to write the compiler in Haskell, this choice was made for two reasons
   document which my supervisor and I looked over and agreed
   on the fact this would be a simple and efficient implementation
   of the Haskell constructs. The document is included in 
-  Appendix~\ref{appendix:bytecodetranslationdoc}. I will now discuss
-  the decisions made for each stage of the pipeline before beginning
-  the implementation.
+  Appendix~\ref{appendix:bytecodetranslationdoc}. 
+  The JVM is a good backend choice to compile Haskell to for two
+  reasons, first it allows access to the fully features set
+  of JVM tools as mentioned in the introduction and secondly
+  the JVM itself provides garbage collection and 
+  a more simple backend target (more simple than x86).
+  This allows me to implement a whole compiler in the timescale given.
+  I will now discuss the decisions made for each stage of the 
+  pipeline before beginning the implementation.
 
 
 \section{Lexing and Parsing}

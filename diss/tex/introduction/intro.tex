@@ -24,6 +24,37 @@
 \setlength{\gwidth}{\textwidth}
 \setlength{\gwidth}{\textheight}
 
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstdefinestyle{HaskellStyle}{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  captionpos=b,
+  escapeinside={&}{&},
+  language=haskell,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  showspaces=false,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]
+}
+
+\lstnewenvironment{HaskellLst}{%
+  \lstset{style=HaskellStyle}}{}
+
 \newcommand{\namefig}{\textbf{Figure}~}
 
 \begin{document}
@@ -82,21 +113,33 @@ also adding new functionality will not show any new skills.
 The compiler will also not support Type classes. The interesting
 part of the compiler project will be implementing a lazy language (Haskell)
 on the JVM with eager semantics.
-
 Haskell allows definition of infinite data structures:
-
-\begin{lstlisting}
+\begin{HaskellLst}
 nat :: Int -> [Int]
 nat x = x : nat (x+1)
-\end{lstlisting}
+\end{HaskellLst}
+This defines a function which when given an integer \verb|x| will return 
+a list of all the integers starting from \texttt{x}, and going on forever with
+each element the successor of the last.
+Since this list has no bound on the length it must be the case 
+that values are computed only when required, 
+this is possible due to the lazy nature of Haskell. 
+The first line is an optional type signature, Haskell
+uses \verb|::| to denote ``is of type'' and a single \verb|:| to denote cons (list append), unlike ML-like languages. Then \verb|[Int]| signifies a list
+of \verb|Int| where \verb|Int| will be a fixed precision 
+signed integer in the range $[-2^{29},2^{29}-1]$ 
+as defined in the Haskell 98 report \cite[\textsection6.4]{haskell98-spec}.
+Then there is a function \verb|take :: Int -> [a] -> [a]| which will
+take the first $n$ elements from a list returning a new list with at most
+$n$ elements.
+If then run 
+\begin{HaskellLst}
+take 5 (nat 2)
+>> [2,3,4,5,6]
+\end{HaskellLst}
+then this will take the first 5 elements from the infinite list returning 
+a finite list (once the expression is evaluated).
 
-This will be a list of all the integers starting from \texttt{x}, 
-and going on forever. Since this list has no 
-bound on the length it must be the case that values are computed
-only when required, this is possible due to the lazy nature
-of Haskell. The first line is an optional type signature, Haskell
-uses \verb|::| to denote ``is of type'' and a single \verb|:| to denote cons (list
-append), unlike ML-like languages.
 
 % \begin{itemize}
 %   \item Explanation of simple Haskell features.
@@ -117,8 +160,8 @@ append), unlike ML-like languages.
 There are many implementations of the Haskell 98 report.
 The de-facto standard implementation is GHC \cite{ghc} (Glasgow Haskell
 Compiler), this compiler generates native machine code. There
-are implementations that compile Haskell to JVM bytecode, including Eta \cite{eta}
-and Frege \cite{frege}. As other implementations exist I can then 
+are implementations that compile Haskell to JVM bytecode, including Eta \cite{eta} and Frege \cite{frege}. 
+As other implementations exist I can then 
 compare my implementation to these compilers in the evaluation stage
 of the project. 
 

@@ -64,7 +64,9 @@ There is a finite map $\Sigma : \mathbb{L}
 $\Sigma,x:e$ means add the pair $(x,e)$ to $\Sigma$ if $x \not\in\text{dom}(\Sigma)$
 otherwise replace the current values in $\Sigma$ with the pair $(x,e)$.
 There is also an with the following call-by-name transition relation 
-\mbox{$\tcbn : \mathbb{E} \rightarrow \mathbb{E}$} is defined in Figure~\ref{t:cbn}. 
+\mbox{$\tcbn : \mathbb{E} \rightarrow \mathbb{E}$} is defined in Figure~\ref{t:cbn}. It makes sense to talk about one-step transition relations since
+we are interested in proving a property about
+a finite set of steps of execution.
 
 \begin{figure}
 \begin{align*}
@@ -114,20 +116,21 @@ defined in Figure~\ref{t:translation}
 
 \begin{figure}
 \begin{align*}
-  &\frac{}{c \tlthunk \thunk{c}}\\ \\
-  &\frac{}{x \tlthunk \thunk{x}}\\ \\
+  &\frac{}{c \tlthunk \thunk{c}} && \mathsf{Const}_\tlang\\ \\
+  &\frac{}{x \tlthunk \thunk{x}} && \mathsf{Var}_\tlang\\ \\
   &\frac{e \tlthunk e_\tlang}
-     {\lambda x . e \tlthunk \thunk{\lambda x_\tlang.\unwrap{e_\tlang}}}\\ \\
+     {\lambda x . e \tlthunk \thunk{\lambda x_\tlang.\unwrap{e_\tlang}}}
+       && \mathsf{Lam}_\tlang\\ \\
   &\frac{e  \tlthunk e_\tlang \quad e' \tlthunk e'_\tlang}
-  {e e' \tlthunk \thunk{\unwrap{e_\tlang} e'_\tlang}}\\ \\
+  {e e' \tlthunk \thunk{\unwrap{e_\tlang} e'_\tlang}} && \mathsf{App}_\tlang\\\\
   &\dfrac{e_1  \tlthunk e_{1_\tlang} \quad \dots \quad e_n \tlthunk e_{n_\tlang} \quad e' \tlthunk e_\tlang}
   {\splitdfrac{\mathtt{let}\ (x_1\ \mathtt{=}\ e_1,\dotsc, x_n\ \mathtt{=}\ e_n)\ \mathtt{in}\ e \tlthunk}
     {\thunk{\mathtt{let}\ 
-        (x_1\ \mathtt{=}\ e_{1_\tlang},\dotsc, x_n\ \mathtt{=}\ e_{n_\tlang}) \ \mathtt{in}\ \unwrap{e_\tlang}}}}\\ \\
+        (x_1\ \mathtt{=}\ e_{1_\tlang},\dotsc, x_n\ \mathtt{=}\ e_{n_\tlang}) \ \mathtt{in}\ \unwrap{e_\tlang}}}} && \mathsf{Let}_\tlang\\ \\
   &\dfrac{e_1  \tlthunk e_{1_\tlang} \quad \dots \quad e_n \tlthunk e_{n_\tlang} \quad e' \tlthunk e'_\tlang}
   {\splitdfrac{\mathtt{case}\ e\ \mathtt{of}\ b_1 \rightarrow e_1; \dots; b_n \rightarrow e_n \tlthunk}
   {\thunk{\mathtt{case}\ \unwrap{e_\tlang}\ \mathtt{of}\ b_1 \rightarrow \unwrap{e_{1_\tlang}}; 
-      \dots; b_n \rightarrow \unwrap{e_{n_\tlang}}}}}
+      \dots; b_n \rightarrow \unwrap{e_{n_\tlang}}}}} && \mathsf{Case}_\tlang
 \end{align*}
 \caption[Definition of translation relation from the core calculus to  calculus$_\tlang$]{Translation relation from the core calculus to the calculus$_\tlang$, Also
 extend the translation relation over expression of the form $\Sigma \vdash e \tlthunk \Sigma_\tlang 
@@ -184,9 +187,10 @@ e_{n_\tlang})\ \mathtt{in}\ e_\tlang}
 
 Define $\tccbv: \mathbb{E}_\tlang \rightarrow \mathbb{E}_\tlang$ as the transitive closure of $\tcbv$
 \begin{align*}
-  &\frac{}{e_\tlang \tccbv e_\tlang} \\ \\
-  &\frac{e_\tlang \tcbv e'_\tlang}{e_\tlang \tccbv e'_\tlang} \\ \\
-  &\frac{e_\tlang \tccbv e'_\tlang \quad e'_\tlang \tccbv e_\tlang'' }{e_\tlang \tccbv e''_\tlang}
+  &\frac{}{e_\tlang \tccbv e_\tlang} && \mathsf{Refl}\\ \\
+  &\frac{e_\tlang \tcbv e'_\tlang}{e_\tlang \tccbv e'_\tlang} 
+    && \mathsf{Closure}\\ \\
+  &\frac{e_\tlang \tccbv e'_\tlang \quad e'_\tlang \tccbv e_\tlang'' }{e_\tlang \tccbv e''_\tlang} && \mathsf{Trans}
 \end{align*}
 
 \section{Proofs}
@@ -210,16 +214,18 @@ This will be proved by rule induction over the $\tcbn$ relation.
 \begin{proof}
   \begin{case}[$\mathbf{Lam}_N$]
     This is the form of the lambda reduction rule under call-by-name semantics.
-    \[\frac{}{\Sigma \vdash (\lambda x.a)a' \tcbn \Sigma,(x:a') \vdash a }\]
+    \[\frac{}{\Sigma \vdash (\lambda x.a)a' \tcbn \Sigma,(x:a') \vdash a }
+        \quad \mathsf{Lam}_N\]
     Then \[ \frac{\Sigma \tlthunk \Sigma' \quad 
         a \tlthunk a_\tlang \quad a' \tlthunk a'_\tlang}
       {\Sigma \vdash (\lambda x .a)a' 
         \tlthunk \Sigma \vdash \thunk{\unwrap{
-            \thunk{\lambda x. \unwrap{ a_\tlang}}} a'_\tlang} } \]
+            \thunk{\lambda x. \unwrap{ a_\tlang}}} a'_\tlang} }
+              \quad \mathsf{Lam}_\tlang\]
     And \[ \frac{\Sigma \tlthunk \Sigma_\tlang \quad a 
         \tlthunk a_\tlang \quad a' \tlthunk a'_\tlang}
       {\Sigma,(x,a') \vdash a\tlthunk \Sigma_\tlang,
-        (x,a'_\tlang) \vdash a_\tlang} \]
+        (x,a'_\tlang) \vdash a_\tlang} \quad \mathsf{IH}_\tlang \]
    Then looking at the reduction set of  
    ${\unwrap{\thunk{\unwrap{
         \thunk{\lambda x. \unwrap{ a_\tlang}}} a'_\tlang}}}$
@@ -246,13 +252,13 @@ This will be proved by rule induction over the $\tcbn$ relation.
     This is the rule for $\textsf{App}_N$ is of the form
     \begin{align*}
       \frac{\Sigma \vdash a \tcbn \Sigma' \vdash a'}
-      {\Sigma \vdash ab \tcbn \Sigma' \vdash a' b} 
+      {\Sigma \vdash ab \tcbn \Sigma' \vdash a' b} && \mathsf{App}_N
     \end{align*}
     Then $e$ is of the form $e = a b$, looking at the $\tlthunk$ relation.
     \[\frac{\Sigma \tlthunk \Sigma_\tlang \quad a 
         \tlthunk a_\tlang \quad b \tlthunk a_\tlang}
       { \Sigma \vdash a b\tlthunk \Sigma_\tlang \vdash 
-        \thunk{\unwrap{a_\tlang }b_\tlang}}\]
+        \thunk{\unwrap{a_\tlang }b_\tlang}} \quad \mathsf{App}_\tlang\]
     and applying the reduction relation to the result of the translation 
     relation gives
     \begin{align*}
@@ -261,22 +267,24 @@ This will be proved by rule induction over the $\tcbn$ relation.
       &\frac{\Sigma_\tlang \vdash \unwrap{a_\tlang} \tccbv \Sigma'_\tlang \vdash \unwrap{a'_\tlang}}{
       \Sigma_\tlang \vdash \unwrap{a_\tlang} b_\tlang \tccbv \Sigma'_\tlang \vdash 
       \unwrap{a'_\tlang} b_\tlang } &&
-      \mathsf{Induction\ Hypothesis}
+      \mathsf{App}_V
     \end{align*}
     then it can be concluded that 
-    \[ \frac{}{\unwrap{\thunk{\unwrap{a_\tlang} b_\tlang}} \tccbv 
-            \unwrap{a'_\tlang} b_\tlang  } \]
+    \[ \frac{}{\Sigma_\tlang \vdash \unwrap{\thunk{\unwrap{a_\tlang} b_\tlang}}
+        \tccbv \Sigma_\tlang \unwrap{a'_\tlang} b_\tlang  } \]
     Finally \[ \frac{\Sigma' \tlthunk \Sigma'_\tlang \quad a' \tlthunk a'_\tlang \quad b \tlthunk b_\tlang}
-      {\Sigma' \vdash a' b \tlthunk \Sigma'_\tlang \vdash \thunk{\unwrap{a'_\tlang} b_\tlang} } \]
+      {\Sigma' \vdash a' b \tlthunk \Sigma'_\tlang \vdash \thunk{\unwrap{a'_\tlang} b_\tlang} } \quad \mathsf{App}_\tlang \]
     Which will reduce to
     \[\Sigma'_\tlang \vdash \unwrap{\thunk{\unwrap{a'_\tlang}b_\tlang}} \tcbv \Sigma'_\tlang \vdash
-    \unwrap {a'_\tlang} b_\tlang\]
+    \unwrap {a'_\tlang} b_\tlang \quad \mathsf{Thunk}_V\]
 
   \end{case}
 
   \begin{case}[$\mathsf{Var}_N$]
-    \[ \frac{\Sigma(x) = e}{\Sigma \vdash x \tcbn \Sigma \vdash e}  \]
-    The translation relation says that \[ \frac{}{x \tlthunk \thunk{x}} \]
+    \[ \frac{\Sigma(x) = e}{\Sigma \vdash x \tcbn \Sigma \vdash e} \quad
+      \mathsf{Var}_N \]
+    The translation relation says that \[ \frac{}{x \tlthunk \thunk{x}} 
+      \quad \mathsf{Var}_\tlang \]
     Then 
     \begin{align*}
     & \Sigma_\tlang \vdash \unwrap{\thunk{x}} \tcbv \Sigma_\tlang \vdash x  && \mathsf{Thunk}_V \\ \\
@@ -292,7 +300,7 @@ This will be proved by rule induction over the $\tcbn$ relation.
     \[
   \dfrac{}{\splitdfrac{\Sigma \vdash \mathtt{let}\ 
       (x_1\ \mathtt{=}\ a_1,\dotsc, x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ e'}
-    {\tcbn \Sigma,(x_1:a_1,\dotsc,x_n:a_n) \vdash e'}} \]
+    {\tcbn \Sigma,(x_1:a_1,\dotsc,x_n:a_n) \vdash e'}} \quad \mathsf{Case}_N\]
 
   Then have expressions of the from above 
   $e = \mathtt{let}\ (x_1\ \mathtt{=}\ a_1,\dotsc, x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ e$
@@ -303,7 +311,7 @@ This will be proved by rule induction over the $\tcbn$ relation.
       x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ a \tlthunk}
     {\Sigma_\tlang \vdash \thunk{\mathtt{let}\ 
         (x_1\ \mathtt{=}\ a_{1_\tlang},\dotsc, x_n\ \mathtt{=}\ a_{n_\tlang})
-        \ \mathtt{in}\ \unwrap{a_\tlang}}}} \]
+        \ \mathtt{in}\ \unwrap{a_\tlang}}}} \quad \mathsf{Case}_\tlang\]
 
 \begin{align*} 
   & \Sigma_\tlang \vdash \unwrap{\thunk{\mathtt{let}\ 
@@ -326,8 +334,7 @@ Then also note that
     \tlthunk a_{n_\tlang} \quad a' \tlthunk a_\tlang}
   {\splitdfrac{\Sigma,(x_1:a_1,\dotsc,x_n:a_n) \vdash a \tlthunk}
    {\Sigma_\tlang,(x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash a_\tlang} }
-\]
-
+    \quad \mathsf{IH}_\tlang\] From the induction hypothesis.
     Hence done.
 \end{case}
 
@@ -364,9 +371,11 @@ Similar to $\mathsf{App\ 1}_N$
       &\Sigma_\tlang,(x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash \unwrap{c_{i_\tlang}}
       &&\mathsf{Case\ 2}_V\\ \\
 \end{align*}
-  Note that \[ \frac{\Sigma \tlthunk \Sigma_\tlang \quad c_1 \tlthunk c_{1_\tlang} \quad \dots \quad
+  Note that from the induction hypothesis
+  \[ \frac{\Sigma \tlthunk \Sigma_\tlang \quad c_1 \tlthunk c_{1_\tlang} \quad \dots \quad
     c_n \tlthunk c_{n_\tlang}}{\Sigma (x_1:a_1,\dotsc,x_n:a_n) \vdash c_i \tlthunk \Sigma_\tlang \vdash 
-    (x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash c_{i_\tlang}} \]
+    (x_1:a_{1_\tlang},\dotsc,x_n:a_{n_\tlang}) \vdash c_{i_\tlang}} \quad 
+  \mathsf{IH}_\tlang\]
 Hence this case holds.
 \end{case}
 

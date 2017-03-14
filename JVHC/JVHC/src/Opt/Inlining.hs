@@ -184,7 +184,7 @@ countVars v (Let (ExprDef (MkVar { varName = var }) a) e)
   | v /= var  = countVars v a + countVars v e
   | otherwise = 0
 
-countVars v (Case e _ alts) = countVars v e + sum (map (countVarsAlt v) alts)
+countVars v (Case e _ alts) = countVars v e + maximum (map (countVarsAlt v) alts)
 
 countVars _ _ = 0
 

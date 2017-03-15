@@ -161,18 +161,21 @@
 \section{Work division}
 
 A waterfall model was used to develop the compiler, since I was the only 
-person working on the compiler. This resulted in a linear ordering to work packages being
-completed. \namefig\ref{figure:ganttchar} shows how to project progressed. The first
+person working on the compiler. This resulted in a linear ordering to work packages being completed. 
+\namefig\ref{figure:ganttchar} shows how to project progressed. The first
 few weeks matched up to the proposed timetable given the project proposal, however implementing
 the type inference (TI) was quicker than expected meaning that the only slack given (over the Christmas
-holidays) was not needed and I started work on future work projects. The slack time was very generous, if 
-no slack time was allocated to this project it would have been delivered only one week early. The code generation section took a little
+holidays) was not needed and I started work on future work packages. 
+The slack time was very generous, if 
+no slack time was allocated to this project it would have been delivered only one week ahead of schedule. The code generation section took a little
 longer than usual. This is due to in part to implementing the
 translation from the core calculus to JVM bytecode. To fully understand
 the problem I formalised this translation as reference soon. This 
 made the code generation work packages longer than expected. It also
 took longer than expected to implement the bytecode translation due
-to me not fully understanding the types used in JVM bytecode.
+to me not fully understanding the semantics of JVM bytecode. I 
+needed to rewrite large parts of the code generation stage after 
+understand the bytecode semantics.
 
 \subimport{workStages/}{workStageGantt.tex}
 
@@ -200,12 +203,12 @@ to me not fully understanding the types used in JVM bytecode.
 \section{Lexing, Parsing and Desugaring}
 
 The Lexer was simple to implement with the help of Alex \cite{alex-lib}.
-The Haskell grammar accepted by JVHC will possible to express using an
+The Haskell grammar accepted by JVHC was possible to express using an
 LR(0) grammar and therefore could be implemented in Happy \cite{happy-lib}
 without much trouble. The desugaring stage involved kind inference
 mentioned in the preparation section (this was very similar to type inference).
 The desugaring also involved a simple set syntax tree transformations, 
-which I will not go into detail about.
+which need not be explained here.
 
 \section{Type Inference}
 
@@ -216,16 +219,17 @@ over a whole Haskell program was finding the type of each definition.
 I will therefore not go into detail about the implementation of the 
 type inference itself. I will however talk about moving from a Haskell
 syntax tree to a valid system F like core language.
-This process was interlaced with the type inference algorithm.
-This means the result of running type inference gave a type for each
+This process was interleaved with the type inference algorithm.
+That meant the result of running type inference gave a type for each
 top level function, and also a new data type called \texttt{CoreExpr}
 
 The full CoreExpr datatype is listed in \namefig\ref{code:CoreExpr}. 
 All the types in this datatype
-are directly from System F, apart from case which was defined above.
+are directly from System F, apart from case. The \verb|Case|
+construct allows pattern matching different constructors of a ADT 
+and conditionally executing different branches of the \verb|Case| expression.
 The data type is parameterised on \texttt{b}, this is a binder type which 
-only stores the variable name and type.
-
+stores only the variable name and type.
 
 \begin{figure}
   \centering
@@ -268,8 +272,9 @@ only stores the variable name and type.
   \draw (Alts.west) + (0, 0) coordinate(x1) edge (alts.west|-x1);
   \draw (Type.east) + (0, 0) coordinate(x1) edge (type.east|-x1);
 \end{tikzpicture} 
-  \caption[Listing of \texttt{CoreExpr} data type]{Listing of \texttt{CoreExpr} data type. The \texttt{Type} type represents any possible type, this 
-  is the same type as in the type inference section above}
+  \caption[Listing of \texttt{CoreExpr} data type]{Listing of \texttt{CoreExpr} data type. The \texttt{Type} type represents any possible type valid
+    in Haskell, this is the same type datatype as in the 
+    type inference section above}
   \label{code:CoreExpr}
 \end{figure}
 The resulting code returned from the mixed type inference and syntax transform stage was not quite
@@ -277,7 +282,13 @@ valid \texttt{CoreExpr}. To convert this resulting syntax tree to valid System F
 need be added explicitly, this meant adding both type applications and $\Lambda$ (type abstractions)
 to the syntax. To add these constructs a lookup table was also returned to the type inference stages, 
 which contained the type of every sub-expression. This was used to insert type applications and
-$\Lambda$ in the correct places in the syntax tree making the resulting syntax tree valid again.
+$\Lambda$ in the correct places in the syntax tree making the resulting syntax tree valid again. Since each type in Haskell \verb|a -> [a]| has an implicit
+$\forall$, and so can be written as \verb|forall a.a -> [a]|, the $\Lambda$
+must always be at the version start of an expression if there are any
+$\forall$ types. Then every time there is an application $e_1 e_2$, 
+some number of type application must be inserted matching the 
+$\Lambda$s in $e_1$ to the expression making the new expression
+$e_1 \tau_1 \dots \tau_n e_2$.
 
 % \begin{itemize}
 %   \item Talk about paper.
@@ -308,42 +319,36 @@ $\Lambda$ in the correct places in the syntax tree making the resulting syntax t
 % \end{itemize}
 
 Functional inlining, comes from the idea that it 
-would be better to inline some function, so 
+would be better to inline some function, so as
 to remove the need for the function call to happen, 
 also if a function has been inlined, this might allow further
-inlining to occur, such as constant folding.
+optimizations to occur, such as constant folding.
 
 Constant folding is replacing a branch instruction
 (in Haskell a \verb|case| expression), where the outcome is 
-known at compile time with the code for that branch only.
+known at compile time with the code for the taken branch only.
 
-First I will explain constant folding in more detail since
+I will first explain constant folding in more detail since
 it is a more simple concept.
-
 Given an expression 
-
 \begin{HaskellLst}
 case 2 of 
   1 -> e
   2 -> e'
 \end{HaskellLst}
-
 Using constant folding this expression would be reduced to
-
 \begin{HaskellLst}
 e'
 \end{HaskellLst}
-
-Functional inlining is more interesting. The technique I used
+Functional inlining is a more interesting problem. The technique I used
 was heavily influenced by the paper \cite{ghc-inliner}, its 
-revolves around when to inline:
+revolves around deciding when to inline the expression:
 \begin{HaskellLst}
 let x = e in e'
 \end{HaskellLst}
-where \verb|e'| contains free references to \verb|x|.
+where \verb|e'| may contains free (unbound) occurences of \verb|x|.
 Other parts of the syntax that could be inlined
 can instead to written in terms of a \verb|let| construct.
-
 \begin{HaskellLst}
 (\x -> e) e'
 \end{HaskellLst}
@@ -351,7 +356,6 @@ Goes to
 \begin{HaskellLst}
 let x = e' in e 
 \end{HaskellLst}
-
 Now when to inline the \verb|let| construct is a very hard
 question to answer. We make sure of two things, one the 
 inline must terminate, therefore we cannot inline recursive 
@@ -362,22 +366,24 @@ First I will consider the termination.
 This is more easily solved than the second problem.
 I simply don't inline any recursive functions.
 When trying to answer the question of whether the inlined
-code will perform better, there is a load of subtly. First
-I will say better means runs faster. Then two thing must
-be worked out to decide if inlining is a good idea, first
-the code of computing \verb|e'| and second the number of times
-\verb|x| appear in \verb|e|. We want the cost of computing
+code will perform better, there is a load of subtly. 
+Better here is used to mean a smaller runtime. Then two thing must
+be computed to decide if inlining is a good idea, 
+the cost of computing \verb|e'| and the number of times
+\verb|x| appears in \verb|e|. We want the cost of computing
 \verb|e'| to be small and the number of times \verb|x| appear
-in \verb|e| to also be small. I came up with version simple
-metrics
+in \verb|e| to also be small. I came up with very simple
+metrics:
 \begin{itemize}
-  \item For the cost of \verb|e'| I just assumed it to be constant.
-    I is not possible to know the cost at compile time, only
-    heuristic could be used. For example if the expression
-    \verb|e'| contained any recursive functions
-    then have a high cost to compute \verb|e'|.
+  \item The cost of \verb|e'| I just assumed it to be constant.
+    It is not possible to know the cost at compile time to compute an
+    expression, therefore heuristics must be used. 
+    For example if the expression \verb|e'| contained any 
+    recursive functions then it may have a higher cost to 
+    compute \verb|e'|, than a function without any recursive function 
+    calls inside.
 
-  \item For the number of times \verb|x| is free in \verb|e'|
+  \item The number of times \verb|x| is free in \verb|e'|
     this value can be computed, then I said any time that
     there are four or more free occurrences, don't inline.
     If there are less than four free occurrences then inline.
@@ -386,12 +392,12 @@ metrics
 A function is syntactically recursive if there is mention of the
 function name inside the function body. This is an over approximation
 since it may be the case that the function never recurses, however
-that cannot be known at compile time, hence a safe to over approximation is
+that cannot be known at compile time, hence an approximation is
 made instead.
 When counting the number of times a variable is free in an expression, 
-it suffices to count each time to variable name exists in the tree, until
-it is named in a $\lambda$ function at which point return the count for
-than given path in the tree. The case expression can have multiple
+it suffices to count each time to variable name exists in the syntax tree, 
+until it is named in a $\lambda$ function at which point return the current count 
+for than path in the syntax tree. The \verb|Case| expression can have multiple
 branches in the tree each which may have a different counts
 of the occurrence of a variable name, the maximum occurrence over all these
 branches is passed up to the parent.
@@ -414,15 +420,19 @@ In the preparation section I created a document to mark down the
 translation between the CoreExpr data-type and JVM bytecode instructions.
 Code Generation is just finding a correct mapping between \texttt{CoreExpr} defined in 
 \namefig\ref{code:CoreExpr}.
-
 After considering the input data \texttt{CoreExpr}, next I considered what the result of each element 
 of the data type would map to. I have shown mapping from the \texttt{CoreExpr} data type to
 Java code for the reader convenience, however in the compiler the conversion was to JVM bytecode.
-This compiler must emulate a computation that can be carried on at a later date. This can be implemented
-using thunks. In JVHC this will be implemented by creating a class
+This compiler must emulate a computation that can be carried out at a later date. This can be implemented
+using thunks.
+A thunk can be thought of as a nullary function (one which takes no arguments) and when required will 
+perform a computation. If we have an expression $e$ we can wrap it inside a thunk $\lambda (). e$  then 
+only when we apply $()$ to this thunk does the computation take place, this allows the
+simulation of call-by-name semantics
+when the program is being run with call-by-value operation semantics. 
+In JVHC this will be implemented by creating a class
 which implements a method \verb|force|, \verb|force| will be called by \verb|get| in the default
 implementation of a thunk.
-
 \begin{JavaLst}
 public abstract class Thunk<T> implements Supplier<T> {
     private T value;
@@ -436,32 +446,30 @@ public abstract class Thunk<T> implements Supplier<T> {
     }
 }
 \end{JavaLst}
-
-The important part of this implementation is that once force has been called once
+The important part of this implementation is that once \verb|force| has been called once
 the value will be cached inside this class and future calls to \verb|get| will result
-in the cached value being returned. The thunk will implement the supplier interface:
+in the cached value being returned. The thunk class will implement the supplier interface:
 \begin{JavaLst}
 public interface Supplier<T> { T get(); }
 \end{JavaLst}
-in the hope of better integration with existing Java 8 functional interfaces
-
-Functions will also implement the Function interface
+in the hope of better integration with existing Java 8 functional interfaces.
+Functions will implement the Function interface
 \begin{JavaLst}
 public interface Function<T, R> { R apply(T t); }
 \end{JavaLst}
-When first implementing code generation there were bugs, in the implementation
+When first implementing code generation there were bugs in the implementation
 where the mapping between \texttt{CoreExpr} and the lazy language implemented
-via the use of thunks. Due to this I decided to formalise this translation, 
-the result was a mathematical framework for expression both 
-\texttt{CoreExpr} and the thunk language called core calculus and 
-core calculus$_\star$ respectively. This is included 
-Appendix~\ref{appendix:thunkProof}. 
+via the use of thunks. Due the bugs in the first attempt to implement the 
+translation I decided to formalise the translation.
+The result was a mathematical framework for expressions defining both 
+a core calculus which defines how Haskell could theoretically execute and 
+core calculus$_\star$ which is similar to how expressions will
+execute on the JVM. This is included in Appendix~\ref{appendix:thunkProof}. 
 The notation $\thunk{e}$ means, the value $e$ is wrapped in a thunk. Then
-$\unwrap{t}$ means, get the value from the thunk $t$. This would direct map to
-calling \texttt{get} then implemented in JVM bytecode.
-The translation relation $\tlthunk$ from core calculus to core 
-calculus$_\star$ is defined as:
-
+$\unwrap{t}$ means reduce the expression to a value from the thunk $t$. 
+This would directly map to calling \texttt{get} when implemented in 
+JVM bytecode. The translation relation $\tlthunk$ from core 
+calculus to core calculus$_\star$ is defined as:
 \begin{align*}
   &\frac{}{c \tlthunk \thunk{c}}\\ \\
   &\frac{}{x \tlthunk \thunk{x}}\\ \\
@@ -478,15 +486,11 @@ calculus$_\star$ is defined as:
   {\thunk{\mathtt{case}\ \unwrap{e_\tlang}\ \mathtt{of}\ b_1 \rightarrow \unwrap{e_{1_\tlang}}; 
       \dots; b_n \rightarrow \unwrap{e_{n_\tlang}}}}}
 \end{align*}
-
-Then from this it can proved in Appendix~\ref{appendix:thunkProof} 
+Then from this it is proved in Appendix~\ref{appendix:thunkProof} 
 that the call-by-name transition relation that Haskell should implement
-will map directly to a finite number of call-by-value 
-transition relation steps, which will run in the same way the JVM does.
-This is the JVM and the mapping run under eager (call-by-value)
-semantics.
-
-
+as defined in the Haskell 98 report will map directly to a 
+finite number of call-by-value transition relation steps, 
+which execute in a similar way to the JVM.
 
 \subsection{Variable scope}
 There are two places that variables can be caught in scope.
@@ -498,9 +502,8 @@ There are two places that variables can be caught in scope.
     which can contain many references to many variables. These
     will be in the form of thunks defining all top level functions.
 \end{itemize}
-
-The following code example 
-would be laid out in a scope hierarchy as in \namefig~\ref{figure:scope_map}
+The following code example would be laid out in a scope hierarchy as in 
+\namefig~\ref{figure:scope_map}
 \begin{figure}
 \begin{HaskellLst}
 id x  = x
@@ -540,27 +543,26 @@ references to variables, then arrows signify a reference to the object
 being pointed to in the object which the arrow stems.}
 \label{figure:scope_map}
 \end{figure}
-
-The top level functions of the program will be stored in an \verb|Env| class, then each
-possibly mutually recursive function will have a reference to every other function, via the \verb|Env| class.
+The top level functions of the program will be stored in an \verb|Env| class,
+then each possibly mutually recursive function will have a reference 
+to every other function, via the \verb|Env| class.
 
 \subsection{CoreExpr Constructs}
 
 When generating bytecode each construct in the \verb|CoreExpr| type is 
-considered in turn. For each construct if will result in returning an
-amount of bytecode which will be expected the parents of this node.
+considered in turn. For each construct considered the result will be
+an amount of bytecode which will be expected the parent of this node.
 It is also possible that a separate \verb|.class| file will
-be created in the case of a $\lambda$-function say. Then at parent
-of a \verb|CoreExpr| tree will be the top level scope called \verb|Env|.
-This will contain references to all top level functions
+be created (in the case of a $\lambda$-function say). Then the parent
+of a \verb|CoreExpr| tree will be the top level scope class 
+called \verb|Env|. This will contain references to all top level functions
 and a \verb|main| method. The main method allows this program
 to be run as a standalone program. The \verb|Env| class
 can also be accessed from other JVM compatible programming
-languages and will expose the top level functions
-defined in the source file. I will not go over 
+languages. The \verb|Env| class will expose the top level functions
+defined in the source file. I will now go over 
 each of the 6 constructs in turn explaining how they are 
 translated into JVM bytecode:
-
 
 \begin{itemize}
 \item The \texttt{Lit} construct will be represented as either a
@@ -589,19 +591,17 @@ public class &\textit{NAME}& implements Function {
 \end{JavaLst}
 \textit{NAME} will be the unique name of the function.
 \textit{ty} will return the Java type of the either the binder \texttt{b}
-or the expression in the lambda \texttt{e} and $\llbracket \texttt{e} \rrbracket$ is a sequence
+or the expression in the lambda \texttt{e} and 
+$\llbracket \texttt{e} \rrbracket$ is a sequence
 of expression produced by converting \texttt{e} to a JVM bytecode.
-
-The code snipped returned will create a function object for this function
-and then wrap it inside a thunk. This is the Java implementation of 
-translation relation above.
-
+The code snipped returned will create a function object for the function
+referenced in the \verb|CoreExpr| datatype and then wrap it inside a thunk.
+This is the Java implementation of translation relation $\tlthunk$ above.
 \begin{JavaLst}
 new ObjThunk(new &\textit{Name}&(&\textit{Parent}&));
 \end{JavaLst}
 
-\item The \verb|App| mapping first creates a class which represents the thunk for 
-  \verb|App e1 e2|, 
+\item The \verb|App| mapping first creates a class which represents the thunk for \verb|App e1 e2|, 
 
 \begin{JavaLst}
 public class &\textit{AppName}& implements Thunk {
@@ -616,7 +616,6 @@ public class &\textit{AppName}& implements Thunk {
 }
 \end{JavaLst}
 Then the returned source code is 
-
 \begin{JavaLst}
 new &\textit{AppName}&(&\textit{Parent}&);
 \end{JavaLst}
@@ -635,15 +634,17 @@ new &\textit{AppName}&(&\textit{Parent}&);
 The library used to format JVM bytecode was Codec-JVM. This provides
 a simple to use Haskell interface to write JVM bytecode.
 The library exposes a type called \verb|Code| which was a monoid. 
-In Haskell terms all a monoid means is that the type exports two functions
-\verb|mempty| and \verb|<>|, the first return an empty value and then 
-second takes two variables of type \verb|Code| and combines them.
+In Haskell a monoid requires two functions to be defined
+\verb|mempty| and \verb|<>| (called \verb|mappend|), 
+the first returns an empty value and then 
+second takes two variables of type \verb|Code| and combines them, returning
+a new \verb|Code| variable.
 Variables with type \verb|Code| maps closely to JVM bytecode instructions.
-For example there is a function \verb|new| which takes a Java type 
-and returns a variable
-of type \verb|Code|, this is very similar to the JVM bytecode instruction
-\verb|new|. The JVM \verb|new| instructions create an object of the type
-passed as an operand to this bytecode instruction. 
+For example there is a function \verb|new|$_\text{Hask}$ which takes a Java type 
+and returns a variable of type \verb|Code|, 
+this is very similar to the JVM bytecode instruction
+\verb|new|$_\text{JVM}$. The JVM \verb|new|$_\text{JVM}$ instruction creates
+an object of the type passed as an operand to this bytecode instruction. 
 Then the following Haskell code:
 \begin{HaskellLst}
    new             &\textit{ObjType}& 
@@ -656,14 +657,14 @@ new           #2            // class ObjType
 dup
 invokespecial #3            // Method ObjType."<init>":()V
 \end{JVMLst}
-This continent Haskell interface and control flow handling 
-are main the features that I used from this library.
+The convenient Haskell interface and control flow handling 
+are main the features that I used from Codec-JVM.
 
 \subsection{Generating Correct JVM Bytecode}
 
 When loading \verb|.class| files the JVM will run a verifier (as defined
 by the JVM specification \cite[\S 4.10]{jvm-spec8}) on the 
-loaded bytecode. The verifier will check things such as:
+loaded bytecode. The verifier will check to make sure that:
 \begin{itemize}
   \item There are no operand stack overflows or underflows.
 
@@ -673,16 +674,16 @@ loaded bytecode. The verifier will check things such as:
 \end{itemize}
 These verification conditions helped to debug the outputted code. 
 When I started out generating bytecode I was generating code
-which didn't conform to some of all of these verification conditions.
-Since each \verb|CoreExpr| construct generates a small piece of
-code $C$ this meant it was hard a first to made sure
-that no $C$ would add or remove too many operands. It was very
-helpful that when the \verb|.class| file was loaded the verifier
-would give immediate feedback. The verifier also checks that
+which didn't conform to all of these verification conditions.
+\verb|CoreExpr| constructs each generated a small piece of
+code $C$, this meant it was hard at first to made sure
+that no $C$ would add or remove the wrong number of operands. It was very
+helpful that when the \verb|.class| file was loaded, that the verifier
+would give immediate feedback. The verifier also checked that
 after each branch the type of each element on the stack
-are the same, this again was very helpful when debugging \verb|case|
-statements. This means I can be sure that each branch of a case statement
-will return a stack with each element of the same type (or sharing a 
+was the same, this again was very helpful when debugging \verb|case|
+statements. This meant I could be sure that each branch of a case statement
+would return a stack with each element being the same type (or sharing a 
 common parent type).
 
 
@@ -691,7 +692,11 @@ common parent type).
 There is a small runtime library included with JVHC, this library is implemented in Java code.
 This allowed for arbitrary side effect free Java code to invoked by Haskell code. 
 The JVHC compiler must also be made aware of the type and Java name of each of the functions exposed from 
-the Java world. The runtime is bundled in the package \verb|BuildIn|, and includes for example
+the Java world. This means exposing a new function to JVHC will
+require the source of the compiler to be edited, it would 
+be better is configuration file was implement or even better
+a keyword in the source to expose new functions to Haskell.
+The runtime is bundled in the package \verb|BuildIn|, and includes for example
 a function to add two integers.
 
 \subsection{I/O Monad}
@@ -699,26 +704,26 @@ a function to add two integers.
 Haskell, as mentioned previously, is a pure language without side effects. If Haskell
 is to allow I/O or any possible side effect, then this can be implemented using an I/O
 monad abstraction. The I/O monad represents a sequence of instructions that when run will result in 
-the sequence of value being executed in order. The I/O monad can only be run by the runtime
-of the program. This happens when the I/O monad is returned from the executing code
-to the \verb|main| function at which point the runtime will force evaluation of the monad,
-since Haskell program itself never start the computation purely of functions is preserved even
-with the I/O monad.
-Then code like this can be written which will read continuously read a value and print out $2\times$ that
-value
+the sequence operations being executed in order they were defined in the 
+program (not the order they were evaluated, since Haskell is lazy
+this two ordering maybe different). The I/O monad can only be run by the runtime
+of the program. This happens when the I/O monad is returned from the executing 
+\verb|main| function at which point the runtime will force evaluation of the 
+I/O monad,
+The following code will read continuously read a value and print out 
+$2\times$ that value
 \begin{HaskellLst}
 times2 :: IO Int
 times2 = getInt >>= (\i -> putInt (i*2) >> times2)
 \end{HaskellLst}
-There are three thing to explain. \verb|getInt :: IO Int| create a computation that when called 
-will return a \verb|IO Int|, then represents the computation that when run 
-\verb|putInt :: Int -> IO ()| will take an int value and print it to the screen. Then 
+\verb|getInt :: IO Int| creates a monad that when evaluated (by the runtime)
+will try to read an integer from stdin.
 \verb|>>= :: IO a -> (a -> IO b) -> IO b| (pronounced bind) is used to combine monads.
-The type of \verb|>>=| is interesting, it allow access to the value inside the monad (this is 
-useful since at the current point of execute the value which will be passed to the function may 
-still not be know). Then \verb|>>| is similar to \verb|>>=| put ignoring the result of the 
-first monad.
-The I/O monad is implemented as a Java interface
+\verb|>>=| allows access to the value inside the monad (this is 
+useful since at the current point of execute the value 
+which will be passed to the function will not be know). 
+Then \verb|>>| is similar to \verb|>>=| but ignoring the result of 
+the first monad. The I/O monad is implemented as a Java interface
 \begin{JavaLst}
 public interface IO<R> { R unsafePerformIO(); }
 \end{JavaLst}
@@ -727,12 +732,13 @@ function.
 
 \section{Open Source contribution}
 
-When using the Codec-JVM library for code generation I extend the library
-adding support for both JVM bytecode instructions, which the library had
-not already implemented. I added support for \verb|instanceof|, 
-\verb|dup_x1| and \verb|athrow|. I then created a Github pull request and 
-the change was merged into the master branch of the library 
-\cite{codec-contrib}.
+When using the Codec-JVM library for code generation I
+extend the library adding support for JVM bytecode instructions not already
+implemented by the library.
+Support was added  for \verb|instanceof|, \verb|dup_x1| and \verb|athrow|. 
+I then created a Github pull request and the change was merged 
+into the master branch of the library, with the commit
+here \cite{codec-contrib}.
 
 % \section{Benchmarking}
 

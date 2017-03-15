@@ -161,34 +161,30 @@ at the Java interface.
 \section{Tools Used}
 
 There were many tools used throughout the project, git was used for 
-code management version control and new idea exploration. Every time
-I had a new idea about how to implement something I could create a branch
-was on the feature, then it this implementation idea was successful, it
-would be merged back into the main branch. The git history was used when
-writing the dissertation, I used commit history to create the time line
-of work activity. Finally I created a Github repository and used this 
-to backup milestones reached along the project. 
+code management, version control and new idea exploration. Every time
+I had a new idea about how to implement something I could create new a 
+branch, work on the feature, then if the implementation idea was successful, 
+it would be merged back into the main branch. 
+The git history was used when writing the dissertation.
+I used commit history to create the time line
+of implementation work activity. 
+I created a Github repository and used this to backup milestones reached 
+along the project using the \verb|git push| command.
 Dropbox was used through the project to backup code files and data generated 
-through the project.
+through the project, Dropbox will automatically sync and file change
+onto the external Dropbox servers. Dropbox also has a record of all
+version of a synced file, I sometimes needed access to old versions
+of data files, this Dropbox feature was invaluable throughout the project.
 IntelliJ \cite{intellij-ide} was used as an IDE when writing the Java
 runtime library associated with JVHC. IntelliJ was also used to decompile
-bytecode generated from JVHC, this was very useful in checking logical
-bugs in outputted bytecode.
-
-% \begin{itemize}
-%   \item Git -- branch for new ideas.
-%   \item Vim + Haskell plugin -- No better IDE.
-%   \item IntelliJ Java IDE and decompiler -- Examine generated code and writing separate libraries.
-%   \item Cabal, manage complex project.
-% \end{itemize}  
-
-  Haskell's default build system is called Cabal \cite{cabal}, I 
-  decided Cabal 
-  since there would be multiple included external libraries,
-  many code files from my project and a benchmarking and test project
-  that a build system would be very useful for managing all of this
-  complexity. Cabal is very simple and provides support
-  for many different project types:
+bytecode generated from JVHC, this was very useful when checking logical
+bugs in the outputted bytecode.
+Haskell's default build system is called Cabal \cite{cabal}. I 
+decided to since Cabal since there would be multiple included external libraries,
+many code files and different project configurations.
+A build system would therefore be very useful to manage this
+complexity. Cabal is very simple tool to use and provides support
+for many different project types:
   \begin{itemize}
     \item Library (This is how the compiler code is implemented).
 
@@ -199,15 +195,15 @@ bugs in outputted bytecode.
 
     \item Benchmark.
   \end{itemize}
-  For writing unit tests I am using HUnit \cite{hunit},
-  this provides a unit test framework and 
-  also a quick-check framework. 
-  I will use the unit test framework of the library, 
-  to write tests for all stages of the compiler.
-  Multiple parts of the compiler and outputted code will
-  need to be benchmarked. I used a benchmarking library called
-  Criterion \cite{criterion} for micro-benchmarks (running a function
-  multiple times and finding the mean runtime with accuracy bounds).
+For writing unit tests I am using HUnit \cite{hunit},
+this provides a unit test framework and also a quick-check framework. 
+I will use the unit test framework of the library, 
+to write tests for all stages of the compiler.
+Multiple parts of the compiler and outputted code will
+need to be benchmarked. I used a benchmarking library called
+Criterion \cite{criterion} for micro-benchmarks, running a function
+multiple times and finding the mean runtime with accuracy bounds.
+Accuracy bound were useful in writing the evaluation section.
 
 \section{General}
 
@@ -226,38 +222,35 @@ I decided to write the compiler in Haskell, this choice was made for two reasons
   noting the need for kind inference, I then decided to 
   place this process in the desugaring stage of the pipeline. 
   Then after reading the JVM 
-  specification \cite{jvm-spec8} to figure out how each of the 
-  Haskell constructs could be implemented on the JVM. I produced a
-  document which my supervisor and I looked over and agreed
-  on the fact this would be a simple and efficient implementation
+  specification \cite{jvm-spec8} I produced a
+  document which my supervisor and I discussed and agreed
+  upon the fact this would be a simple and efficient implementation
   of the Haskell constructs. The document is included in 
   Appendix~\ref{appendix:bytecodetranslationdoc}. 
   The JVM is a good backend choice to compile Haskell to for two
-  reasons, first it allows access to the fully features set
-  of JVM tools as mentioned in the introduction and secondly
+  reasons, first it allows access to the full feature set
+  of JVM tool as mentioned in the introduction and secondly
   the JVM itself provides garbage collection and 
-  a more simple backend target (more simple than x86).
-  This allows me to implement a whole compiler in the timescale given.
+  a more simple backend target (when compared to machine assembly).
+  This allowed me to implement a whole compiler in the timescale given.
   I will now discuss the decisions made for each stage of the 
   pipeline before beginning the implementation.
 
-
 \section{Lexing and Parsing}
 
-I chose to use a lexing generator called Alex \cite{alex-lib} and a parsing generator called 
-Happy \cite{happy-lib}.
+I chose to use a lexing generator called Alex \cite{alex-lib} and a parsing generator called Happy \cite{happy-lib}.
 These two libraries are very similar to Lex \cite{lex-lib} and Yacc
-\cite{yacc-lib}, but target
-Haskell.
-They both have manuals on their respective webpages which document creating a simple example and then
-moving onto more complex examples.
-
-I also looked at the Haskell 98 report \cite[2.,3.]{haskell98-spec}
+\cite{yacc-lib}, but target Haskell.
+They both have manuals on their respective webpages which document 
+implementing a simple lexer and parser respectively then describing
+more complex examples.
+I also looked at the Haskell 98 report \cite[\textsection2.,3.]{haskell98-spec}
 to figure out what syntax JVHC will support and therefore, what 
 should be supported by my lexer and parser implementations.
 The implementation will not support all of the Haskell 98 
-specification meaning that the 
-language accepted by the lexer and parser could be simplified some what.
+specification meaning that the language accepted by the lexer and 
+parser could be simplified some what when compared to the full
+grammar defined in the report.
 
 Haskell 98 is a whitespace sensitive language meaning that the parser must use a
 context sensitive grammar to correctly parser a program:
@@ -295,8 +288,8 @@ formalize the notion of checking all custom data types declared.
 The syntax of kinds is
 \[ \mathtt{K} ::= \mathtt{*}\ |\ \mathtt{K}\  |\ \mathtt{K}_1 \rightarrow \mathtt{K}_2 \] 
 Where \texttt{*} is called type and will match another
-\texttt{*}, then \texttt{K} is a kind variable, and $\mathtt{K} \rightarrow \mathtt{K}$ is a type
-to type constructor. Haskell also imposes another constraint that any type variable \texttt{K} will
+\texttt{*}, then \texttt{K} is a kind variable, and $\mathtt{K} \rightarrow \mathtt{K}$ is a type to type constructor.
+Haskell also imposes another constraint that any type variable \texttt{K} will
 be default to \texttt{*} (after kind inference) so as to give 
 unique kind to each declaration without any kind variables.
 The Haskell 98 report has a section \cite[4.6]{haskell98-spec} called Kind inference.
@@ -357,8 +350,8 @@ reduce to a term with no $\beta$-redexes in a finite number of steps.
 
 \section{Code Generation}
 
-I familiarized myself with the JVM8 specification \cite{jvm-spec8}, and finally wrote a 
-document in Appendix~\ref{appendix:bytecodetranslationdoc} about how I would implement code generation, 
+I familiarized myself with the JVM8 specification \cite{jvm-spec8}, and finally wrote a document in Appendix~\ref{appendix:bytecodetranslationdoc} 
+about how I would implement code generation, 
 at a high level before starting to write any code.
 
 To generate bytecode I will use the library Codec-JVM \cite{codec-jvm-link}. This library 

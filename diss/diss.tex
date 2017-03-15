@@ -119,6 +119,8 @@
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage{tikz} 
+\usepackage{forest}
+\usepackage{calc}
 \usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,fit,positioning,shapes.symbols,chains}
 
 % Proof 
@@ -172,6 +174,17 @@
   root/.style     = {treenode, font=\Large},
   env/.style      = {treenode, font=\ttfamily\normalsize},
   dummy/.style    = {circle,draw}
+}
+
+\forestset{
+  make tab/.style args={#1:#2:#3/#4:#5:#6/#7:#8:#9}{%
+    content={%
+      \tabcolsep=.6\tabcolsep
+      \begin{tabular}{p{\widthof{x}}|p{\widthof{x}}|p{\widthof{x}}}
+        #1 & #2 & #3\\\hline#4&#5&#6\\\hline#7&#8&#9
+      \end{tabular}}},
+  label position r/.initial=right,
+  label position b/.initial=below
 }
 
 

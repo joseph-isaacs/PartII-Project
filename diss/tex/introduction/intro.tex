@@ -13,7 +13,8 @@
 \usepackage[font=small,labelfont=bf]{caption}
 
 \usepackage{amsmath}
-
+\usepackage{booktabs}
+\usepackage{textcomp}
 \usepackage{csquotes}
 \usepackage{color}
 
@@ -54,6 +55,21 @@
 
 \lstnewenvironment{HaskellLst}{%
   \lstset{style=HaskellStyle}}{}
+
+\usepackage{tikz}
+\usepackage{forest}
+\usepackage{calc}
+
+\forestset{
+  make tab/.style args={#1:#2:#3/#4:#5:#6/#7:#8:#9}{%
+    content={%
+      \tabcolsep=.6\tabcolsep
+      \begin{tabular}{p{\widthof{x}}|p{\widthof{x}}|p{\widthof{x}}}
+        #1 & #2 & #3\\\hline#4&#5&#6\\\hline#7&#8&#9
+      \end{tabular}}},
+  label position r/.initial=right,
+  label position b/.initial=below
+}
 
 \newcommand{\namefig}{\textbf{Figure}~}
 
@@ -104,7 +120,7 @@ The Haskell 98 \cite{haskell98-spec} report defines the Haskell language
 and a small standard library.
 Haskell can be thought of as a lambda calculus, with an ML-like type system,
 but with qualified types \cite{qualified-types}, known in 
-Haskell as Type Classes. This compiler will
+Haskell as Type Classes. JVHC will
 leave out parts of the standard library, however in the future 
 iterations of the compiler these 
 features could be implemented, since the features are available via the JVM.
@@ -113,6 +129,8 @@ also adding new functionality will not show any new skills.
 The compiler will also not support Type classes. The interesting
 part of the compiler project will be implementing a lazy language (Haskell)
 on the JVM with eager semantics.
+It will be useful for take a look at some Haskell definitions to get
+an overview of the benefits Haskell can bring to software engineering.
 Haskell allows definition of infinite data structures:
 \begin{HaskellLst}
 nat :: Int -> [Int]
@@ -127,8 +145,8 @@ this is possible due to the lazy nature of Haskell.
 The first line is an optional type signature, Haskell
 uses \verb|::| to denote ``is of type'' and a single \verb|:| to denote cons (list append), unlike ML-like languages. Then \verb|[Int]| signifies a list
 of \verb|Int| where \verb|Int| will be a fixed precision 
-signed integer in the range $[-2^{29},2^{29}-1]$ 
-as defined in the Haskell 98 report \cite[\textsection6.4]{haskell98-spec}.
+signed integer as defined in the Haskell 98 report 
+\cite[\textsection6.4]{haskell98-spec}.
 Then there is a function \verb|take :: Int -> [a] -> [a]| which will
 take the first $n$ elements from a list returning a new list with at most
 $n$ elements.
@@ -140,6 +158,87 @@ take 5 (nat 2)
 then this will take the first 5 elements from the infinite list returning 
 a finite list (once the expression is evaluated).
 
+After defining some simple syntax a more motivating example is presented
+which is inspired by a paper called ``Why Functional Programming Matters''
+\cite[\textsection5]{whyfpm}. 
+In the following example a possibly infinite game tree for a simple
+two player game can be defined 
+\begin{HaskellLst}
+data Tree a = Node a [Tree a]
+
+repTree :: (Position -> [Position]) -> Position -> Node Position
+repTree f x = Node x (map (repTree f) (f x))
+
+gameTree :: Position -> Node Position
+gameTree x = repTree moves x
+\end{HaskellLst}
+We assume that \verb|Position| is a type define elsewhere in the program 
+which stores a specific state in the game. 
+\verb|moves| will be a function which returns all possible moves given a state.
+Then calling \verb|gameTree startPos| will create
+a game tree with every single possible move either player can make throughout
+the whole game. The game could have infinitely many states, but since
+Haskell is a lazy language the next state positions are only computed
+when required. \namefig\ref{figure:tictactoeTree} shows the first two level of the game tree.
+The value of each node in the game tree is only computed when required. Noughts and
+crosses has a finite game tree, however this time data structure can represent games 
+with infinite states spaces. This example utilises both features
+of Haskell laziness and algebraic data types (ADTs), the laziness allows an 
+infinite data type to be store in memory and values will then only be computed when
+required. ADTs allow concise definitions of the \verb|Tree| data type.
+\begin{figure}
+  \centering
+\begin{forest}
+  TTT/.style args={#1:#2}{
+    make tab/.expanded=\forestove{content},
+    label={\pgfkeysvalueof{/forest/label position #1}:$#2$}
+  },
+  TTT*/.style={
+    make tab=::/::/::,
+    content/.expand once=%
+    \expandafter\vphantom\expandafter{\romannumeral-`0\forestov{content}},
+    draw=none,
+    append after command={(\tikzlastnode.north) edge (\tikzlastnode.south)},
+    for descendants={before computing xy={l*=1.2}},
+  },
+  th/.style=thick,
+  for tree={node options=draw, inner sep=+0pt, parent anchor=south, child anchor=north}
+%
+[x::/::/::, TTT=r:\textcolor{pgrey}{\textsf{Player 1}}
+ [x:o:/::/::, TTT=b:]
+ [x::o/::/::, TTT=b:]
+ [x::/o::/::, TTT=b:]
+ [x::/:o:/::, TTT=b:]
+ [x::/::o/::, TTT=b:]
+ [x::/::/o::, TTT=b:]
+ [x::/::/:o:, TTT=b:]
+ [x::/::/::o, TTT=r:\textcolor{pblue}{\textsf{Player 2}}]
+]
+\end{forest}
+\caption[Noughts and crosses game states]{First two levels of the set of all game states generated by the 
+  \texttt{gameTree} function with the starting state at the top of 
+  the tree signified by the label \textcolor{pgrey}{\textsf{Player 1}}.}
+\label{figure:tictactoeTree}
+\end{figure}
+With care it is possible to define a breadth first walk of the tree generating 
+a list of each possible move at each state space. 
+
+\begin{minipage}{\linewidth}
+\begin{HaskellLst}
+breadthFirst :: Tree a -> [a]
+breadthFirst x = breadthFirst' [x]
+  where
+    breadthFirst' ((Node n lfs: ts)) =
+      n : breadthFirst' (ts ++ lfs)
+\end{HaskellLst}
+\end{minipage}
+This definition of an infinite length data structure is trivial in 
+Haskell due to the lazy nature of the language, implementing
+a similar construct in the Java programming language would 
+require the laziness to be explicitly specified which 
+would obfuscate the intent of the code. 
+
+% \end{tikzpicture}
 
 % \begin{itemize}
 %   \item Explanation of simple Haskell features.

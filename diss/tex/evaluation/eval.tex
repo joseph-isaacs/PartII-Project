@@ -26,6 +26,12 @@
 \usepackage{verbatim}
 
 \usepackage{csquotes}
+\usepackage{listings}
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
 
 \newlength\gwidth
 \newlength\gheight
@@ -36,6 +42,48 @@
 \newcommand{\nametable}{\textbf{Table}~}
 
 \newcommand{\importMGraph}[3]{\setlength{\gwidth}{#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
+
+\lstdefinestyle{HaskellStyle}{
+  frame=none,
+  xleftmargin=2pt,
+  stepnumber=1,
+  numbersep=5pt,
+  numberstyle=\ttfamily\tiny\color[gray]{0.3},
+  belowcaptionskip=\bigskipamount,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  captionpos=b,
+  escapeinside={&}{&},
+  language=haskell,
+  tabsize=2,
+  emphstyle={\bf},
+  commentstyle=\it,
+  showspaces=false,
+  columns=flexible,
+  showstringspaces=false,
+  morecomment=[l]
+}
+
+\lstnewenvironment{JavaLst}
+{\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily,
+  escapeinside={&}{&},
+  moredelim=[il][\textcolor{pgrey}]{$$},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}}{}
+
+\lstnewenvironment{HaskellLst}{%
+  \lstset{style=HaskellStyle}}{}
 
 
 \begin{document}
@@ -48,13 +96,15 @@ The success criteria for this project fall into three categories:
   \item Usability.
 \end{itemize}
 
-I will split the evaluation into three parts, first we will
-look at the correctness of the overall project. This was established 
-with unit tests of every stage of the compiler in isolation. I 
-have justified certain choices formally (the mapping from a lazy to eager semantics
-shown in Appendix~\ref{appendix:bytecodetranslationdoc}). The performance evaluation follows 
-with comparisons between JVHC and other already existing compilers such as
-GHC, there is also a comparison of functional inlining. Usability is then discussed in more detail.
+I will split the evaluation into three parts
+
+% , first we will
+% look at the correctness of the overall project. This was established 
+% with unit tests of every stage of the compiler in isolation. I 
+% have justified certain choices formally (the mapping from a lazy to eager semantics
+% shown in Appendix~\ref{appendix:bytecodetranslationdoc}). The performance evaluation follows 
+% with comparisons between JVHC and other already existing compilers such as
+% GHC, there is also a comparison of functional inlining. Usability is then discussed in more detail.
 
 \section{Correctness}
 
@@ -66,20 +116,27 @@ was written by me to check:
   \item that anything printed to \texttt{stdout} was the correct value in the correct order. 
   \item the program terminated if it was expected to.
 \end{itemize}
-  The framework compiles a given program to a set of \texttt{.class} files, then 
+  The framework to test code generation compiles a given program to a set 
+  of \texttt{.class} files, then 
   starts an instance of the JVM which will execute these class files
-  and check that all the above conditions hold.
+  checking that all the above conditions hold.
+
+  I justified the translation from \verb|CoreExpr| to JVM bytecode
+  formally (the mapping from a lazy to eager
+  semantics shown in Appendix~\ref{appendix:bytecodetranslationdoc}).
+
 \section{Performance}
 
 \subsection{Methodology}
 
-Haskell is as mentioned before a lazy language, this means expression as build up and only
-evaluated when required. This can be a problem for benchmarking since timing how long a
+Haskell being a lazy language, builds up expressions and only
+evaluates them when required. 
+This can be a problem for benchmarking since timing how long a
 computation takes it not a straight forward as just executing that line
-of code finding the different between the system time before and after the line. Since 
-the expression may not have been evaluated. 
-To formalise this both \textit{weak head normal form} (WHNF) and \textit{normal form} (NF) must be 
-defined.
+of code finding the different between the system time before and after the line.
+The expression may not have been evaluated fully. 
+To formalise this define \textit{weak head normal form} (WHNF) and 
+\textit{normal form} (NF) as:
 \begin{displayquote}
   An expression is in weak head normal form, if it is either:
   \begin{itemize}
@@ -90,27 +147,31 @@ defined.
     \item A lambda abstraction \verb|\x -> expression|.
   \end{itemize}
 \end{displayquote}
-Definition from Haskell wiki \cite{haskell-whnf}.
-\begin{displayquote}
-  An expression is in normal form, if it contains not $\beta$-redexes. A $\beta$-redex is an
-  expression of the form $(\lambda x.e)e'$, this is a possible application that has not been reduced.
-\end{displayquote}
+  \begin{flushright} 
+    Definition from Haskell wiki \cite{haskell-whnf}.
+  \end{flushright}
+  \begin{displayquote}
+    An expression is in normal form, if it contains not $\beta$-redexes. 
+    A $\beta$-redex is an expression of the form $(\lambda x.e)e'$, 
+    this is a possible application that has not been reduced.
+  \end{displayquote}
 Then when benchmarking we want all expression to be reduced to \textit{normal form}. If expressions
 are reduced to normal form then the timing will show how long it takes to evaluate the expression
-with the lazy nature of Haskell. Haskell provides a function called \verb|seq| which is used to 
-reduce an expression to WHNF, this is not sufficient for benchmarking. GHC provides a function
-called \verb|deepseq| to reduce expression to NF, meaning benchmarks can be taken of the 
-correct value.
-
+without the lazy nature of Haskell. 
+The Haskell report defines a function called \verb|seq| which is used to 
+reduce an expression to WHNF, this is not sufficient for benchmarking. 
+GHC provides a function called \verb|deepseq| to reduce expression to NF.
+Using \verb|deepseq| when reducing an expression will result in the 
+correct value when timing a function.
 When taking timing measurements of outputted code running on the JVM care
 must be taken to produce repeatable results. The JVM will optimize loaded
 in bytecode finding common control flow paths and optimizing the translated
-bytecode for this path. The JVM will also after multiple executions
+bytecode for this path. After multiple executions
 of the same \verb|.class| file the JVM will compile the bytecode
 into native code for the architecture that the JVM is running on. 
 The native compilation is slower than interpretation if the file
 is only run a few times, since the compilation takes longer than
-interpreting the \verb|.class| file once.
+interpreting the \verb|.class| file these few times.
 To reduce the variation is timings, the JVM will be started up for 
 each individual timing test. The timing code is embedded into the
 generated program. The timing just finds the difference in 
@@ -134,14 +195,16 @@ appropriate:
   \item Garbage collection times.
   \item Comparison of inlining.
 \end{itemize}
-
-When a user first interacts with JVHC, they will notice the time taken to compile a program, so I will
-start the performance evaluation from there as in \namefig\ref{plot:TimeInStages}. We note that code generation is by far the most time consuming part of the pipeline. There is then a comparison 
-of type inference between GHC and JVHC showing only a $\times 2$ 
-decrease in the runtime cost of JVHC's TI algorithm in 
-\namefig\ref{plot:tiTime}. To show that the implementation of
+When a user first interacts with JVHC, they will notice the time 
+taken to compile a program, so the performance evaluation will begin from there,
+the results can be seen in \namefig\ref{plot:TimeInStages}. 
+This shows that the code generation is by far the most time consuming part of the pipeline. 
+There is then a comparison of type inference between GHC and JVHC 
+showing only a $\times 2$ decrease in the runtime cost of JVHC's TI 
+algorithm in \namefig\ref{plot:tiTime}. 
+To show that the implementation of
 type inference algorithm for the \verb|tiExpr| program is exponential
-it would be more convincing with more data points.
+more data points would be needed.
 Running the TI algorithm for values of $n$ larger than 5,
 caused problems since it used all the memory available to the system.
 
@@ -149,8 +212,8 @@ caused problems since it used all the memory available to the system.
 \begin{figure}[ht]
   \centering
       \importMGraph{plotStage.tex}{0.7\textwidth}{0.25\textwidth}
-      \caption[Average time taken for an average program
-      at each stage in the compiler]{The time taken in each stage of the compiler pipeline. }
+      \caption{Average time taken at each compiler stage to compile an 
+      average program}
       \label{plot:TimeInStages}
 \end{figure}
   \end{samepage}
@@ -165,25 +228,24 @@ caused problems since it used all the memory available to the system.
   \label{plot:tiTime}
 \end{samepage}
 \end{figure}
-
 There will be three programs explicitly referenced throughout the evaluation section 
 [\texttt{fib}, \texttt{testN}, \texttt{badProg}] they are all defined in 
 \textbf{Appendix}~\ref{appendix:programs}.
-The code size is a good measure of how efficiently a program can be converted
-into an executable format. The comparison is not completely fair
-between JVHC, Eta and GHC since the latter two will use dead code 
-elimination. The results are in \namefig\ref{plot:codeSize}. \texttt{-O0} (No optimizations flag) 
+Outputted code size is a good measure of how efficiently a program can be compiled into an executable format. 
+The comparison is not completely fair between JVHC, Eta and GHC 
+since the latter two will use dead code elimination. 
+The results are in \namefig\ref{plot:codeSize}. \texttt{-O0} (No optimizations flag) 
 was used when compiling, however the GHC flag guide \cite{haskell-flag-ref}
 does not provide a way to disable what it calls \texttt{-fwarn-unused-binds}.
-It can be seen that inlined code has a slightly higher code size than non inlined code.
-This extra code size is due to having both the inlined and non-inlined version of a function compiled to
-bytecode. The problem could be solved with dead code elimination. GHC has a much larger 
+It can be seen that inlined code has a slightly higher code size than non inlined code. This extra code size is due to having both the inlined and 
+non-inlined version of a function compiled to bytecode. 
+The problem could be solved with dead code elimination. GHC has a much larger 
 and more varied code size than all other compilers since this must produce a stand alone binary 
 whereas Eta, and JVHC run on the JVM with extra support libraries (not included in this comparison) 
 and the garbage collection logic is in the JVM whereas GHC must embed the logic in the binary. 
-We can also see from \nametable\ref{table:codeSize}. 
-that Eta has the smallest code size increase. Since the variation of GHC is so large I have not
-included straight line fit coefficients for this compiler. The data in the table
+It can be seen from \nametable\ref{table:codeSize}. 
+that Eta has the smallest code size increase. The variation of GHC is so large I have not
+included straight line fit coefficients for GHC. The data in the table
 was generated using the Matlab function \verb|polyfit(x,y,1)|.
 
 
@@ -202,19 +264,16 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
     JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
     eta & $6.74$ & $1.45 \times 10^{4}$
   \end{tabular}
-  \caption{Regression values for code size as a function of
-  program size}
+  \caption{Regression values for code size form data in \namefig\ref{plot:codeSize} to $y=a x+b$}
   \label{table:codeSize}
 \end{table}
-
-Next I compare the runtime of \texttt{fib}$n$ where $n$ ranges between 
-$[1,35]$ to show that the asymptotic runtime of the code output
-by each compiler is comparable in \namefig\ref{plot:fibTiming}, 
-  We see the asymptotic complexity is the same across compiled programs.
-  Least square regression was carried out fit the data to the curve
-  $a \cdot \varphi^n$, using the \texttt{lsqcurvefit} Matlab function.
-  The results in the table \nametable\ref{table:fibCoef}. We see that JVHC is 
-  about $10^2 \times$ slower than the native
+\namefig\ref{plot:fibTiming} contains a comparison of the runtime of the \texttt{fib}$n$ program where 
+$n$ ranges between $[1,35]$ showing that the asymptotic runtime of the code output
+by each compiler has the same asymptotic complexity.
+  Least square regression was carried out were the data was fit to the curve
+  $a \cdot \varphi^n$ (using the \texttt{lsqcurvefit} Matlab function).
+  \nametable\ref{table:fibCoef} shows
+  JVHC is about $10^2 \times$ slower than the native
   Java program and $10\times $ slower than the GHC program.
   This data was obtained using \texttt{-O0} flag on GHC and no inlining
   in JVHC.
@@ -236,26 +295,22 @@ by each compiler is comparable in \namefig\ref{plot:fibTiming},
   GHC & $9.49\times 10^{-8}$\\
   Java & $1.62 \times 10^{-9}$
 \end{tabular}
-  \caption{Coefficients generated from fitting the above curves
-    to the line $a\cdot \varphi^n$}
+\caption{Coefficients from fitting the data in \namefig\ref{plot:fibTiming} 
+    to the line $y=a\cdot \varphi^n$}
   \label{table:fibCoef}
 \end{table}
 
 
-I will next look at the effect that inlining has on the runtime of the 
-program, to notice a difference input runtime very large values of $n$ (the 
-argument to the function) were benchmarked. The result for this
-example is clear that the runtime is improved when inlining is used shown in \namefig\ref{plot:inlinePlot}.
-Fitting at straight line $y=ax+b$ to both curves gives 
-  \{[Inlined, $a=1.11\times 10^{-6}, b = 0.076$]\} and 
-  \{[Not Inlined, $a = 1.36\times 10^{5}, b= -0.04$]\}, leading to a speed up of $12 \times$ speed up.
-  There is a notable jump in runtime for the inlined program, this is due to a GC 
-  executing at one point through out the execution larger values of $n$. 
+The effect that inlining has on the runtime of some program can be seen from
+\namefig\ref{plot:inlinePlot}. 
+ There is a noticeable runtime improvement when inlining is used.
+Fitting both the sets of data to a straight line $y=ax+b$ yields the following
+coefficients in \nametable\ref{table:inlineCoef}, this shows a $12 \times$ speed up.
+  There is a notable jump in runtime for the inlined program for $n > 2.7 \times 10^{4}$, 
+  this is due to a single garbage collection cycle.
   This figure shows that there is a definite benefit, 
-  in term of runtime, applying inlining to this program, however
-  it is not always the case the inlining improves performance as will 
-  be seen later. 
-
+  in terms of runtime gained from applying inlining to \texttt{testN}. Inlining however
+  will not always improve runtime performance, as will be shown later. 
 \begin{figure}
 \begin{samepage}
   \centering
@@ -264,71 +319,75 @@ Fitting at straight line $y=ax+b$ to both curves gives
   {Plot of input value passed to \texttt{testN} against time to run in seconds,
     also included in the time that the garbage collection (GC) ran in the program 
     without functional inlining, GC never ran during the execution of the 
-    program with functional inlining. }
+    program with functional inlining.}
   \label{plot:inlinePlot}
 \end{samepage}
 \end{figure}
-
-A factor that effects the qualify of compiled program is how much memory
-is used when executing the program. I will look at the maximum call stack size
-of a running program in \namefig\ref{plot:stackSize}, and then we will look at memory usage in 
-\namefig\ref{plot:memUsed} both of \texttt{testN}. 
-We notice that the maximum call stack height linearly increases with $n$. 
-This data was also fit to a straight line curve
+\begin{table}
+  \centering
+\begin{tabular}{c | c  c}
+  & $a$ & $b$\\
+  \hline 
+  Inlining & $1.11\times 10^{-6}$ & $0.076$\\
+  No Inlining & $1.36\times 10^{-5}$ & $-0.04$
+\end{tabular}
+\caption{Coefficients from fitting the data in \namefig\ref{plot:inlinePlot} to 
+  a straight line $y=ax+b$}
+  \label{table:inlineCoef}
+\end{table}
+Factors that effect the qualify of a compiled program include how much memory
+is used throughout execution of a program. Two peformance metrics were collection throughout
+separate runs of the program \texttt{testN}. The maximum call stack size
+shown in \namefig\ref{plot:stackSize} and the maximum 
+memory usage in \namefig\ref{plot:memUsed}. 
+The maximum call stack height linearly increases with $n$, fitting to a straight line curve
 with the equation $a\cdot x + b$ resulting in the table in \nametable\ref{table:stackGrowth} 
-and a about a $2\times$ reduction in the maximum thunks allocated and therefore
-maximum call stack height. There is also a noticeable different is peak memory usage, 
+and a about a $2\times$ reduction maximum call stack height. 
+There is also a noticeable different is peak memory usage, 
 showing reduced memory usage when inlining is enabled.
-This show there is a very high correlation between maximum
-stack height and memory usage, which leads to the conclusion, that reducing the 
-max stack height would reduce memory usage and hopefully lead to less garbage collections.
-
-This data was gathered for max stack height by, 
-generating a call stack at any point in the computation that could 
-be a maximum thunk depth, this could be at a \texttt{Var} or \texttt{Lit} construct from
-the \texttt{CoreExpr} data type. The JVM flag \texttt{MaxJavaStackTraceDepth} was used to increase
-the stack height to a value greater than the maximum value returns from running this test.
+There is a very high correlation between maximum stack height and memory usage.
+Leading to the conclusion that reducing the max stack height would 
+reduce memory usage, and if less objects are allocated, less garbage collection cycles.
+This data was collected for max stack height by generating a call stack at any 
+point in the computation that could be a maximum thunk depth.
+It could be a maximum thunk depth at any leaf in the \texttt{CoreExpr} tree
+(\texttt{Var} or \texttt{Lit}). The JVM flag \texttt{MaxJavaStackTraceDepth} was used to increase
+the stack height to a value greater than the maximum value returns from running this test (about $10^{4}$).
 The data for memory usage was gathered by looking at JVM traces, 
-enabled with the flag \texttt{PrintGCDetails}. This is therefore an over estimate of
-peak memory usage. 
-
+enabled with the flag \texttt{PrintGCDetails}. 
+This is therefore an over estimate of peak memory usage. 
 \begin{figure}
   \centering
   \importMGraph{plotCallStackGrowth}{0.96\textwidth}{0.3\textwidth}
   \caption{Maximum call stack height for \texttt{testN} as a function of $n$}
   \label{plot:stackSize}
 \end{figure}
-
 \begin{table}
   \centering
   \begin{tabular}{ c | c c}
   & $a$ & $b$\\
   \hline
-  JHVC & 11 & 29 \\
-  JHVC with inlining & 5 & 18 
+  Inlining & 5 & 18 \\
+  No Inlining & 11 & 29 
   \end{tabular}
   \caption{Fitting of the data from stack growth to the line $y = a\cdot x + b$.}
   \label{table:stackGrowth}
 \end{table}
-
-
 \begin{figure}
   \centering
   \importMGraph{memUsed}{0.96\textwidth}{0.3\textwidth}
   \caption{Memory used in \texttt{testN} as a function of $n$}
   \label{plot:memUsed}
 \end{figure}
-
-Finally in the performance section, functional inlining it now always a good idea.
-It is possible that inlining functions may lead to increased runtime as shown in 
+Functional inlining, as mentioned earlier, is not always a good idea.
+It is possible that inlining functions may lead to increased runtime, shown  
 Figure~\ref{plot:badInline}. 
-This shows that inlining can cause a reduction in performance, 
-this is due to inlining the expensive function \texttt{sumNProg}. The current implementation 
-will inline the function \texttt{testN} causing it be evaluated three times adding the results each time
-whereas no inlining will only compute \texttt{sumNProg} once and then add the result 3 times, 
-which will be faster. The drop in the inlined program performance at about $120 \times 10^3$, 
+The increase in runtime is due to inlining the expensive to compute function 
+\texttt{sumN} which will be evaulated three times adding the results each time. 
+Whereas no inlining will only compute \texttt{sumN} once and then add the result 3 times, 
+which will run faster. The drop in the inlined program performance at about $120 \times 10^3$, 
 could be due to the JVM optimizing the bytecode when it notices common execution patterns.
-The heuristics are very simple that the inliner uses it would be possible to 
+The heuristics used by the inlining compiler stage are very simple it would be possible to 
 come up with better heuristics that can be used to decide whether to inline a function.
 
 \begin{figure}
@@ -340,12 +399,10 @@ come up with better heuristics that can be used to decide whether to inline a fu
 \end{figure}
 
 \section{Usability}
-
-Usability is harder to measure analytically, so an analytic measure that can be used is extra code size
-compared to using Haskell or Java without JVHC.
-There are three burdens on the programmer that this compiler introduces:
+There are three  on the programmer that this compiler introduces:
 \begin{itemize}
   \item Exposing Java functions in to the Haskell world.
+
   \item Exposing Java functions to the JVHC compiler, by passing type information and the name 
     of the function.
 
@@ -354,12 +411,14 @@ There are three burdens on the programmer that this compiler introduces:
 
 \subsection{Exposing Java functions to the Haskell world}
 
-This is the code required to expose integer plus to the JVHC compiler. 
-This can definitely be reduced, if there was time it would benefit to instead of defining the plus
-this was to instead just defined the line where the addition takes places, all
-the other code is just boiler place.
+Usability is hard to measure analytically, so an analytic measure that can be used is extra code size
+(implementing the program in Haskell as compared to Java).
+The code required to expose integer plus to the JVHC compiler. 
+This can definitely be reduced, if there was time available in the project
+I would implement a code generation feature allowing plus to be defined
+without the need for all surrounding the boiler plate code.
 
-\begin{verbatim}
+\begin{JavaLst}
 public class plus0 implements Function<Supplier<Integer>,plus1>, 
                               Supplier<plus0> {
     @Override
@@ -374,9 +433,9 @@ public class plus1 implements Function<Supplier<Integer>,Integer>{
     plus1(Supplier<Integer> i0) { this.i0 = i0; }
     @Override
     public Integer apply(Supplier<Integer> i1) 
-      { return i0.get() + i1.get(); }
+      { return i0.get() &\textcolor{pgreen}{+}& i1.get(); }
 }
-\end{verbatim}
+\end{JavaLst}
 
 \subsection{Exposing Java functions to the JVHC compiler}
 
@@ -385,10 +444,9 @@ instead this should be moved to a separate definition file, or better still
 add new syntax to the Haskell like language accepted by JVHC allowing new type
 definitions to be included.
 
-\begin{verbatim}
+\begin{HaskellLst}
 foreign import java "add" add :: Int -> Int -> Int
-\end{verbatim}
-
+\end{HaskellLst}
 This syntax is a slightly modified declaration used in the foreign function interface (FFI) \cite{ghc_ffi} 
 in GHC. The FFI is used to specify the name and type of C functions which can be called from 
 instead the GHC compiled Haskell.
@@ -398,28 +456,30 @@ instead the GHC compiled Haskell.
 The current Java interface produced by JVHC is harder to use than it could be
 \begin{enumerate}
   \item Every argument passed into each function must first be wrapped in a thunk. 
-  \item Generic information is not added to the bytecode meaning that
-the return values from function calls (\texttt{apply}) and thunk evaluation (\texttt{get}) require casting in the Java world which means the programmer
+  \item Generic information (defined shortly) is not added to the bytecode meaning that
+the return values from function calls (\texttt{apply}) and thunk evaluation 
+(\texttt{get}) require casting in Java source code, this means the programmer
 must know the return type of each function and thunk. This will
-make mixing these \verb|.class| files with Java
-code hard than it need be.
+make mixing these \verb|.class| files with Java code harder than need be.
 \end{enumerate}
 
 The first of these problems could be solved by generating a function $f_J$ for each 
-function exposed from Haskell $f$ compiled by JVHC which uncurry 
+function $f$ exposed from Haskell. $f_J$ will uncurry
 (go from \mbox{$\tau_1 \rightarrow \dotsc \rightarrow \tau_n \rightarrow \tau$} to
-\mbox{$(\tau_1,\dotsc,\tau_n) \rightarrow \tau$}) the arguments of the function, and 
-wrap then values passed as argument to $f_J$ in thunks, finally calling the function $f$. 
+\mbox{$(\tau_1,\dotsc,\tau_n) \rightarrow \tau$}) the arguments of the function, then 
+wrap then values passed as argument to $f_J$ in thunks, and finally call the function $f$. 
 Uncurrying is done to fit with the idiom in Java of write functions that take 
-$n$-tuple instead of a set of $n$ curried functions. 
-
+$n$-tuple instead of a applying the $n$ arguments to a set of $n$ curried functions
+in one by one. 
 
 Generic types are not directly supported by JVM bytecode for example
-\verb|List<Object>| will undergo type erasure to give \verb|List| which
-will have a collection of \verb|java/lang/object|. 
-The generics exist at compile time (they are used by the compiler to enforce 
-certain correctness properties), but not at runtime.
-However it is possible to store generic type information
+\verb|List<Intger>| (a list only containing objects of \verb|Integer| or a subtype)
+will undergo type erasure to give \verb|List|. The \verb|List| 
+will have a collection of objects of type \verb|java/lang/object| in an implementation
+specific list structure. 
+Generics exist at compile time (they are used by the compiler to enforce 
+certain correctness properties). Generics play no role in execution at runtime
+on the JVM. However it is possible to store generic type information
 in JVM bytecode, this will be ignored by the JVM, but can be used by tools
 which inspect bytecode and also by the Java compiler when trying to compile
 Java code that references this bytecode.

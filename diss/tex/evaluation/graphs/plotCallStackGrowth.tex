@@ -27,22 +27,6 @@ legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align
 ]
 \addplot [color=mycolor1]
   table[row sep=crcr]{%
-1	0.0299999999999727\\
-100	1.14099999999996\\
-199	2.20799999999997\\
-298	3.31899999999996\\
-397	4.38599999999997\\
-496	5.49699999999996\\
-595	6.56399999999996\\
-694	7.67499999999995\\
-793	8.74199999999996\\
-892	9.85299999999995\\
-991	10.92\\
-};
-\addlegendentry{Normal}
-
-\addplot [color=mycolor2]
-  table[row sep=crcr]{%
 1	0.0180000000000291\\
 100	0.523000000000025\\
 199	1.00800000000004\\
@@ -55,7 +39,23 @@ legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align
 892	4.48299999999995\\
 991	4.96799999999996\\
 };
-\addlegendentry{Optimized}
+\addlegendentry{Inlining}
+
+\addplot [color=mycolor2]
+  table[row sep=crcr]{%
+1	0.0299999999999727\\
+100	1.14099999999996\\
+199	2.20799999999997\\
+298	3.31899999999996\\
+397	4.38599999999997\\
+496	5.49699999999996\\
+595	6.56399999999996\\
+694	7.67499999999995\\
+793	8.74199999999996\\
+892	9.85299999999995\\
+991	10.92\\
+};
+\addlegendentry{No Inlining}
 
 \end{axis}
 \end{tikzpicture}%

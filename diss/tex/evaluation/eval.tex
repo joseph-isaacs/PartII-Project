@@ -200,7 +200,7 @@ taken to compile a program, so the performance evaluation will begin from there,
 the results can be seen in \namefig\ref{plot:TimeInStages}. 
 This shows that the code generation is by far the most time consuming part of the pipeline. 
 There is then a comparison of type inference between GHC and JVHC 
-showing only a $\times 2$ decrease in the runtime cost of JVHC's TI 
+showing only a $2\times $ decrease in the runtime cost of JVHC's TI 
 algorithm in \namefig\ref{plot:tiTime}. 
 To show that the implementation of
 type inference algorithm for the \verb|tiExpr| program is exponential
@@ -274,7 +274,7 @@ by each compiler has the same asymptotic complexity.
   $a \cdot \varphi^n$ (using the \texttt{lsqcurvefit} Matlab function).
   \nametable\ref{table:fibCoef} shows
   JVHC is about $10^2 \times$ slower than the native
-  Java program and $10\times $ slower than the GHC program.
+  Java program and only $1.2\times $ slower than the GHC compiled program.
   This data was obtained using \texttt{-O0} flag on GHC and no inlining
   in JVHC.
 

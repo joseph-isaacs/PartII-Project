@@ -133,7 +133,10 @@ on the previous stage, this will help reduce complexity between the stages and
 allow development of stages without relying on future 
 stages. I will use a waterfall model, where I implement a stage
 at a time in the order given above, while writing tests to help check
-correctness of implementation.
+correctness of implementation. Since each stage of the pipeline
+is isolated unit test can be written checking each stage separately, this means 
+I can be sure that a given stage will operation on data correctly before considering
+a different stage.
 I will in turn look at specific preparations made for each stage in the pipeline.
 Type classes are a core element of the Haskell language, I didn't include Type classes
 in the JVHC implementation of Haskell, since I already had plenty of work packages in

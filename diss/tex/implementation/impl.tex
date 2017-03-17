@@ -111,7 +111,7 @@
   dummy/.style    = {circle,draw}
 }
 
-\newcommand{\tlang}{\star}
+\newcommand{\tlang}{\bigstar}
 \newcommand{\thunk}[1]{\lceil #1 \rceil}
 \newcommand{\unwrap}[1]{\lfloor #1 \rfloor}
 \newcommand{\tcbn}{\rightarrow_N}
@@ -279,16 +279,24 @@ stores only the variable name and type.
 \end{figure}
 The resulting code returned from the mixed type inference and syntax transform stage was not quite
 valid \texttt{CoreExpr}. To convert this resulting syntax tree to valid System F, type information
-need be added explicitly, this meant adding both type applications and $\Lambda$ (type abstractions)
+needs to be added explicitly (in a ``fix-up'' stage), this meant adding both type applications and $\Lambda$ (type abstractions)
 to the syntax. To add these constructs a lookup table was also returned to the type inference stages, 
 which contained the type of every sub-expression. This was used to insert type applications and
 $\Lambda$ in the correct places in the syntax tree making the resulting syntax tree valid again. Since each type in Haskell \verb|a -> [a]| has an implicit
 $\forall$, and so can be written as \verb|forall a.a -> [a]|, the $\Lambda$
-must always be at the version start of an expression if there are any
-$\forall$ types. Then every time there is an application $e_1 e_2$, 
+must always be at the very beginning of an expression if there are any
+$\forall$ bound variables in the type. Then every time there is an application $e_1 e_2$, 
 some number of type application must be inserted matching the 
 $\Lambda$s in $e_1$ to the expression making the new expression
 $e_1 \tau_1 \dots \tau_n e_2$.
+The reason that the type inference includes a syntax transformation is twofold, first it 
+means only a single walk of the tree is required when generating the \verb|CoreExpr| datatype. Second
+the type variables generated in type inference are used as temporary variables in the 
+resulting \verb|CoreExpr| datatype. 
+Once the constraints generated in type inference have been solved the constraint variables are replaced with the correct types in the outputted \verb|CoreExpr| syntax tree.
+The ``fix-up'' phase in necessary after type inference as the \verb|CoreExpr| can only be corrected to
+valid System F once a full type of every expression is known, the type of each expression is 
+only known after type inference. 
 
 % \begin{itemize}
 %   \item Talk about paper.
@@ -463,13 +471,13 @@ via the use of thunks. Due the bugs in the first attempt to implement the
 translation I decided to formalise the translation.
 The result was a mathematical framework for expressions defining both 
 a core calculus which defines how Haskell could theoretically execute and 
-core calculus$_\star$ which is similar to how expressions will
+core calculus$_\bigstar$ which is similar to how expressions will
 execute on the JVM. This is included in Appendix~\ref{appendix:thunkProof}. 
 The notation $\thunk{e}$ means, the value $e$ is wrapped in a thunk. Then
 $\unwrap{t}$ means reduce the expression to a value from the thunk $t$. 
 This would directly map to calling \texttt{get} when implemented in 
 JVM bytecode. The translation relation $\tlthunk$ from core 
-calculus to core calculus$_\star$ is defined as:
+calculus to core calculus$_\bigstar$ is defined as:
 \begin{align*}
   &\frac{}{c \tlthunk \thunk{c}}\\ \\
   &\frac{}{x \tlthunk \thunk{x}}\\ \\
@@ -493,9 +501,9 @@ finite number of call-by-value transition relation steps,
 which execute in a similar way to the JVM.
 
 \subsection{Variable scope}
-There are two places that variables can be caught in scope.
+There are two places that variables can be variables can be introduced.
 \begin{itemize}
-  \item $\lambda$, in this case each closure will contain a reference
+  \item In $\lambda$ functions, Each closure will contain a reference
     to thunk object that is passed into the closure, this argument
     can then been queried later.
   \item Top level \texttt{let} binding
@@ -585,7 +593,7 @@ public class &\textit{NAME}& implements Function {
 
   protected &\textit{ty}&(&\textit{e}&) (&\textit{ty}&(&\textit{b}&) arg) {
     this.arg = arg
-    return &$\llbracket \textit{e} \rrbracket$&.get();
+    return &$\llbracket \textit{e} \mkern1mu  \rrbracket$&.get();
   }
 }
 \end{JavaLst}
@@ -611,7 +619,7 @@ public class &\textit{AppName}& implements Thunk {
   }
 
   public force() {
-    return (Supplier)(&$\llbracket e_1 \rrbracket$&.get()).apply(&$\llbracket e_2 \rrbracket$&);
+    return (Supplier)(&$\llbracket \mkern1mu \textit{e}_1 \rrbracket$&.get()).apply(&$\llbracket \mkern1mu \textit{e}_2 \rrbracket$&);
   }
 }
 \end{JavaLst}

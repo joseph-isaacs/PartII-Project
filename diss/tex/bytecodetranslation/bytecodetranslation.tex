@@ -81,18 +81,18 @@
 An expression $E$ in this compiler can be:
 
 \begin{align*}
-E ::&= \lambda\ V . E' \\
-   &|\ \texttt{let } x = E_1 \texttt{ in} \ E_2\\ 
-   &|\ \texttt{case}\ E \ \texttt{of} \ (A_1 \rightarrow E_1, A_2 \rightarrow E_2, \mathellipsis, A_n \rightarrow E_n)\\
-   &|\ E\ E'\\
-   &|\ V\\\\
-V ::&=\ x &&\text{(variable)}\\
-   &|\ (\textit{Constructor}\ E_1, \mathellipsis, E_n )\\
+e ::&= \lambda\ V . e' \\
+   &|\ \texttt{let } x = e_1 \texttt{ in} \ e_2\\ 
+   &|\ \texttt{case}\ e \ \texttt{of} \ (a_1 \rightarrow e_1, a_2 \rightarrow e_2, \mathellipsis, a_n \rightarrow e_n)\\
+   &|\ e_1\ e_2\\
+   &|\ v\\\\
+v ::&=\ x &&\text{(variable)}\\
+   &|\ (\textit{Constructor}\ e_1, \mathellipsis, e_n )\\
    &|\ \textit{literal}
 \end{align*}
 
-where $A_i$ is the alternative type constructors for the of the expression $E$ with a type $\tau$
-(e.g. if $\Gamma \vdash E : \texttt{bool}$, then $A_i \in \{ \texttt{True},  \texttt{False} \}$).
+where $a_i$ is the alternative type constructors for the of the expression $e$ with a type $\tau$
+(e.g. if $\Gamma \vdash e : \texttt{bool}$, then $a_i \in \{ \texttt{True},  \texttt{False} \}$).
 
 
 Variables will be contained inside thunks, such that the expression the variable points to is only reduced 
@@ -101,7 +101,7 @@ when needed.
 \subsection{Thunk}
 
 A thunk can be thought of as a nullary function (one which takes no arguments) and when required will 
-perform a computation. If we have an expression $E$ we can wrap it inside a thunk \[ \lambda (). E \] then 
+perform a computation. If we have an expression $e$ we can wrap it inside a thunk \[ \lambda (). e \] then 
 only when we apply $()$ to this thunk does the computation take place, this allows the
 simulation of call-by-name semantics
 when the program is being run with call-by-value operation semantics. 
@@ -255,7 +255,8 @@ variable 0.
 
 \subsubsection{Let} 
 
-I will translate the expression (\texttt{let x = E1 in E2}) to (\texttt{(\textbackslash x -> E2)E1}), then 
+I will translate the expression ($\mathtt{let}\ x = e_1\ \mathtt{in}\ e_2$) to 
+($\texttt{\textbackslash} x -> e_2)e_1$), then 
 this can be compiled using the compilation scheme for \textbf{function} (below).
 
 \subsection{Function and Application}

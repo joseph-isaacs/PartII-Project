@@ -1,0 +1,63 @@
+% This file was created by matlab2tikz.
+%
+%The latest updates can be retrieved from
+%  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
+%where you can also make suggestions and rate matlab2tikz.
+%
+\definecolor{mycolor1}{rgb}{0.00000,0.44700,0.74100}%
+\definecolor{mycolor2}{rgb}{0.85000,0.32500,0.09800}%
+\definecolor{mycolor3}{rgb}{0.92900,0.69400,0.12500}%
+\definecolor{mycolor4}{rgb}{0.49400,0.18400,0.55600}%
+%
+\begin{tikzpicture}
+
+\begin{axis}[%
+width=6.028in,
+height=4.754in,
+at={(1.011in,0.642in)},
+scale only axis,
+xmin=2,
+xmax=5,
+ymin=0,
+ymax=8,
+axis background/.style={fill=white},
+legend style={legend cell align=left, align=left, draw=white!15!black}
+]
+\addplot [color=mycolor1]
+ plot [error bars/.cd, y dir = both, y explicit]
+ table[row sep=crcr, y error plus index=2, y error minus index=3]{%
+2	0.000445328314557741	2.52335570631132e-05	2.52335570631132e-05\\
+3	0.00165548165031981	0.000102001616031773	0.000102001616031773\\
+4	0.0236370119970985	0.00112696070805906	0.00112696070805906\\
+5	7.23552099154559	0.0859425096350843	0.0859425096350843\\
+};
+\addlegendentry{JVHC (s)}
+
+\addplot [color=mycolor2]
+ plot [error bars/.cd, y dir = both, y explicit]
+ table[row sep=crcr, y error plus index=2, y error minus index=3]{%
+2	0.44794415	0.0366648378225687	0.0366648378225687\\
+3	0.45102635	0.0410690030254282	0.0410690030254282\\
+4	0.46905295	0.0327636284708565	0.0327636284708565\\
+5	3.3984305	0.23901154128608	0.23901154128608\\
+};
+\addlegendentry{$\text{GHC 10}^{\text{-8}}$}
+
+\addplot [color=mycolor3, forget plot]
+ plot [error bars/.cd, y dir = both, y explicit]
+ table[row sep=crcr, y error plus index=2, y error minus index=3]{%
+2	0.000445328314557741	2.52335570631132e-05	2.52335570631132e-05\\
+3	0.00165548165031981	0.000102001616031773	0.000102001616031773\\
+4	0.0236370119970985	0.00112696070805906	0.00112696070805906\\
+5	7.23552099154559	0.0859425096350843	0.0859425096350843\\
+};
+\addplot [color=mycolor4, forget plot]
+ plot [error bars/.cd, y dir = both, y explicit]
+ table[row sep=crcr, y error plus index=2, y error minus index=3]{%
+2	0.44794415	0.0366648378225687	0.0366648378225687\\
+3	0.45102635	0.0410690030254282	0.0410690030254282\\
+4	0.46905295	0.0327636284708565	0.0327636284708565\\
+5	3.3984305	0.23901154128608	0.23901154128608\\
+};
+\end{axis}
+\end{tikzpicture}%

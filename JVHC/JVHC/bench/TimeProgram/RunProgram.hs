@@ -20,6 +20,9 @@ data BenchDefaults = BD
   , runtimeJarPath :: FilePath
   }
 
+outJarName :: String
+outJarName = "bench.jar"
+
 benchDefaults = BD { manifestPath   = "res/MANIFEST.MF"
                    , runtimeJarPath = "res/Runtime.jar"
                    }
@@ -67,7 +70,7 @@ runJar :: String   -> -- Command line options
           FilePath -> -- Test Directory
           IO String
 runJar cmdLOpts dir =
-  do (_,Just o,_,h) <- createProcess (shell ("java -jar " ++ cmdLOpts ++ " bench.jar"))
+  do (_,Just o,_,h) <- createProcess (shell ("java -jar " ++ cmdLOpts ++ " " ++ outJarName))
                      { cwd = Just dir, std_out = CreatePipe }
      exitCode <- waitForProcess h
      if exitCode  == ExitSuccess
@@ -77,7 +80,7 @@ runJar cmdLOpts dir =
 buildJar :: FilePath -> -- | Jar directory
             IO ()
 buildJar dir =
-  do let pr = (shell "jar cfm bench.jar MANIFEST.MF *.class")
+  do let pr = (shell $ "jar cfm " ++ outJarName ++ " MANIFEST.MF *.class")
                { cwd = Just dir, std_out = CreatePipe }
      (_, _, er, ph) <- createProcess pr
      out <- waitForProcess ph

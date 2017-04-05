@@ -2,8 +2,6 @@ module TimeGHCProgram.RunTestN where
 
 import Criterion.Main
 
--- import TimeProgram.RunInlineBench
-
 numb :: [Int]
 numb = 50 : map ( (\x -> x -10000 ) . floor . (*) 40000 . log . log) [4,6..80]
 

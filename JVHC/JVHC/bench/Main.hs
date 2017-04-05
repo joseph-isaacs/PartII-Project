@@ -15,6 +15,8 @@ import qualified BenchCompiler.BenchCompiler as BC
 import CountConstructs.OutputParser
 import CountConstructs.CountProg
 
+import CodeSize.CountCodeSize
+
 import MemoryUsage.MemUsageParser
 import MemoryUsage.MemUsageTypes
 import MemoryUsage.MemUsageBench

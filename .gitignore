@@ -19,6 +19,7 @@ JVHC/JVHC/dist
 *.out
 *.run.xml
 *.gz
+*.sta
 
 #stack
 .stack-work
@@ -28,4 +29,5 @@ cabal.sandbox.config
 
 .idea
 
+*.hi
 

@@ -21,27 +21,11 @@ xlabel={Input size $n$},
 ymin=0,
 ymax=12,
 ylabel style={font=\color{white!15!black}},
-ylabel={$\text{Greatest number of thunks built up/}\cdot\text{ 10}^{\text{3}}$},
+ylabel={Greatest number of thunks built up/$\cdot 10^{3}$},
 axis background/.style={fill=white},
 legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, fill=none, draw=none}
 ]
-\addplot [color=mycolor1, mark size=2.5pt, mark=x, mark options={solid, mycolor1}]
-  table[row sep=crcr]{%
-1	0.0180000000000291\\
-100	0.523000000000025\\
-199	1.00800000000004\\
-298	1.51300000000003\\
-397	1.99800000000005\\
-496	2.50300000000004\\
-595	2.98800000000006\\
-694	3.49300000000005\\
-793	3.97799999999995\\
-892	4.48299999999995\\
-991	4.96799999999996\\
-};
-\addlegendentry{Inlining}
-
-\addplot [color=mycolor2, mark size=2.5pt, mark=x, mark options={solid, mycolor2}]
+\addplot [color=mycolor1, mark size=2.5pt, mark=x, mark options={solid, mycolor1}, forget plot]
   table[row sep=crcr]{%
 1	0.0299999999999727\\
 100	1.14099999999996\\
@@ -55,7 +39,31 @@ legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align
 892	9.85299999999995\\
 991	10.92\\
 };
+\addplot [color=mycolor2, mark size=2.5pt, mark=x, mark options={solid, mycolor2}, forget plot]
+  table[row sep=crcr]{%
+1	0.0180000000000291\\
+100	0.523000000000025\\
+199	1.00800000000004\\
+298	1.51300000000003\\
+397	1.99800000000005\\
+496	2.50300000000004\\
+595	2.98800000000006\\
+694	3.49300000000005\\
+793	3.97799999999995\\
+892	4.48299999999995\\
+991	4.96799999999996\\
+};
+\addplot [color=mycolor1]
+  table[row sep=crcr]{%
+0	0\\
+};
 \addlegendentry{No Inlining}
+
+\addplot [color=mycolor2]
+  table[row sep=crcr]{%
+0	0\\
+};
+\addlegendentry{Inlining}
 
 \end{axis}
 \end{tikzpicture}%

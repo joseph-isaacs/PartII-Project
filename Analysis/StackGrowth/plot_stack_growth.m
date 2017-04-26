@@ -1,3 +1,5 @@
+clear;
+close;
 x = [1 100 199 298 397 496 595 694 793 892 991];
 
 runs = 3;
@@ -37,13 +39,19 @@ memUsedTotal = sum(memUsed);
 
 %% Final
 
-plot (x,[stackH_op' stackH'] /1e3);
+p = plot (x,[stackH' stackH_op'] /1e3);
 
-ylabel ('Greatest number of thunks build up 10^{3}')
+p(1).Marker = 'x';
+p(1).MarkerSize = 5;
+p(2).Marker = 'x';
+p(2).MarkerSize = 5;
+
+ylbl = ylabel ('Greatest number of thunks built up/$\cdot 10^{3}$');
 xlbl = xlabel ('Input size $n$');
 set(xlbl, 'interpreter', 'latex');
+set(ylbl, 'interpreter', 'latex');
 
-l = legend('Inlining', 'No Inlining', 'Location','northwest');
+l = legend('No Inlining', 'Inlining', 'Location','northwest');
 l.Box = 'off';
 
 cleanfigure;
@@ -51,5 +59,5 @@ matlab2tikz('../../diss/tex/evaluation/graphs/plotCallStackGrowth.tex',...
    'width' , '\gwidth',...
    'height', '\gheight' );
 
-close
-clear
+%close
+%clear

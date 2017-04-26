@@ -2,7 +2,7 @@ runs = 10;
 
 x = [50,65125,171054,213197,238381,255941,269245,279861,288640,296091,...
      302541,308213,313263,317806,321929,325698,329166];
-
+xs = linspace(min(x),max(x));
 
 length = size(x,2);
 in = csvread('mem_usageplus-newCalc.csv',1,0);
@@ -38,13 +38,36 @@ memUsedTotal = sum(memUsed);
 
 %% Mem Used
 
-plot(x ./ 10e3,[memUsedTotal' memUsedTotal_op'] ./ 1e3);
+p = plot(x ./ 1e4,[memUsedTotal' memUsedTotal_op'] ./ 1e3);
 
-xlbl = xlabel('Input value $n$ in 1000s to \texttt{testN}');
+hold on;
+
+p(1).Marker = 'x';
+
+p(1).MarkerSize = 5;
+
+p(2).Marker = 'x';
+p(2).MarkerSize = 5;
+
+linFun = @(a,xdata)( a(1)*xdata + a(2) );
+
+[nop a] = polyfit(x,memUsedTotal,1);
+[op b] = polyfit(x,memUsedTotal_op,1);
+
+plotLine = plot(xs' ./ 1e4,[linFun(nop,xs)' linFun(op,xs)'] ./ 1e3);
+
+plotLine(1).Color = p(1).Color;
+plotLine(2).Color = p(2).Color;
+p(1).LineStyle = 'none';
+p(2).LineStyle = 'none';
+
+hold on;
+
+xlbl = xlabel('Input value $n$ to \texttt{testN}/$\cdot 10^{3}$');
 set(xlbl, 'interpreter', 'latex');
-ylabel('Peak memory usage MB');
+ylabel('Peak memory usage/MB');
 
-l = legend('Inlining','No Inlining','Location','northwest');
+l = legend(plotLine, 'No Inlining','Inlining','Location','northwest');
 l.Box = 'off'
 
 matlab2tikz('../../diss/tex/evaluation/graphs/memUsed.tex',...
@@ -61,7 +84,7 @@ plot(x,gcTime_op);
 
 legend('Nop','Op','Location','northwest');
 
-matlab2tikz('../tex/gcTime_plot.tex',  'width', '\fwidth' ); 
+%matlab2tikz('../tex/gcTime_plot.tex',  'width', '\fwidth' ); 
 
 
 
@@ -74,7 +97,7 @@ area(x,memUsed');
 
 legend('Young','Par','meta','Location','northwest');
 
-matlab2tikz('../tex/differentMemAreas.tex',  'width', '\fwidth' ); 
+%matlab2tikz('../tex/differentMemAreas.tex',  'width', '\fwidth' ); 
 
 
 %% Mem Used in different generation opt
@@ -84,7 +107,7 @@ area(x,memUsed_op');
 
 legend('Young','Par','meta','Location','northwest');
 
-matlab2tikz('../tex/differentMemAreasOp.tex',  'width', '\fwidth' ); 
+%matlab2tikz('../tex/differentMemAreasOp.tex',  'width', '\fwidth' ); 
 
 %% GC proportion
 close 
@@ -100,7 +123,7 @@ legend('t-gc opt','t-gc','Location','northwest');
 ylabel('Time to run minus time in GC');
 xlabel('Input size (n)');
 
-matlab2tikz('../tex/runTimeSubGC.tex',  'width', '\fwidth' ); 
+%matlab2tikz('../tex/runTimeSubGC.tex',  'width', '\fwidth' ); 
 
 
 %% GC and mem usage

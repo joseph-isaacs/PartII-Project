@@ -87,16 +87,13 @@
 
 
 \begin{document}
-\section{Overview}
-
 The success criteria for this project fall into three categories:
 \begin{itemize}
   \item Correctness.
   \item Performance.
   \item Usability.
 \end{itemize}
-
-I will split the evaluation into three parts
+I will split the evaluation into three parts.
 
 % , first we will
 % look at the correctness of the overall project. This was established 
@@ -224,7 +221,8 @@ caused problems since it used all the memory available to the system.
   \caption[Type inference runtime as a function of input size]
   {Plot of number of pairs size (increasing $n$ in \texttt{f$n$}) 
     of the tiExpr program in Appendix~\ref{appendix:programs} against time taken 
-    to run type inference algorithm.}
+    to run type inference algorithm. The data has been fitted to a line of the form
+    $y = a \cdot e^{b\cdot x}+c$, where $a,b,c$ and parameters.}
   \label{plot:tiTime}
 \end{samepage}
 \end{figure}
@@ -260,15 +258,15 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
   \begin{tabular}{ c | c c }
     Compiler& $a$ & $b$\\
     \hline
-    JVHC & $39.9$ & $2.47 \times 10^{4}$ \\
     JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
+    JVHC & $39.9$ & $2.47 \times 10^{4}$ \\
     eta & $6.74$ & $1.45 \times 10^{4}$
   \end{tabular}
   \caption{Regression values for code size form data in \namefig\ref{plot:codeSize} to $y=a x+b$}
   \label{table:codeSize}
 \end{table}
 \namefig\ref{plot:fibTiming} contains a comparison of the runtime of the \texttt{fib}$n$ program where 
-$n$ ranges between $[1,35]$ showing that the asymptotic runtime of the code output
+$n$ ranges between $[1,35]$ inclusive, showing that the asymptotic runtime of the code output
 by each compiler has the same asymptotic complexity.
   Least square regression was carried out were the data was fit to the curve
   $a \cdot \varphi^n$ (using the \texttt{lsqcurvefit} Matlab function).
@@ -280,9 +278,9 @@ by each compiler has the same asymptotic complexity.
 
 \begin{figure}
   \centering
-  \importMGraph{plotFibRuntime.tex}{0.93\textwidth}{0.4\textwidth}
+  \importMGraph{plotFibRuntime}{0.93\textwidth}{0.4\textwidth}
   \caption{Comparison between runtime for finding the $n$th Fibonacci number na\"ively as a 
-  function of the $n$}
+  function of the $n$, note the double axis.}
   \label{plot:fibTiming}
 \end{figure}
 
@@ -328,8 +326,8 @@ coefficients in \nametable\ref{table:inlineCoef}, this shows a $12 \times$ speed
 \begin{tabular}{c | c  c}
   & $a$ & $b$\\
   \hline 
-  Inlining & $1.11\times 10^{-6}$ & $0.076$\\
-  No Inlining & $1.36\times 10^{-5}$ & $-0.04$
+  No Inlining & $1.36\times 10^{-5}$ & $-0.04$\\
+  Inlining & $1.11\times 10^{-6}$ & $0.076$
 \end{tabular}
 \caption{Coefficients from fitting the data in \namefig\ref{plot:inlinePlot} to 
   a straight line $y=ax+b$}
@@ -347,12 +345,16 @@ There is also a noticeable different is peak memory usage,
 showing reduced memory usage when inlining is enabled.
 There is a very high correlation between maximum stack height and memory usage.
 Leading to the conclusion that reducing the max stack height would 
-reduce memory usage, and if less objects are allocated, less garbage collection cycles.
-This data was collected for max stack height by generating a call stack at any 
-point in the computation that could be a maximum thunk depth.
-It could be a maximum thunk depth at any leaf in the \texttt{CoreExpr} tree
-(\texttt{Var} or \texttt{Lit}). The JVM flag \texttt{MaxJavaStackTraceDepth} was used to increase
-the stack height to a value greater than the maximum value returns from running this test (about $10^{4}$).
+reduce memory usage, and if fewer objects are allocated, fewer garbage collection cycles would be
+run throughout program execution.
+Max stack height data point where collected by generating a call stack at any 
+point in the computation which could be at maximum memory consumption. This is when 
+the number of thunks allocated will be at a maximum.
+The computation could be at maximum thunk depth at any leaf in the \texttt{CoreExpr} tree
+(\texttt{Var} or \texttt{Lit}), this is when no new thunks will be allocated, before at least one thunk
+value is computed. By default the maximum height that a stack trace can be is 1024 frames. 
+The JVM flag \texttt{MaxJavaStackTraceDepth} was used to increase
+the stack height to about $10^{4}$ which was enough for the programs being considered.
 The data for memory usage was gathered by looking at JVM traces, 
 enabled with the flag \texttt{PrintGCDetails}. 
 This is therefore an over estimate of peak memory usage. 
@@ -367,8 +369,8 @@ This is therefore an over estimate of peak memory usage.
   \begin{tabular}{ c | c c}
   & $a$ & $b$\\
   \hline
-  Inlining & 5 & 18 \\
-  No Inlining & 11 & 29 
+  No Inlining & 11 & 29 \\
+  Inlining & 5 & 18 
   \end{tabular}
   \caption{Fitting of the data from stack growth to the line $y = a\cdot x + b$.}
   \label{table:stackGrowth}
@@ -379,7 +381,7 @@ This is therefore an over estimate of peak memory usage.
   \caption{Memory used in \texttt{testN} as a function of $n$}
   \label{plot:memUsed}
 \end{figure}
-Functional inlining, as mentioned earlier, is not always a good idea.
+Function inlining, as mentioned earlier, is not always a good idea.
 It is possible that inlining functions may lead to increased runtime, shown  
 Figure~\ref{plot:badInline}. 
 The increase in runtime is due to inlining the expensive to compute function 
@@ -399,24 +401,27 @@ come up with better heuristics that can be used to decide whether to inline a fu
 \end{figure}
 
 \section{Usability}
-There are three  on the programmer that this compiler introduces:
+% There are three  the on the programmer that this compiler introduces:
+
+This compiler introduces the following three burdens on the programmer:
+
 \begin{itemize}
   \item Exposing Java functions in to the Haskell world.
 
   \item Exposing Java functions to the JVHC compiler, by passing type information and the name 
     of the function.
 
-  \item Using the generated JVM bytecode from a Java program.
+  \item Exposing Java programs to generated JVM bytecode.
 \end{itemize}
 
 \subsection{Exposing Java functions to the Haskell world}
 
-Usability is hard to measure analytically, so an analytic measure that can be used is extra code size
+Usability is hard to measure analytically, but an approximation that can be used is extra code size
 (implementing the program in Haskell as compared to Java).
 The code required to expose integer plus to the JVHC compiler. 
-This can definitely be reduced, if there was time available in the project
+This can definitely be reduced, if there was time available in the project,
 I would implement a code generation feature allowing plus to be defined
-without the need for all surrounding the boiler plate code.
+without the need for the boiler plate code.
 
 \begin{JavaLst}
 public class plus0 implements Function<Supplier<Integer>,plus1>, 
@@ -439,7 +444,7 @@ public class plus1 implements Function<Supplier<Integer>,Integer>{
 
 \subsection{Exposing Java functions to the JVHC compiler}
 
-Currently there is a list of all the custom types defined for the compilation stage
+Currently there is a list of all the custom types defined for the compilation stage,
 instead this should be moved to a separate definition file, or better still 
 add new syntax to the Haskell like language accepted by JVHC allowing new type
 definitions to be included.
@@ -451,7 +456,7 @@ This syntax is a slightly modified declaration used in the foreign function inte
 in GHC. The FFI is used to specify the name and type of C functions which can be called from 
 instead the GHC compiled Haskell.
 
-\subsection{Using the generated JVM bytecode from Java}
+\subsection{Exposing Java programs to generated JVM bytecode}
 
 The current Java interface produced by JVHC is harder to use than it could be
 \begin{enumerate}
@@ -464,7 +469,7 @@ make mixing these \verb|.class| files with Java code harder than need be.
 \end{enumerate}
 
 The first of these problems could be solved by generating a function $f_J$ for each 
-function $f$ exposed from Haskell. $f_J$ will uncurry
+function $f$ exposed from Haskell. Then $f_J$ will uncurry
 (go from \mbox{$\tau_1 \rightarrow \dotsc \rightarrow \tau_n \rightarrow \tau$} to
 \mbox{$(\tau_1,\dotsc,\tau_n) \rightarrow \tau$}) the arguments of the function, then 
 wrap then values passed as argument to $f_J$ in thunks, and finally call the function $f$. 

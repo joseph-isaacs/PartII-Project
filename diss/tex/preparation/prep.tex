@@ -134,39 +134,38 @@ allow development of stages without relying on future
 stages. I will use a waterfall model, where I implement a stage
 at a time in the order given above, while writing tests to help check
 correctness of implementation. Since each stage of the pipeline
-is isolated unit test can be written checking each stage separately, this means 
-I can be sure that a given stage will operation on data correctly before considering
+is isolated unit test can be written to check each stage separately, this means 
+I can be sure that a given stage will operate on data correctly before considering
 a different stage.
-I will in turn look at specific preparations made for each stage in the pipeline.
+I will, in turn, look at specific preparations made for each stage in the pipeline.
 Type classes are a core element of the Haskell language, I didn't include Type classes
-in the JVHC implementation of Haskell, since I already had plenty of work packages in
-the project schedule. Without type classes I still believe I can show all
-the same skills with or without implementing type classes, but with a more manageable work schedule.
+in the JVHC implementation of Haskell since I already had plenty of work packages in
+the project schedule. I believe I can show all the same skills without implementing type classes, 
+but with a more manageable work schedule.
 
 \section{Success Criteria}
 
 The success criteria have changed very little since they were outlined in
 Appendix~\ref{appendix:proposal}. 
 The success criteria can be summarised as testing for correctness
-with the aid of unit tests. The work in all of the work package of each fall into
-one of the following major piece of the compiler that must be implemented
-[Lexing, Parsing, Desugaring, Type Inference,
-Code Generation, Optermization, Expose Java functions to Haskell,
-Support for I/O (via IO Monad)]. 
-Then the extra success criteria are that the solution should 
+with the aid of unit tests. 
+Work for a work package is allocated based on stages of the compiler:
+Lexing, Parsing, Desugaring, Type Inference,
+Code Generation, Optermization, Exposing Java functions to Haskell and
+Supporting I/O (via IO Monad). 
+Then the extra success criteria are that JVHC should be
 comparable in runtime performance to existing Haskell implementations 
 such as GHC. 
-Then the success criteria can be extended still further again, I will
-pay some attention to the resulting interface provided by the generated
-code which is exposed to other language on the JVM, I will look
-at the Java interface.
+The success criteria can be extended still further again, I will
+pay attention to the resulting interface provided by the generated
+code which is exposed to other languages on the JVM.
 
 \section{Tools Used}
 
 There were many tools used throughout the project, git was used for 
-code management, version control and new idea exploration. Every time
+code management, version control and experimental features. Every time
 I had a new idea about how to implement something I could create new a 
-branch, work on the feature, then if the implementation idea was successful, 
+branch, work on the feature, then if the implementation was successful, 
 it would be merged back into the main branch. 
 The git history was used when writing the dissertation.
 I used commit history to create the time line
@@ -174,16 +173,16 @@ of implementation work activity.
 I created a Github repository and used this to backup milestones reached 
 along the project using the \verb|git push| command.
 Dropbox was used through the project to backup code files and data generated 
-through the project, Dropbox will automatically sync and file change
+through the project, Dropbox will automatically synchronise file changes
 onto the external Dropbox servers. Dropbox also has a record of all
-version of a synced file, I sometimes needed access to old versions
-of data files, this Dropbox feature was invaluable throughout the project.
+versions of a synced file which I sometimes needed access to old versions
+of data files. This Dropbox feature was invaluable throughout the project.
 IntelliJ \cite{intellij-ide} was used as an IDE when writing the Java
 runtime library associated with JVHC. IntelliJ was also used to decompile
 bytecode generated from JVHC, this was very useful when checking logical
 bugs in the outputted bytecode.
 Haskell's default build system is called Cabal \cite{cabal}. I 
-decided to since Cabal since there would be multiple included external libraries,
+decided to use Cabal since there would be multiple included external libraries,
 many code files and different project configurations.
 A build system would therefore be very useful to manage this
 complexity. Cabal is very simple tool to use and provides support
@@ -198,8 +197,8 @@ for many different project types:
 
     \item Benchmark.
   \end{itemize}
-For writing unit tests I am using HUnit \cite{hunit},
-this provides a unit test framework and also a quick-check framework. 
+For writing unit tests I am using HUnit \cite{hunit}.
+Which provides a unit test framework and a quick-check framework. 
 I will use the unit test framework of the library, 
 to write tests for all stages of the compiler.
 Multiple parts of the compiler and outputted code will
@@ -274,26 +273,26 @@ f x = case of {
 \end{HaskellLst}
 This turns the whitespace sensitive language into a whitespace insensitive language. I chose to 
 not implement a parser which would perform this translation since this would add extra complexity to the
-implementation, I believe the parsing stage is less interesting than other stages in the pipeline.
-This means my parser will accept programs defined using the whitespace insensitive 
+implementation, and I believe the parsing stage is less interesting than other stages in the pipeline.
+This means my parser will only accept programs defined using the whitespace insensitive 
 syntax presented above.
 
 
 \section{Desugaring}
 
 The interesting part of the desugaring stage is 
-checking that all custom data types which are declared at the top of a
+checking that all custom datatypes which are declared at the top of a
 file make sense in the context of Haskell. I will now explain this
 problem in more detail.
 
 Haskell has the notion of kinds, this is a form of type constructor. This will
-formalize the notion of checking all custom data types declared.
+formalize the notion of checking all custom dataypes declared.
 The syntax of kinds is
 \[ \mathtt{K} ::= \mathtt{*}\ |\ \mathtt{K}\  |\ \mathtt{K}_1 \rightarrow \mathtt{K}_2 \] 
 Where \texttt{*} is called type and will match another
 \texttt{*}, then \texttt{K} is a kind variable, and $\mathtt{K} \rightarrow \mathtt{K}$ is a type to type constructor.
-Haskell also imposes another constraint that any type variable \texttt{K} will
-be default to \texttt{*} (after kind inference) so as to give 
+Haskell also imposes another constraint that any type variable \texttt{K} 
+be defaulted to \texttt{*} (after kind inference) so as to give a
 unique kind to each declaration without any kind variables.
 The Haskell 98 report has a section \cite[4.6]{haskell98-spec} called Kind inference.
 The example is drawn from that report:
@@ -320,12 +319,12 @@ The solution to this section came mostly from a paper called `Typing Haskell in 
 This provides a very clear outline on how to implement type inference. 
 There are a few modifications that will be made to the approach.
 Firstly I will remove any reference of type classes since they are not to be implemented in JVHC.
-Secondly in the type checker a new expression data type called \texttt{CoreExpr} 
+Secondly in the type checker a new expression datatype called \texttt{CoreExpr} 
 is generated which contains the type information discovered when running the type checker.
 
 \texttt{CoreExpr} is a datatype with seven simple constructs which can express any expression in Haskell.
-This data type was inspired by GHC \cite{typedcorelink}. This is a System F like typed lambda calculus with
-built in support for constant values and data type deconstructors, in the form of \texttt{case} expressions.
+This datatype was inspired by GHC \cite{typedcorelink}. This is a System F like typed lambda calculus with
+built in support for constant values and datatype deconstructors, in the form of \texttt{case} expressions.
 
 \section{Inlining}
 

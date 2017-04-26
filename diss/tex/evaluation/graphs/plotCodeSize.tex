@@ -24,11 +24,11 @@ ymin=-1,
 ymax=100,
 ytick={  0,  50, 100},
 ylabel style={font=\color{white!15!black}},
-ylabel={Outputted code size kB},
+ylabel={Outputted code size/kB},
 axis background/.style={fill=white},
-legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, draw=none}
+legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align=left, fill=none, draw=none}
 ]
-\addplot [color=mycolor1]
+\addplot [color=mycolor1, draw=none, mark size=2.5pt, mark=x, mark options={solid, mycolor1}, forget plot]
   table[row sep=crcr]{%
 142	29.73\\
 128	29.875\\
@@ -36,9 +36,7 @@ legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align
 725	51.7260000000001\\
 1168	71.943\\
 };
-\addlegendentry{Inlining}
-
-\addplot [color=mycolor2]
+\addplot [color=mycolor2, draw=none, mark size=2.5pt, mark=x, mark options={solid, mycolor2}, forget plot]
   table[row sep=crcr]{%
 142	33.492\\
 128	29.875\\
@@ -46,15 +44,33 @@ legend style={at={(0.03,0.97)}, anchor=north west, legend cell align=left, align
 725	58.8800000000001\\
 1168	77.596\\
 };
-\addlegendentry{No Inlining}
-
-\addplot [color=mycolor3]
+\addplot [color=mycolor3, draw=none, mark size=2.5pt, mark=x, mark options={solid, mycolor3}, forget plot]
   table[row sep=crcr]{%
 142	14.46\\
 128	14.6179999999999\\
 385	18.702\\
 725	20.3219999999999\\
 1168	21.3779999999999\\
+};
+
+\addplot [color=mycolor1]
+  table[row sep=crcr]{%
+128	29.7838806495351\\
+1168	71.2860927157915\\
+};
+\addlegendentry{No Inlining}
+
+\addplot [color=mycolor2]
+  table[row sep=crcr]{%
+128	31.5242301697122\\
+1168	78.0118209021527\\
+};
+\addlegendentry{Inlining}
+
+\addplot [color=mycolor3]
+  table[row sep=crcr]{%
+128	15.3253368130229\\
+1168	22.3313371129605\\
 };
 \addlegendentry{eta}
 
@@ -74,12 +90,15 @@ ymin=1.649,
 ymax=1.75,
 ytick={1.65,  1.7, 1.75},
 ylabel style={font=\color{mycolor4}},
-ylabel={Outputted code size MB},
+ylabel={Outputted code size/MB},
 axis x line*=bottom,
 axis y line*=right,
-legend style={at={(0.03,0.74)}, anchor=north west, legend cell align=left, align=left, draw=none}
+legend style={at={(0.03,0.74)}, anchor=north west, legend cell align=left, align=left, fill=none, draw=none}
 ]
-\addplot [color=mycolor4]
+\addlegendimage{no markers,mycolor4}
+\addlegendentry{GHC}
+
+\addplot [color=mycolor4, mark size=2.5pt, mark=x, mark options={solid, mycolor4}]
   table[row sep=crcr]{%
 142	1.68598399999996\\
 128	1.68576800000005\\
@@ -87,7 +106,7 @@ legend style={at={(0.03,0.74)}, anchor=north west, legend cell align=left, align
 725	1.68678399999999\\
 1168	1.73142400000006\\
 };
-\addlegendentry{GHC}
+
 
 \end{axis}
 \end{tikzpicture}%

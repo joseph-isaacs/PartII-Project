@@ -161,21 +161,26 @@
 \section{Work division}
 
 A waterfall model was used to develop the compiler, since I was the only 
-person working on the compiler. This resulted in a linear ordering to work packages being completed. 
+person working on the compiler and requirements were clear at the start and unlikely to change. 
+This resulted in a linear ordering to work packages being completed. 
 \namefig\ref{figure:ganttchar} shows how to project progressed. The first
 few weeks matched up to the proposed timetable given the project proposal, however implementing
 the type inference (TI) was quicker than expected meaning that the only slack given (over the Christmas
 holidays) was not needed and I started work on future work packages. 
 The slack time was very generous, if 
-no slack time was allocated to this project it would have been delivered only one week ahead of schedule. The code generation section took a little
+no slack time was allocated to this project it would have been delivered only one week ahead of schedule. 
+The code generation section took a little
 longer than usual. This is due to in part to implementing the
 translation from the core calculus to JVM bytecode. To fully understand
-the problem I formalised this translation as reference soon. This 
+the problem I formalised this translation. This 
 made the code generation work packages longer than expected. It also
 took longer than expected to implement the bytecode translation due
 to me not fully understanding the semantics of JVM bytecode. I 
 needed to rewrite large parts of the code generation stage after 
-understand the bytecode semantics.
+understand the bytecode semantics. In hindsight a better understanding
+of the JVM bytecode specification would have saved time
+overall. Next time I would allocate extra time, before writing any code, to 
+understanding in more detail the JVM bytecode specification.
 
 \subimport{workStages/}{workStageGantt.tex}
 
@@ -215,7 +220,7 @@ which need not be explained here.
 The type inference stage in JVHC was heavily influenced by a paper
 called `Typing Haskell in Haskell' \cite{thih-paper}. This paper laid 
 out an implementation in Haskell of how to run type inference
-over a whole Haskell program was finding the type of each definition.
+over a whole Haskell program and find the type of each definition.
 I will therefore not go into detail about the implementation of the 
 type inference itself. I will however talk about moving from a Haskell
 syntax tree to a valid system F like core language.
@@ -295,8 +300,7 @@ the type variables generated in type inference are used as temporary variables i
 resulting \verb|CoreExpr| datatype. 
 Once the constraints generated in type inference have been solved the constraint variables are replaced with the correct types in the outputted \verb|CoreExpr| syntax tree.
 The ``fix-up'' phase in necessary after type inference as the \verb|CoreExpr| can only be corrected to
-valid System F once a full type of every expression is known, the type of each expression is 
-only known after type inference. 
+valid System F once a full type of every expression is known, which is only known after type inference. 
 
 % \begin{itemize}
 %   \item Talk about paper.
@@ -326,10 +330,10 @@ only known after type inference.
 %   \item Talk about inline metric to decide whether a function should be inlined.
 % \end{itemize}
 
-Functional inlining, comes from the idea that it 
+Function inlining is based on the idea that it 
 would be better to inline some function, so as
-to remove the need for the function call to happen, 
-also if a function has been inlined, this might allow further
+to remove the need for the function call to happen. 
+Also if a function has been inlined, this might allow further
 optimizations to occur, such as constant folding.
 
 Constant folding is replacing a branch instruction
@@ -337,7 +341,7 @@ Constant folding is replacing a branch instruction
 known at compile time with the code for the taken branch only.
 
 I will first explain constant folding in more detail since
-it is a more simple concept.
+it is a simpler concept.
 Given an expression 
 \begin{HaskellLst}
 case 2 of 
@@ -348,8 +352,8 @@ Using constant folding this expression would be reduced to
 \begin{HaskellLst}
 e'
 \end{HaskellLst}
-Functional inlining is a more interesting problem. The technique I used
-was heavily influenced by the paper \cite{ghc-inliner}, its 
+Function inlining is a more interesting problem. The technique I used
+was heavily influenced by the paper \cite{ghc-inliner}, which 
 revolves around deciding when to inline the expression:
 \begin{HaskellLst}
 let x = e in e'
@@ -360,48 +364,48 @@ can instead to written in terms of a \verb|let| construct.
 \begin{HaskellLst}
 (\x -> e) e'
 \end{HaskellLst}
-Goes to
+goes to
 \begin{HaskellLst}
 let x = e' in e 
 \end{HaskellLst}
-Now when to inline the \verb|let| construct is a very hard
-question to answer. We make sure of two things, one the 
-inline must terminate, therefore we cannot inline recursive 
-function forever, and two we wish to inlined code to 
+When to inline the \verb|let| construct is a very hard
+question to answer. We should make sure of two things: one, the 
+inliner must terminate, therefore we cannot inline recursive 
+function forever; and two, we wish to inlined code to 
 performance better (in what ever metric we use) than the original
 code.
 First I will consider the termination.
-This is more easily solved than the second problem.
+This is more easily solved than the second problem as
 I simply don't inline any recursive functions.
 When trying to answer the question of whether the inlined
-code will perform better, there is a load of subtly. 
+code will perform better, there is a lots of subtlety. 
 Better here is used to mean a smaller runtime. Then two thing must
 be computed to decide if inlining is a good idea, 
 the cost of computing \verb|e'| and the number of times
 \verb|x| appears in \verb|e|. We want the cost of computing
 \verb|e'| to be small and the number of times \verb|x| appear
-in \verb|e| to also be small. I came up with very simple
-metrics:
+in \verb|e| to also be small. I came up with a very simple
+metric:
 \begin{itemize}
   \item The cost of \verb|e'| I just assumed it to be constant.
-    It is not possible to know the cost at compile time to compute an
-    expression, therefore heuristics must be used. 
+    It is not possible in general to know the cost at compile time, 
+    therefore heuristics must be used. 
     For example if the expression \verb|e'| contained any 
     recursive functions then it may have a higher cost to 
     compute \verb|e'|, than a function without any recursive function 
     calls inside.
 
   \item The number of times \verb|x| is free in \verb|e'|
-    this value can be computed, then I said any time that
+    easily can be be computed, then any time that
     there are four or more free occurrences, don't inline.
-    If there are less than four free occurrences then inline.
+    If there are fewer than four free occurrences then inline.
 \end{itemize}
 
 A function is syntactically recursive if there is mention of the
-function name inside the function body. This is an over approximation
+function name inside the function body. This is an over-approximation
 since it may be the case that the function never recurses, however
 that cannot be known at compile time, hence an approximation is
-made instead.
+used instead.
 When counting the number of times a variable is free in an expression, 
 it suffices to count each time to variable name exists in the syntax tree, 
 until it is named in a $\lambda$ function at which point return the current count 
@@ -424,10 +428,8 @@ branches is passed up to the parent.
 %   \item 
 % \end{itemize}
 
-In the preparation section I created a document to mark down the 
-translation between the CoreExpr data-type and JVM bytecode instructions.
-Code Generation is just finding a correct mapping between \texttt{CoreExpr} defined in 
-\namefig\ref{code:CoreExpr}.
+During the preparation phase I created a document describe the 
+translation from the CoreExpr data-type to JVM bytecode.
 After considering the input data \texttt{CoreExpr}, next I considered what the result of each element 
 of the data type would map to. I have shown mapping from the \texttt{CoreExpr} data type to
 Java code for the reader convenience, however in the compiler the conversion was to JVM bytecode.
@@ -465,7 +467,7 @@ Functions will implement the Function interface
 \begin{JavaLst}
 public interface Function<T, R> { R apply(T t); }
 \end{JavaLst}
-When first implementing code generation there were bugs in the implementation
+When first implementing code generation, there were bugs in the implementation
 where the mapping between \texttt{CoreExpr} and the lazy language implemented
 via the use of thunks. Due the bugs in the first attempt to implement the 
 translation I decided to formalise the translation.
@@ -494,7 +496,7 @@ calculus to core calculus$_\bigstar$ is defined as:
   {\thunk{\mathtt{case}\ \unwrap{e_\tlang}\ \mathtt{of}\ b_1 \rightarrow \unwrap{e_{1_\tlang}}; 
       \dots; b_n \rightarrow \unwrap{e_{n_\tlang}}}}}
 \end{align*}
-Then from this it is proved in Appendix~\ref{appendix:thunkProof} 
+From this, Appendix~\ref{appendix:thunkProof} proves
 that the call-by-name transition relation that Haskell should implement
 as defined in the Haskell 98 report will map directly to a 
 finite number of call-by-value transition relation steps, 
@@ -511,13 +513,13 @@ There are two places that variables can be variables can be introduced.
     will be in the form of thunks defining all top level functions.
 \end{itemize}
 The following code example would be laid out in a scope hierarchy as in 
-\namefig~\ref{figure:scope_map}
-\begin{figure}
+\namefig~\ref{figure:scope_map}.
 \begin{HaskellLst}
 id x  = x
 three y = case y of
   (l:ls) -> 0
 \end{HaskellLst}
+\begin{figure}
   \centering
   \resizebox{\columnwidth}{!}{
 \begin{tikzpicture}
@@ -578,8 +580,8 @@ translated into JVM bytecode:
 of the literal.
 
 \item The \texttt{Var} construct will either be a build in function, 
-in which case it will be thunk when evaluated will return the build-in
-value. 
+in which case it will be thunk when evaluated will return the built in
+value or a user defined function/datatype.
 
 \item The \verb|Lam b e| construct will generate the following
 code in a separate class file:
@@ -593,15 +595,15 @@ public class &\textit{NAME}& implements Function {
 
   protected &\textit{ty}&(&\textit{e}&) (&\textit{ty}&(&\textit{b}&) arg) {
     this.arg = arg
-    return &$\llbracket \textit{e} \mkern1mu  \rrbracket$&.get();
+    return &$\llbracket \textit{e} \mkern2mu  \rrbracket$&.get();
   }
 }
 \end{JavaLst}
-\textit{NAME} will be the unique name of the function.
-\textit{ty} will return the Java type of the either the binder \texttt{b}
-or the expression in the lambda \texttt{e} and 
-$\llbracket \texttt{e} \rrbracket$ is a sequence
-of expression produced by converting \texttt{e} to a JVM bytecode.
+The {\ttfamily \textit{NAME}} will be the unique name of the function.
+The {\ttfamily \textit{ty}} will return the Java type {\ttfamily \textit{t}} 
+of either the binder \texttt{b} or the expression in the lambda \texttt{e}, and 
+{\ttfamily $\llbracket \textit{e}  \mkern2mu \rrbracket$} is a sequence
+of expression produced by converting {\ttfamily\texttt{e}} to a JVM bytecode.
 The code snipped returned will create a function object for the function
 referenced in the \verb|CoreExpr| datatype and then wrap it inside a thunk.
 This is the Java implementation of translation relation $\tlthunk$ above.
@@ -631,7 +633,7 @@ new &\textit{AppName}&(&\textit{Parent}&);
 \item \verb|Let| is just mapped to \verb|Lam| and then converted to JVM bytecode in the same
   way that \verb|Lam| is.
 
-\item \verb|Case| is mapped to a sequence of conditions where the case binder is checked again the 
+\item \verb|Case| is mapped to a sequence of conditions where the case binder is checked against the 
   value being scrutinised. There are examples in 
   Appendix~\ref{appendix:bytecodetranslationdoc}
 
@@ -641,13 +643,13 @@ new &\textit{AppName}&(&\textit{Parent}&);
 
 The library used to format JVM bytecode was Codec-JVM. This provides
 a simple to use Haskell interface to write JVM bytecode.
-The library exposes a type called \verb|Code| which was a monoid. 
-In Haskell a monoid requires two functions to be defined
+The library exposes a type called \verb|Code| which is a monoid. 
+In Haskell, a monoid requires two functions to be defined
 \verb|mempty| and \verb|<>| (called \verb|mappend|), 
 the first returns an empty value and then 
 second takes two variables of type \verb|Code| and combines them, returning
 a new \verb|Code| variable.
-Variables with type \verb|Code| maps closely to JVM bytecode instructions.
+Variables with type \verb|Code| map closely to JVM bytecode instructions.
 For example there is a function \verb|new|$_\text{Hask}$ which takes a Java type 
 and returns a variable of type \verb|Code|, 
 this is very similar to the JVM bytecode instruction
@@ -702,9 +704,9 @@ This allowed for arbitrary side effect free Java code to invoked by Haskell code
 The JVHC compiler must also be made aware of the type and Java name of each of the functions exposed from 
 the Java world. This means exposing a new function to JVHC will
 require the source of the compiler to be edited, it would 
-be better is configuration file was implement or even better
+be better is configuration file was used, or even better
 a keyword in the source to expose new functions to Haskell.
-The runtime is bundled in the package \verb|BuildIn|, and includes for example
+The runtime is bundled in the package \verb|BuiltIn|, and includes for example
 a function to add two integers.
 
 \subsection{I/O Monad}
@@ -714,12 +716,12 @@ is to allow I/O or any possible side effect, then this can be implemented using 
 monad abstraction. The I/O monad represents a sequence of instructions that when run will result in 
 the sequence operations being executed in order they were defined in the 
 program (not the order they were evaluated, since Haskell is lazy
-this two ordering maybe different). The I/O monad can only be run by the runtime
+these two maybe different). The I/O monad can only be run by the runtime
 of the program. This happens when the I/O monad is returned from the executing 
 \verb|main| function at which point the runtime will force evaluation of the 
 I/O monad,
-The following code will read continuously read a value and print out 
-$2\times$ that value
+The following code will continuously read a value and print out 
+twice that value
 \begin{HaskellLst}
 times2 :: IO Int
 times2 = getInt >>= (\i -> putInt (i*2) >> times2)
@@ -745,8 +747,7 @@ extend the library adding support for JVM bytecode instructions not already
 implemented by the library.
 Support was added  for \verb|instanceof|, \verb|dup_x1| and \verb|athrow|. 
 I then created a Github pull request and the change was merged 
-into the master branch of the library, with the commit
-here \cite{codec-contrib}.
+into the master branch of the library \cite{codec-contrib}.
 
 % \section{Benchmarking}
 

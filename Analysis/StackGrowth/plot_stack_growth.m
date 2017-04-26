@@ -41,6 +41,16 @@ memUsedTotal = sum(memUsed);
 
 p = plot (x,[stackH' stackH_op'] /1e3);
 
+hold on;
+
+p2 = plot(0,0);
+
+p2.Color = p(1).Color;
+
+p3 = plot(0,0);
+
+p3.Color = p(2).Color;
+
 p(1).Marker = 'x';
 p(1).MarkerSize = 5;
 p(2).Marker = 'x';
@@ -51,7 +61,7 @@ xlbl = xlabel ('Input size $n$');
 set(xlbl, 'interpreter', 'latex');
 set(ylbl, 'interpreter', 'latex');
 
-l = legend('No Inlining', 'Inlining', 'Location','northwest');
+l = legend([p2, p3], 'No Inlining', 'Inlining', 'Location','northwest');
 l.Box = 'off';
 
 cleanfigure;

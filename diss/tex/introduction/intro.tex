@@ -71,7 +71,12 @@
   label position b/.initial=below
 }
 
-\newcommand{\namefig}{\textbf{Figure}~}
+\usepackage[capitalize, nameinlink]{cleveref}
+\crefdefaultlabelformat{#2\textbf{#1}#3}
+
+\crefname{figure}{\textbf{Figure}}{\textbf{Figures}}
+\crefname{table}{\textbf{Table}}{\textbf{Tables}}
+\crefname{appendix}{\textbf{Appendix}}{\textbf{Appendices}}
 
 \begin{document}
 \section{Motivation}
@@ -157,7 +162,7 @@ Then calling \verb|gameTree startPos| will create
 a game tree with every single possible move either player can make throughout
 the entire game. The game could have infinitely many states, but since
 Haskell is a lazy language the next state positions are only computed
-when required. \namefig\ref{figure:tictactoeTree} shows the first two level of the game tree.
+when required. \cref{figure:tictactoeTree} shows the first two level of the game tree.
 The value of each node in the game tree is only computed when required. Noughts and
 crosses has a finite game tree, however this time data structure can represent games 
 with infinite states spaces. This example utilises both features

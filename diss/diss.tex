@@ -19,6 +19,8 @@
 \usepackage{mathtools}
 \usepackage{stmaryrd}
 
+\usepackage[format=plain,labelfont=bf,up,textfont=it,up]{caption}
+
 
 \usepackage{pgfplots}
 \pgfplotsset{compat=newest}
@@ -34,6 +36,7 @@
 \usepackage{pgfgantt}
 \usepackage{graphicx}
 \usepackage{xcolor}
+\usepackage{wrapfig}
 
 
 \ganttset{group/.append style={orange},
@@ -113,6 +116,12 @@
   % basicstyle=\small\sffamily
 }} {}
 
+\usepackage[capitalize, nameinlink]{cleveref}
+\crefdefaultlabelformat{#2\textbf{#1}#3}
+
+\crefname{figure}{\textbf{Figure}}{\textbf{Figures}}
+\crefname{table}{\textbf{Table}}{\textbf{Tables}}
+\crefname{appendix}{\textbf{Appendix}}{\textbf{Appendices}}
 
 \renewcommand{\rmdefault}{bch} % change default font
 
@@ -158,8 +167,6 @@
 
 \newcommand{\importMGraph}[3]{\setlength{\gwidth}
   {#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
-\newcommand{\namefig}{\textbf{Figure}~}
-\newcommand{\nametable}{\textbf{Table}~}
 
 \addbibresource{refs.bib}
 % more readable
@@ -230,7 +237,7 @@ Name:               & \bf Joe Isaacs                            \\
 College:            & \bf Sidney Sussex College                 \\
 Project Title:      & \bf Haskell 98 to JVM bytecode compiler   \\
 Examination:        & \bf Computer Science Tripos -- Part II, July 2017  \\
-Word Count:         & \bf 10325\footnotemark[1]
+Word Count:         & \bf 10408\footnotemark[1]
                     (well less than the 12000 limit)  \\
 Project Originator: & Joe Isaacs                      \\
 Supervisor:         & R.~Kovacsics                    \\ 

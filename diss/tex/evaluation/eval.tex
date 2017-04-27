@@ -14,6 +14,9 @@
 \usepackage{import}
 \usepackage[font=small,labelfont=bf]{caption}
 
+\usepackage{wrapfig,lipsum,booktabs}
+
+
 \usepackage{pgfplots}
 \pgfplotsset{compat=newest}
 %% the following commands are needed for some matlab2tikz features
@@ -38,8 +41,12 @@
 \setlength{\gwidth}{\textwidth}
 \setlength{\gwidth}{\textheight}
 
-\newcommand{\namefig}{\textbf{Figure}~}
-\newcommand{\nametable}{\textbf{Table}~}
+\usepackage[capitalize, nameinlink]{cleveref}
+\crefdefaultlabelformat{#2\textbf{#1}#3}
+
+\crefname{figure}{\textbf{Figure}}{\textbf{Figures}}
+\crefname{table}{\textbf{Table}}{\textbf{Tables}}
+\crefname{appendix}{\textbf{Appendix}}{\textbf{Appendices}}
 
 \newcommand{\importMGraph}[3]{\setlength{\gwidth}{#2}\setlength{\gheight}{#3}\subimport{graphs/}{#1}}
 
@@ -120,7 +127,7 @@ was written by me to check:
 
   I justified the translation from \verb|CoreExpr| to JVM bytecode
   formally (the mapping from a lazy to eager
-  semantics shown in Appendix~\ref{appendix:bytecodetranslationdoc}).
+  semantics shown in \cref{appendix:bytecodetranslationdoc}).
 
 \section{Performance}
 
@@ -192,35 +199,36 @@ appropriate:
   \item Garbage collection times.
   \item Comparison of inlining.
 \end{itemize}
+
+
+\begin{wrapfigure}{r}{11.5cm}
+  \centering
+      \importMGraph{plotStage.tex}{0.7\textwidth}{0.22\textwidth}
+      \caption{Average time taken at each compiler stage to compile an 
+      average program}
+      \label{plot:TimeInStages}
+\end{wrapfigure}
 When a user first interacts with JVHC, they will notice the time 
 taken to compile a program, so the performance evaluation will begin from there,
-the results can be seen in \namefig\ref{plot:TimeInStages}. 
-This shows that the code generation is by far the most time consuming part of the pipeline. 
+the results can be seen in \cref{plot:TimeInStages}. 
+This shows that the code generation is by far the most time 
+consuming part of the pipeline. 
 There is then a comparison of type inference between GHC and JVHC 
 showing only a $2\times $ decrease in the runtime cost of JVHC's TI 
-algorithm in \namefig\ref{plot:tiTime}. 
+algorithm in \cref{plot:tiTime}. 
 To show that the implementation of
 type inference algorithm for the \verb|tiExpr| program is exponential
 more data points would be needed.
 Running the TI algorithm for values of $n$ larger than 5,
 caused problems since it used all the memory available to the system.
 
-\begin{samepage}
-\begin{figure}[ht]
-  \centering
-      \importMGraph{plotStage.tex}{0.7\textwidth}{0.25\textwidth}
-      \caption{Average time taken at each compiler stage to compile an 
-      average program}
-      \label{plot:TimeInStages}
-\end{figure}
-  \end{samepage}
 
 \begin{figure}
   \begin{samepage}
   \importMGraph{tiTime.tex}{0.93\textwidth}{0.4\textwidth}
   \caption[Type inference runtime as a function of input size]
   {Plot of number of pairs size (increasing $n$ in \texttt{f$n$}) 
-    of the tiExpr program in Appendix~\ref{appendix:programs} against time taken 
+    of the tiExpr program in \cref{appendix:programs} against time taken 
     to run type inference algorithm. The data has been fitted to a line of the form
     $y = a \cdot e^{b\cdot x}+c$, where $a,b,c$ and parameters.}
   \label{plot:tiTime}
@@ -228,11 +236,11 @@ caused problems since it used all the memory available to the system.
 \end{figure}
 There will be three programs explicitly referenced throughout the evaluation section 
 [\texttt{fib}, \texttt{testN}, \texttt{badProg}] they are all defined in 
-\textbf{Appendix}~\ref{appendix:programs}.
+\cref{appendix:programs}.
 Outputted code size is a good measure of how efficiently a program can be compiled into an executable format. 
 The comparison is not completely fair between JVHC, Eta and GHC 
 since the latter two will use dead code elimination. 
-The results are in \namefig\ref{plot:codeSize}. \texttt{-O0} (No optimizations flag) 
+The results are in \cref{plot:codeSize}. \texttt{-O0} (No optimizations flag) 
 was used when compiling, however the GHC flag guide \cite{haskell-flag-ref}
 does not provide a way to disable what it calls \texttt{-fwarn-unused-binds}.
 It can be seen that inlined code has a slightly higher code size than non inlined code. This extra code size is due to having both the inlined and 
@@ -241,7 +249,7 @@ The problem could be solved with dead code elimination. GHC has a much larger
 and more varied code size than all other compilers since this must produce a stand alone binary 
 whereas Eta, and JVHC run on the JVM with extra support libraries (not included in this comparison) 
 and the garbage collection logic is in the JVM whereas GHC must embed the logic in the binary. 
-It can be seen from \nametable\ref{table:codeSize}. 
+It can be seen from \cref{table:codeSize}. 
 that Eta has the smallest code size increase. The variation of GHC is so large I have not
 included straight line fit coefficients for GHC. The data in the table
 was generated using the Matlab function \verb|polyfit(x,y,1)|.
@@ -256,24 +264,26 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
            doesn't start at 0.}
   \label{plot:codeSize}
 \end{figure}
-\begin{table}
+
+\begin{wraptable}{r}{7.5cm}
   \centering
   \begin{tabular}{ c | c c }
     Compiler& $a$ & $b$\\
     \hline
-    JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
     JVHC & $39.9$ & $2.47 \times 10^{4}$ \\
+    JHVC with inlining & $44.7$ & $2.58 \times 10^{4}$\\
     eta & $6.74$ & $1.45 \times 10^{4}$
   \end{tabular}
-  \caption{Regression values for code size form data in \namefig\ref{plot:codeSize} to $y=a x+b$}
+  \caption{Regression values for code size form data in \cref{plot:codeSize} to $y=a x+b$}
   \label{table:codeSize}
-\end{table}
-\namefig\ref{plot:fibTiming} contains a comparison of the runtime of the \texttt{fib}$n$ program where 
+\end{wraptable}
+
+\cref{plot:fibTiming} contains a comparison of the runtime of the \texttt{fib}$n$ program where 
 $n$ ranges between $[1,35]$ inclusive, showing that the asymptotic runtime of the code output
 by each compiler has the same asymptotic complexity.
   Least square regression was carried out were the data was fit to the curve
   $a \cdot \varphi^n$ (using the \texttt{lsqcurvefit} Matlab function).
-  \nametable\ref{table:fibCoef} shows
+  \cref{table:fibCoef} shows
   JVHC is about $10^2 \times$ slower than the native
   Java program and only $1.2\times $ slower than the GHC compiled program.
   This data was obtained using \texttt{-O0} flag on GHC and no inlining
@@ -287,7 +297,7 @@ by each compiler has the same asymptotic complexity.
   \label{plot:fibTiming}
 \end{figure}
 
-\begin{table}
+\begin{wraptable}{r}{7.5cm}
   \centering
 \begin{tabular}{c | c}
   & $a$\\
@@ -296,17 +306,16 @@ by each compiler has the same asymptotic complexity.
   GHC & $9.49\times 10^{-8}$\\
   Java & $1.62 \times 10^{-9}$
 \end{tabular}
-\caption{Coefficients from fitting the data in \namefig\ref{plot:fibTiming} 
+\caption{Coefficients from fitting the data in \cref{plot:fibTiming} 
     to the line $y=a\cdot \varphi^n$}
   \label{table:fibCoef}
-\end{table}
-
+\end{wraptable}
 
 The effect that inlining has on the runtime of some program can be seen from
-\namefig\ref{plot:inlinePlot}. 
+\cref{plot:inlinePlot}. 
  There is a noticeable runtime improvement when inlining is used.
 Fitting both the sets of data to a straight line $y=ax+b$ yields the following
-coefficients in \nametable\ref{table:inlineCoef}, this shows a $12 \times$ speed up.
+coefficients in \cref{table:inlineCoef}, this shows a $12 \times$ speed up.
   There is a notable jump in runtime for the inlined program for $n > 2.7 \times 10^{4}$, 
   this is due to a single garbage collection cycle.
   This figure shows that there is a definite benefit, 
@@ -324,7 +333,8 @@ coefficients in \nametable\ref{table:inlineCoef}, this shows a $12 \times$ speed
   \label{plot:inlinePlot}
 \end{samepage}
 \end{figure}
-\begin{table}
+
+\begin{wraptable}{r}{7.5cm}
   \centering
 \begin{tabular}{c | c  c}
   & $a$ & $b$\\
@@ -332,17 +342,18 @@ coefficients in \nametable\ref{table:inlineCoef}, this shows a $12 \times$ speed
   No Inlining & $1.36\times 10^{-5}$ & $-0.04$\\
   Inlining & $1.11\times 10^{-6}$ & $0.076$
 \end{tabular}
-\caption{Coefficients from fitting the data in \namefig\ref{plot:inlinePlot} to 
+\caption{Coefficients from fitting the data in \cref{plot:inlinePlot} to 
   a straight line $y=ax+b$}
   \label{table:inlineCoef}
-\end{table}
+\end{wraptable}
+
 Factors that effect the qualify of a compiled program include how much memory
 is used throughout execution of a program. Two peformance metrics were collection throughout
 separate runs of the program \texttt{testN}. The maximum call stack size
-shown in \namefig\ref{plot:stackSize} and the maximum 
-memory usage in \namefig\ref{plot:memUsed}. 
+shown in \cref{plot:stackSize} and the maximum 
+memory usage in \cref{plot:memUsed}. 
 The maximum call stack height linearly increases with $n$, fitting to a straight line curve
-with the equation $a\cdot x + b$ resulting in the table in \nametable\ref{table:stackGrowth} 
+with the equation $a\cdot x + b$ resulting in the table in \cref{table:stackGrowth} 
 and a about a $2\times$ reduction maximum call stack height. 
 There is also a noticeable different is peak memory usage, 
 showing reduced memory usage when inlining is enabled.
@@ -367,7 +378,9 @@ This is therefore an over estimate of peak memory usage.
   \caption{Maximum call stack height for \texttt{testN} as a function of $n$}
   \label{plot:stackSize}
 \end{figure}
-\begin{table}
+
+
+\begin{wraptable}{r}{7.5cm}
   \centering
   \begin{tabular}{ c | c c}
   & $a$ & $b$\\
@@ -375,9 +388,13 @@ This is therefore an over estimate of peak memory usage.
   No Inlining & 11 & 29 \\
   Inlining & 5 & 18 
   \end{tabular}
-  \caption{Fitting of the data from stack growth to the line $y = a\cdot x + b$.}
+  \caption{Fitting of the data from \cref{plot:stackSize}  
+    to the line $y = a\cdot x + b$.}
   \label{table:stackGrowth}
-\end{table}
+\end{wraptable}
+
+
+
 \begin{figure}
   \centering
   \importMGraph{memUsed}{0.96\textwidth}{0.3\textwidth}
@@ -386,7 +403,7 @@ This is therefore an over estimate of peak memory usage.
 \end{figure}
 Function inlining, as mentioned earlier, is not always a good idea.
 It is possible that inlining functions may lead to increased runtime, shown  
-Figure~\ref{plot:badInline}. 
+\cref{plot:badInline}. 
 The increase in runtime is due to inlining the expensive to compute function 
 \texttt{sumN} which will be evaulated three times adding the results each time. 
 Whereas no inlining will only compute \texttt{sumN} once and then add the result 3 times, 

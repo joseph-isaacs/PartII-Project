@@ -36,7 +36,13 @@
 \setlength{\gwidth}{\textwidth}
 \setlength{\gwidth}{\textheight}
 
-\newcommand{\namefig}{\textbf{Figure}~}
+
+\usepackage[capitalize, nameinlink]{cleveref}
+\crefdefaultlabelformat{#2\textbf{#1}#3}
+
+\crefname{figure}{\textbf{Figure}}{\textbf{Figures}}
+\crefname{table}{\textbf{Table}}{\textbf{Tables}}
+\crefname{appendix}{\textbf{Appendix}}{\textbf{Appendices}}
 
 \definecolor{pblue}{rgb}{0.13,0.13,1}
 \definecolor{pgreen}{rgb}{0,0.5,0}
@@ -122,7 +128,16 @@
 
 \begin{document}
 
-\section{Overview}
+The compiler implementation was split up into work packages.
+A work package involved either implemention one, or part of a pipeline
+stage depending on an estimation of how long each stage would
+take to implement.
+
+% Work packages were then formed from these five stages --
+% some weeks contained a whole compiler stage, while other work packages contained
+% only part of a compiler stage.
+
+% \section{Overview}
 % A functional compiler is usually though of as a five stage pipeline consisting of:
 
 % \begin{enumerate}
@@ -163,7 +178,7 @@
 A waterfall model was used to develop the compiler, since I was the only 
 person working on the compiler and requirements were clear at the start and unlikely to change. 
 This resulted in a linear ordering to work packages being completed. 
-\namefig\ref{figure:ganttchar} shows how to project progressed. The first
+\cref{figure:ganttchar} shows how to project progressed. The first
 few weeks matched up to the proposed timetable given the project proposal, however implementing
 the type inference (TI) was quicker than expected meaning that the only slack given (over the Christmas
 holidays) was not needed and I started work on future work packages. 
@@ -228,7 +243,7 @@ This process was interleaved with the type inference algorithm.
 That meant the result of running type inference gave a type for each
 top level function, and also a new data type called \texttt{CoreExpr}
 
-The full CoreExpr datatype is listed in \namefig\ref{code:CoreExpr}. 
+The full CoreExpr datatype is listed in \cref{code:CoreExpr}. 
 All the types in this datatype
 are directly from System F, apart from case. The \verb|Case|
 construct allows pattern matching different constructors of a ADT 
@@ -368,6 +383,18 @@ goes to
 \begin{HaskellLst}
 let x = e' in e 
 \end{HaskellLst}
+All substituted expression must first be $\alpha$-renamed 
+using fresh variables (or type variables) which don't exist 
+anywhere in the program. This is done by using a ASCII which character, 
+which is not allowed in either function or type names, \texttt{*}
+was used.
+\verb|CoreExpr| also contains $\Lambda$ abstractions of type
+variables. When inlining $\beta$-reduction is also applied to types using
+the rule:
+\[ (\Lambda t.e) t' \rightarrow_\beta e[t'/t] \]
+where $e[a/x]$ means substitute all free occurrences of $x$ in $e$
+with $a$.
+
 When to inline the \verb|let| construct is a very hard
 question to answer. We should make sure of two things: one, the 
 inliner must terminate, therefore we cannot inline recursive 
@@ -387,7 +414,7 @@ the cost of computing \verb|e'| and the number of times
 in \verb|e| to also be small. I came up with a very simple
 metric:
 \begin{itemize}
-  \item The cost of \verb|e'| I just assumed it to be constant.
+  \item I assumed the cost of \verb|e'| to be constant.
     It is not possible in general to know the cost at compile time, 
     therefore heuristics must be used. 
     For example if the expression \verb|e'| contained any 
@@ -474,7 +501,7 @@ translation I decided to formalise the translation.
 The result was a mathematical framework for expressions defining both 
 a core calculus which defines how Haskell could theoretically execute and 
 core calculus$_\bigstar$ which is similar to how expressions will
-execute on the JVM. This is included in Appendix~\ref{appendix:thunkProof}. 
+execute on the JVM. This is included in \cref{appendix:thunkProof}. 
 The notation $\thunk{e}$ means, the value $e$ is wrapped in a thunk. Then
 $\unwrap{t}$ means reduce the expression to a value from the thunk $t$. 
 This would directly map to calling \texttt{get} when implemented in 
@@ -496,7 +523,7 @@ calculus to core calculus$_\bigstar$ is defined as:
   {\thunk{\mathtt{case}\ \unwrap{e_\tlang}\ \mathtt{of}\ b_1 \rightarrow \unwrap{e_{1_\tlang}}; 
       \dots; b_n \rightarrow \unwrap{e_{n_\tlang}}}}}
 \end{align*}
-From this, Appendix~\ref{appendix:thunkProof} proves
+From this, \cref{appendix:thunkProof} proves
 that the call-by-name transition relation that Haskell should implement
 as defined in the Haskell 98 report will map directly to a 
 finite number of call-by-value transition relation steps, 
@@ -513,7 +540,7 @@ There are two places that variables can be variables can be introduced.
     will be in the form of thunks defining all top level functions.
 \end{itemize}
 The following code example would be laid out in a scope hierarchy as in 
-\namefig~\ref{figure:scope_map}.
+\cref{figure:scope_map}.
 \begin{HaskellLst}
 id x  = x
 three y = case y of
@@ -635,7 +662,7 @@ new &\textit{AppName}&(&\textit{Parent}&);
 
 \item \verb|Case| is mapped to a sequence of conditions where the case binder is checked against the 
   value being scrutinised. There are examples in 
-  Appendix~\ref{appendix:bytecodetranslationdoc}
+  \cref{appendix:bytecodetranslationdoc}
 
 \end{itemize}
 

@@ -383,10 +383,11 @@ goes to
 \begin{HaskellLst}
 let x = e' in e 
 \end{HaskellLst}
-All substituted expression must first be $\alpha$-renamed 
+When inlining a function name the expression, that represents 
+that function body, must first be $\alpha$-renamed 
 using fresh variables (or type variables) which don't exist 
-anywhere in the program. This is done by using a ASCII which character, 
-which is not allowed in either function or type names, \texttt{*}
+anywhere in the program. This is done by using a ASCII character 
+which is not allowed in either function or type name, \texttt{*}
 was used.
 \verb|CoreExpr| also contains $\Lambda$ abstractions of type
 variables. When inlining $\beta$-reduction is also applied to types using
@@ -668,7 +669,7 @@ new &\textit{AppName}&(&\textit{Parent}&);
 
 \subsection{Using Codec-JVM}
 
-The library used to format JVM bytecode was Codec-JVM. This provides
+The library used to format JVM bytecode was \textit{codec-jvm}. This provides
 a simple to use Haskell interface to write JVM bytecode.
 The library exposes a type called \verb|Code| which is a monoid. 
 In Haskell, a monoid requires two functions to be defined
@@ -695,7 +696,7 @@ dup
 invokespecial #3            // Method ObjType."<init>":()V
 \end{JVMLst}
 The convenient Haskell interface and control flow handling 
-are main the features that I used from Codec-JVM.
+are main the features that I used from \textit{codec-jvm}.
 
 \subsection{Generating Correct JVM Bytecode}
 
@@ -769,7 +770,7 @@ function.
 
 \section{Open Source contribution}
 
-When using the Codec-JVM library for code generation I
+When using the \textit{codec-jvm} library for code generation I
 extend the library adding support for JVM bytecode instructions not already
 implemented by the library.
 Support was added  for \verb|instanceof|, \verb|dup_x1| and \verb|athrow|. 

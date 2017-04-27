@@ -214,7 +214,7 @@ the results can be seen in \cref{plot:TimeInStages}.
 This shows that the code generation is by far the most time 
 consuming part of the pipeline. 
 There is then a comparison of type inference between GHC and JVHC 
-showing only a $2\times $ decrease in the runtime cost of JVHC's TI 
+showing only a two times decrease in the runtime cost of JVHC's TI 
 algorithm in \cref{plot:tiTime}. 
 To show that the implementation of
 type inference algorithm for the \verb|tiExpr| program is exponential
@@ -284,8 +284,9 @@ by each compiler has the same asymptotic complexity.
   Least square regression was carried out were the data was fit to the curve
   $a \cdot \varphi^n$ (using the \texttt{lsqcurvefit} Matlab function).
   \cref{table:fibCoef} shows
-  JVHC is about $10^2 \times$ slower than the native
-  Java program and only $1.2\times $ slower than the GHC compiled program.
+  JVHC is approximately $10^2$  times slower than the native
+  Java program and only approximately 1.2 times slower than the GHC 
+  compiled program.
   This data was obtained using \texttt{-O0} flag on GHC and no inlining
   in JVHC.
 
@@ -315,7 +316,7 @@ The effect that inlining has on the runtime of some program can be seen from
 \cref{plot:inlinePlot}. 
  There is a noticeable runtime improvement when inlining is used.
 Fitting both the sets of data to a straight line $y=ax+b$ yields the following
-coefficients in \cref{table:inlineCoef}, this shows a $12 \times$ speed up.
+coefficients in \cref{table:inlineCoef}, this shows a twelve times speed up.
   There is a notable jump in runtime for the inlined program for $n > 2.7 \times 10^{4}$, 
   this is due to a single garbage collection cycle.
   This figure shows that there is a definite benefit, 
@@ -406,7 +407,7 @@ It is possible that inlining functions may lead to increased runtime, shown
 \cref{plot:badInline}. 
 The increase in runtime is due to inlining the expensive to compute function 
 \texttt{sumN} which will be evaulated three times adding the results each time. 
-Whereas no inlining will only compute \texttt{sumN} once and then add the result 3 times, 
+Whereas no inlining will only compute \texttt{sumN} once and then add the result three times, 
 which will run faster. The drop in the inlined program performance at about $120 \times 10^3$, 
 could be due to the JVM optimizing the bytecode when it notices common execution patterns.
 The heuristics used by the inlining compiler stage are very simple it would be possible to 

@@ -408,7 +408,7 @@ It is possible that inlining functions may lead to increased runtime, shown
 The increase in runtime is due to inlining the expensive to compute function 
 \texttt{sumN} which will be evaulated three times adding the results each time. 
 Whereas no inlining will only compute \texttt{sumN} once and then add the result three times, 
-which will run faster. The drop in the inlined program performance at about $120 \times 10^3$, 
+which will run faster. The rise in the inlined program performance at about $120 \times 10^3$, 
 could be due to the JVM optimizing the bytecode when it notices common execution patterns.
 The heuristics used by the inlining compiler stage are very simple it would be possible to 
 come up with better heuristics that can be used to decide whether to inline a function.

@@ -175,13 +175,11 @@ Literal will be represented as the Object type (\verb|Integer| and
 \subsubsection{case}
 
 For user defined types the code would look a bit like this:
-
 \begin{HaskellLst}
 y x = case x of
   True  -> 1
   False -> 2
 \end{HaskellLst}
-
 \begin{JavaLst}
 public Function_x implements Function<HBoolean,Integer> {
   private Thunk<HBoolean> x;
@@ -197,7 +195,6 @@ public Function_x implements Function<HBoolean,Integer> {
   }
 }
 \end{JavaLst}
-
 \begin{JVMLst}
 apply():
 0  aload_0
@@ -221,19 +218,14 @@ apply():
 34 invokespecial   #21  // MatchFailedException."<init>"
 37 athrow
 \end{JVMLst}
-
 where \texttt{n} is of type \texttt{HBoolean} (\texttt{data HBoolean = True | False}).
-
-
 \begin{HaskellLst}
 case y of
   2  -> 0
   45 -> 1
   x  -> 2
 \end{HaskellLst}
-
 for build-in types I will use a set of cmp instructions such as
-
 \begin{JVMLst}
 1  bipush 2       
 2  if_icmpne 5   // 2 == y
@@ -264,9 +256,6 @@ this can be compiled using the compilation scheme for \textbf{function} (below).
 If we have a function then this will take a single argument which will be a thunk and return a single expression. 
 This would be implemented as follows:
 
-I will use the Java 8 functional interface for all functions.
-
-(https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html)
 
 \begin{HaskellLst}
 g y = 2
@@ -329,13 +318,11 @@ public class Function_a implements Function<Thunk<Object>, Function_b> {
         return new Function_b(this);
     }
 }
-
 public class Function_b implements Function<Thunk<Integer>,Integer>{
     Function_a a;
     public Function_b(Function_a a) {
         this.a = a;
     }
-
     @Override
     public Integer apply(Thunk<Integer> bThunk) {
         Function<Object,Integer> g = a.e.g.get();
@@ -386,33 +373,29 @@ Integer apply(Thunk<Integer>)
 public class main {
     public static void main(String[] args) {
         Environment e = new Environment();
-
         e.g = new Thunk_g(e);
         e.x = new Thunk_x(e);
-
         Thunk<Object> a = new Thunk<Object>() {
             @Override
             protected Object force() {
                 return null;
             }
         };
-
         Thunk<Integer> b = new Thunk<Integer>() {
             @Override
             protected Integer force() {
                 return 2;
             }
         };
-        
         return e.x.get().apply(a).apply(b); //main call
     }
 }
 \end{JavaLst}
+I will use the Java 8 functional interface for all functions.
+\footnote{(https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html)}
 
 I have included bytecode for one of the function call apply as an example, only part of the constant pool is
 included
-
-
 The environment will passed down by via chaining, that is the object in a given scope
 having a references to the object in the scope above. If the current scope is $i$ then scope above is
 $i-1$, if the scope is $0$ then the scope above is the top level scope (represented by TopLevelEnv in the above example).

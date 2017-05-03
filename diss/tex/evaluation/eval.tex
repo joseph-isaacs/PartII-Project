@@ -316,8 +316,11 @@ The effect that inlining has on the runtime of some program can be seen from
 \cref{plot:inlinePlot}. 
  There is a noticeable runtime improvement when inlining is used.
 Fitting both the sets of data to a straight line $y=ax+b$ yields the following
-coefficients in \cref{table:inlineCoef}, this shows a twelve times speed up.
-  There is a notable jump in runtime for the inlined program for $n > 2.7 \times 10^{4}$, 
+coefficients in \cref{table:inlineCoef}. Since the runtime of the program without inlining
+have a discontinuity in the data gathered (when compared to a straight line), two straight lines has been
+fit to the data. Part I is fit to the first six data points and Part II is fit to remaining data points.
+\cref{table:inlineCoef} shows a twelve times speed up Part II of the curve.
+  The discontinuity in runtime for the inlined program for $n > 2.7 \times 10^{4}$, 
   this is due to a single garbage collection cycle.
   This figure shows that there is a definite benefit, 
   in terms of runtime gained from applying inlining to \texttt{testN}. Inlining however
@@ -325,7 +328,7 @@ coefficients in \cref{table:inlineCoef}, this shows a twelve times speed up.
 \begin{figure}
 \begin{samepage}
   \centering
-  \importMGraph{inlinePlot}{0.96\textwidth}{0.4\textwidth}
+  \importMGraph{inlinePlotComplex}{0.96\textwidth}{0.4\textwidth}
   \caption[Runtime of \texttt{testN} as a function on input size $n$]
   {Plot of input value passed to \texttt{testN} against time to run in seconds,
     also included in the time that the garbage collection (GC) ran in the program 
@@ -335,18 +338,19 @@ coefficients in \cref{table:inlineCoef}, this shows a twelve times speed up.
 \end{samepage}
 \end{figure}
 
-\begin{wraptable}{r}{7.5cm}
+\begin{table}
   \centering
 \begin{tabular}{c | c  c}
   & $a$ & $b$\\
   \hline 
-  No Inlining & $1.36\times 10^{-5}$ & $-0.04$\\
+  No Inlining (Part I) & $3.65\times 10^{-6}$ & $6.68 \times 10^{-2}$\\
+  No Inlining (Part II) & $1.36\times 10^{-5}$ & $3.55 \times 10^{-2}$\\
   Inlining & $1.11\times 10^{-6}$ & $0.076$
 \end{tabular}
 \caption{Coefficients from fitting the data in \cref{plot:inlinePlot} to 
   a straight line $y=ax+b$}
   \label{table:inlineCoef}
-\end{wraptable}
+\end{table}
 
 Factors that effect the qualify of a compiled program include how much memory
 is used throughout execution of a program. Two peformance metrics were collection throughout
@@ -354,8 +358,20 @@ separate runs of the program \texttt{testN}. The maximum call stack size
 shown in \cref{plot:stackSize} and the maximum 
 memory usage in \cref{plot:memUsed}. 
 The maximum call stack height linearly increases with $n$, fitting to a straight line curve
-with the equation $a\cdot x + b$ resulting in the table in \cref{table:stackGrowth} 
+with the equation $y = a\cdot x + b$ resulting in the table in \cref{table:stackGrowth} 
 and about a two times reduction maximum call stack height. 
+\begin{wraptable}{r}{7.5cm}
+  \centering
+  \begin{tabular}{ c | c c}
+  & $a$ & $b$\\
+  \hline
+  No Inlining & 11 & 29 \\
+  Inlining & 5 & 18 
+  \end{tabular}
+  \caption{Fitting of the data from \cref{plot:stackSize}  
+    to the line $y = a\cdot x + b$.}
+  \label{table:stackGrowth}
+\end{wraptable}
 There is also a noticeable different is peak memory usage, 
 showing reduced memory usage when inlining is enabled.
 There is a very high correlation between maximum stack height and memory usage.
@@ -373,28 +389,13 @@ the stack height to about $10^{4}$ which was enough for the programs being consi
 The data for memory usage was gathered by looking at JVM traces, 
 enabled with the flag \texttt{PrintGCDetails}. 
 This is therefore an over estimate of peak memory usage. 
+
 \begin{figure}
   \centering
   \importMGraph{plotCallStackGrowth}{0.96\textwidth}{0.3\textwidth}
   \caption{Maximum call stack height for \texttt{testN} as a function of $n$}
   \label{plot:stackSize}
 \end{figure}
-
-
-\begin{wraptable}{r}{7.5cm}
-  \centering
-  \begin{tabular}{ c | c c}
-  & $a$ & $b$\\
-  \hline
-  No Inlining & 11 & 29 \\
-  Inlining & 5 & 18 
-  \end{tabular}
-  \caption{Fitting of the data from \cref{plot:stackSize}  
-    to the line $y = a\cdot x + b$.}
-  \label{table:stackGrowth}
-\end{wraptable}
-
-
 
 \begin{figure}
   \centering

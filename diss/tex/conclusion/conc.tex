@@ -59,7 +59,7 @@ While the JVHC’s initial success has been encouraging, numerous opportunities 
 combined. It would be useful to investigate why this stage takes so long 
 and develop a solution which runs faster.
 
-\item Inlining is not favourable in all instances, as there are disadvantages associated with both inadequate and overzealous implementation of the optimisation.  Functional inlining allows other optimizations, which may deliver performance gains in some cases. However, inlining too frequently could lead to larger code size and possible work duplication. Hence ensuring an optimum degree of inlining is key to efficient compilation of the program. The degree of inlining is dependent on the definition of the heuristics used to define the cost of inlining a given function. As such this compiler would be improved by finding better heuristics to increase the average performance gain from using functional inlining.
+\item Inlining is not favourable in all instances, as there are disadvantages associated with both inadequate and overzealous implementation of the optimisation.  Functional inlining allows other optimisations, which may deliver performance gains in some cases. However, inlining too frequently could lead to larger code size and possible work duplication. Hence ensuring an optimum degree of inlining is key to efficient compilation of the program. The degree of inlining is dependent on the definition of the heuristics used to define the cost of inlining a given function. As such this compiler would be improved by finding better heuristics to increase the average performance gain from using functional inlining.
 \end{itemize}
 
 
@@ -81,9 +81,9 @@ of the JVHC compiler:
   \item Algorithm to go from inputted syntax tree to valid
     System F lambda calculus
 
-  \item Function inlining optimization stage
+  \item Function inlining optimisation stage
 
-  \item Constant folding optimization stage
+  \item Constant folding optimisation stage
 
   \item Code generation stage which outputted a set of \verb|.class|
     files which can be zipped into a \verb|.jar| and executed

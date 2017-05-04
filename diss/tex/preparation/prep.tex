@@ -134,7 +134,7 @@ allow development of stages without relying on future
 stages. I will use a waterfall model, where I implement a stage
 at a time in the order given above, while writing tests to help check
 correctness of implementation. Since each stage of the pipeline
-is isolated unit test can be written to check each stage separately, this means 
+is isolated unit tests can be written to check each stage separately, this means 
 I can be sure that a given stage will operate on data correctly before considering
 a different stage.
 I will, in turn, look at specific preparations made for each stage in the pipeline.
@@ -151,20 +151,19 @@ The success criteria can be summarised as testing for correctness
 with the aid of unit tests. 
 Work for a work package is allocated based on stages of the compiler:
 Lexing, Parsing, Desugaring, Type Inference,
-Code Generation, Optermization, Exposing Java functions to Haskell and
+Code Generation, Optimisation, Exposing Java functions to Haskell and
 Supporting I/O (via IO Monad). 
 Then the extra success criteria are that JVHC should be
 comparable in runtime performance to existing Haskell implementations 
 such as GHC. 
-The success criteria can be extended still further again, I will
-pay attention to the resulting interface provided by the generated
+I will also pay close attention to the resulting interface provided by the generated
 code which is exposed to other languages on the JVM.
 
 \section{Tools Used}
 
-There were many tools used throughout the project, git was used for 
+There were many tools used throughout the project, \textit{git} was used for 
 code management, version control and experimental features. Every time
-I had a new idea about how to implement something I could create new a 
+I had a new idea about how to implement something I could create a new 
 branch, work on the feature, then if the implementation was successful, 
 it would be merged back into the main branch. 
 The git history was used when writing the dissertation.
@@ -175,7 +174,7 @@ along the project using the \verb|git push| command.
 Dropbox was used through the project to backup code files and data generated 
 through the project, Dropbox will automatically synchronise file changes
 onto the external Dropbox servers. Dropbox also has a record of all
-versions of a synced file which I sometimes needed access to old versions
+versions of a synced file which I sometimes needed to access old versions
 of data files. This Dropbox feature was invaluable throughout the project.
 IntelliJ \cite{intellij-ide} was used as an IDE when writing the Java
 runtime library associated with JVHC. IntelliJ was also used to decompile
@@ -205,7 +204,7 @@ Multiple parts of the compiler and outputted code will
 need to be benchmarked. I used a benchmarking library called
 Criterion \cite{criterion} for micro-benchmarks, running a function
 multiple times and finding the mean runtime with accuracy bounds.
-Accuracy bound were useful in writing the evaluation section.
+Accuracy bounds were useful in writing the evaluation section.
 
 \section{General}
 
@@ -223,15 +222,15 @@ I decided to write the compiler in Haskell, this choice was made for two reasons
   the Haskell report, this influenced design decisions from the start:
   noting the need for kind inference, I then decided to 
   place this process in the desugaring stage of the pipeline. 
-  Then after reading the JVM 
-  specification \cite{jvm-spec8} I produced a
-  document which my supervisor and I discussed and agreed
-  upon the fact this would be a simple and efficient implementation
+  Then, after reading the JVM 
+  specification \cite{jvm-spec8}, I produced a
+  document which my supervisor and I agreed
+  would be a simple and efficient implementation
   of the Haskell constructs. The document is included in 
   Appendix~\ref{appendix:bytecodetranslationdoc}. 
   The JVM is a good backend choice to compile Haskell to for two
   reasons, first it allows access to the full feature set
-  of JVM tool as mentioned in the introduction and secondly
+  of JVM tools as mentioned in the introduction and secondly
   the JVM itself provides garbage collection and 
   a more simple backend target (when compared to machine assembly).
   This allowed me to implement a whole compiler in the timescale given.
@@ -251,7 +250,7 @@ to figure out what syntax JVHC will support and therefore, what
 should be supported by my lexer and parser implementations.
 The implementation will not support all of the Haskell 98 
 specification meaning that the language accepted by the lexer and 
-parser could be simplified some what when compared to the full
+parser could be simplified somewhat when compared to the full
 grammar defined in the report.
 
 Haskell 98 is a whitespace sensitive language meaning that the parser must use a
@@ -262,7 +261,7 @@ f x = case x of
   False -> 0
 \end{HaskellLst}
 Notice the double space before the \texttt{True} and \texttt{False}, this in conjunction with the
-newline at the \texttt{1} is syntax for a cases statement. The Haskell 98 report
+newline at the \texttt{1}, is syntax for a cases statement. The Haskell 98 report
 says how the parser should first insert \texttt{;},  \texttt{\{} and \texttt{\}} symbols at the 
 relevant places:
 \begin{HaskellLst}

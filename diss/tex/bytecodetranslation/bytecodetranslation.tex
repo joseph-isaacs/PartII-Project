@@ -106,7 +106,7 @@ only when we apply $()$ to this thunk does the computation take place, this allo
 simulation of call-by-name semantics
 when the program is being run with call-by-value operation semantics. 
 
-Haskell and my compiler will use an optimization of this, call-by-need (CBNe), where the value in the thunk is only evaluated once and the 
+Haskell and my compiler will use an optimisation of this, call-by-need (CBNe), where the value in the thunk is only evaluated once and the 
 result is cached. When the thunk is evaluated a second time the result of the computation is returned without needing to compute the value again.
 
 
@@ -114,8 +114,7 @@ result is cached. When the thunk is evaluated a second time the result of the co
 
 Thunks will be implemented as objects, one object for each thunk needed 
 (that is for each variable there will be a thunk that will wrap each variable).
-I will use the Java 8 supplier interface have a interface for a thunk before as:
-
+I will use the Java 8 supplier interface for a thunk:
 
 \begin{JavaLst}
 public interface Supplier<T> {
@@ -146,7 +145,7 @@ public abstract class Thunk<T> implements Supplier<T> {
 
 There will be an interface created for each user defined type. 
 For each defined type there will be a class for each type constructor. 
-Then the class will contain any parameters (wrapped in a thunk) that exists in there definition.
+Then the class will contain any parameters (wrapped in a thunk) that exists in their definitions.
 
 For example \texttt{data T = A a | B | C int} will generate one interface and three classes:
 
@@ -174,7 +173,7 @@ Literal will be represented as the Object type (\verb|Integer| and
 
 \subsubsection{case}
 
-For user defined types the code would look a bit like this:
+For user defined types the code would look like this:
 \begin{HaskellLst}
 y x = case x of
   True  -> 1
@@ -394,7 +393,7 @@ public class main {
 I will use the Java 8 functional interface for all functions.
 \footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/function/package-summary.html}}
 
-I have included bytecode for one of the function call apply as an example, only part of the constant pool is
+I have included bytecode for one of the function calls as an example, only part of the constant pool is
 included
 The environment will passed down by via chaining, that is the object in a given scope
 having a references to the object in the scope above. If the current scope is $i$ then scope above is
@@ -450,7 +449,7 @@ public class Env {
 }
 \end{JavaLst}
 
-This show how recursively defined functions would be compiled.
+This shows how recursively defined functions would be compiled.
 
 
 

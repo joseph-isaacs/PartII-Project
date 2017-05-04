@@ -63,7 +63,7 @@ There is a finite map $\Sigma : \mathbb{L}
 \rightarrow \mathbb{E}$, that maps label to expressions. 
 $\Sigma,x:e$ means add the pair $(x,e)$ to $\Sigma$ if $x \not\in\text{dom}(\Sigma)$
 otherwise replace the current values in $\Sigma$ with the pair $(x,e)$.
-There is also an with the following call-by-name transition relation 
+There is also the following call-by-name transition relation 
 \mbox{$\tcbn : \mathbb{E} \rightarrow \mathbb{E}$} is defined in Figure~\ref{t:cbn}. It makes sense to talk about one-step transition relations since
 we are interested in proving a property about
 a finite set of steps of execution.
@@ -90,7 +90,7 @@ a finite set of steps of execution.
 \caption[The definition of the call-by-name semantics used by the core calculus]{The Call-By-Name semantics of the core calculus above.
   Here $b_i^j$ $j$th label in the $i$th binder in a case statement. And $\textit{ctrType}(ty) = b_i$ will
   find the smallest $b_i$ such that $ty_i = ty$ given $b_i = (ty_i,bs_i)$, 
-  if the $\mathit{ty_i}$ is a variable then then it will match any \textit{ty}.
+  if the $\mathit{ty_i}$ is a variable then it will match any \textit{ty}.
    Note the condition on $\mathsf{App}_N$, which says that any label 
  expression pairs added to $\Sigma$ to make $\Sigma'$ must not
  also appear free in $e_2$, if those values do appear in $e_2$ then we can
@@ -100,7 +100,7 @@ a finite set of steps of execution.
 
 
 Since I want to emulate these semantics using thunks, represented as $\thunk{e}$ in a call-by-value scheme, 
-Then thunks must be unwrapped, represented as $\unwrap{e}$. 
+then thunks must be unwrapped, represented as $\unwrap{e}$. 
 the new calculus will have the following syntax:
 \begin{align*} 
   e_\tlang ::=&\ c\ |\ \lambda x.e_\tlang\ |\ e_\tlang e'_\tlang\ |\ \thunk{e_\tlang}\ |\ \unwrap{e_\tlang}
@@ -132,8 +132,8 @@ defined in Figure~\ref{t:translation}
   {\thunk{\mathtt{case}\ \unwrap{e_\tlang}\ \mathtt{of}\ b_1 \rightarrow \unwrap{e_{1_\tlang}}; 
       \dots; b_n \rightarrow \unwrap{e_{n_\tlang}}}}} && \mathsf{Case}_\tlang
 \end{align*}
-\caption[Definition of translation relation from the core calculus to  calculus$_\tlang$]{Translation relation from the core calculus to the calculus$_\tlang$, Also
-extend the translation relation over expression of the form $\Sigma \vdash e \tlthunk \Sigma_\tlang 
+\caption[Definition of translation relation from the core calculus to  calculus$_\tlang$]{Translation relation from the core calculus to the calculus$_\tlang$, also
+extends the translation relation over expression of the form $\Sigma \vdash e \tlthunk \Sigma_\tlang 
 \vdash e_\tlang$ by applying $\tlthunk$ for every expression in $\Sigma$ to make $\Sigma_\tlang$ and
 then apply the relation as usual to $e$ to get $e_\tlang$.}
 \label{t:translation}
@@ -195,7 +195,7 @@ Define $\tccbv: \mathbb{E}_\tlang \rightarrow \mathbb{E}_\tlang$ as the transiti
 
 \section{Proofs}
 
-For the purpose of this proof I will use the term well typed to mean a program which the 
+For the purpose of this proof I will use the term well typed to mean a program in which the 
 type can be inferred, but will not formally define the notion of being well-typed.
 
 \begin{theorem}[Evaluation equivalence]
@@ -302,7 +302,7 @@ This will be proved by rule induction over the $\tcbn$ relation.
       (x_1\ \mathtt{=}\ a_1,\dotsc, x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ e'}
     {\tcbn \Sigma,(x_1:a_1,\dotsc,x_n:a_n) \vdash e'}} \quad \mathsf{Case}_N\]
 
-  Then have expressions of the from above 
+  Then the expression is of the form above 
   $e = \mathtt{let}\ (x_1\ \mathtt{=}\ a_1,\dotsc, x_n\ \mathtt{=}\ a_n)\ \mathtt{in}\ e$
   
 \[\dfrac{\Sigma \tlthunk \Sigma_\tlang \quad a_1  \tlthunk a_{1_\tlang} 

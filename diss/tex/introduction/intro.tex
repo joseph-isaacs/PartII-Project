@@ -172,9 +172,9 @@ when required. \cref{figure:tictactoeTree} shows the first two level of the game
 The value of each node in the game tree is only computed when required. Noughts and
 crosses has a finite game tree, however this time data structure can represent games 
 with infinite states spaces. This example utilises both features
-of Haskell laziness and algebraic data types (ADTs), the laziness allows an 
-infinite data type to be store in memory and values will then only be computed when
-required. ADTs allow concise definitions of the \verb|Tree| data type.
+of Haskell laziness and algebraic datatypes (ADTs), the laziness allows an 
+infinite datatype to be store in memory and values will then only be computed when
+required. ADTs allow concise definitions of the \verb|Tree| datatype.
 \begin{figure}
   \centering
 \begin{forest}
@@ -253,10 +253,10 @@ As other implementations exist, I can then
 compare my implementation to these compilers in the evaluation stage
 of the project. 
 
-One of the proposed extensions would be to implement an optimization.,
+One of the proposed extensions would be to implement an optimisation.,
 I chose functional inlining as while its initial implementation is straightforward, 
 there is significant scope to expand the quality of the optimisation. 
-That said, numerous other optimizations would be possible. 
+That said, numerous other optimisations would be possible. 
 For example strictness analysis, and its associated then transformations. 
 
 
@@ -267,7 +267,7 @@ For example strictness analysis, and its associated then transformations.
 %     with their custom back-ends),.
 
 %   \item 
-%     Could talk about other possible optimizations, such as strictness
+%     Could talk about other possible optimisations, such as strictness
 %     analysis, maybe compare to with inlining and justify why
 %     inlining was a good choice.
 % \end{itemize}

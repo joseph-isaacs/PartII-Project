@@ -155,7 +155,7 @@ To formalise this define \textit{weak head normal form} (WHNF) and
     Definition from Haskell wiki \cite{haskell-whnf}.
   \end{flushright}
   \begin{displayquote}
-    An expression is in normal form, if it contains not $\beta$-redexes. 
+    An expression is in normal form, if it contains no $\beta$-redexes. 
     A $\beta$-redex is an expression of the form $(\lambda x.e)e'$, 
     this is a possible application that has not been reduced.
   \end{displayquote}
@@ -260,7 +260,7 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
   \importMGraph{plotCodeSize.tex}{0.90\textwidth}{0.4\textwidth}
   \caption[Code size as a function of program input size in characters]
           {Code size as a function of program input size in characters. Note that 
-           there are two axis, one in kB and the other in MB (for GHC). The right axis 
+           there are two axes, one in kB and the other in MB (for GHC). The right axis 
            doesn't start at 0.}
   \label{plot:codeSize}
 \end{figure}
@@ -281,8 +281,8 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
 \cref{plot:fibTiming} contains a comparison of the runtime of the \texttt{fib}$n$ program where 
 $n$ ranges between $[1,35]$ inclusive, showing that the asymptotic runtime of the code output
 by each compiler has the same asymptotic complexity.
-  Least square regression was carried out were the data was fit to the curve
-  $a \cdot \varphi^n$ (using the \texttt{lsqcurvefit} Matlab function).
+  Least squares regression was carried out where the data was fitted to the curve
+  $y = a \cdot \varphi^n$ (using the \texttt{lsqcurvefit} Matlab function).
   \cref{table:fibCoef} shows
   JVHC is approximately $10^2$  times slower than the native
   Java program and only approximately 1.2 times slower than the GHC 

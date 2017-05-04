@@ -198,7 +198,7 @@ for many different project types:
     \item Benchmark.
   \end{itemize}
 For writing unit tests I am using HUnit \cite{hunit}.
-Which provides a unit test framework and a quick-check framework. 
+HUnit provides a unit test framework and a quick-check framework. 
 I will use the unit test framework of the library, 
 to write tests for all stages of the compiler.
 Multiple parts of the compiler and outputted code will
@@ -255,7 +255,7 @@ parser could be simplified some what when compared to the full
 grammar defined in the report.
 
 Haskell 98 is a whitespace sensitive language meaning that the parser must use a
-context sensitive grammar to correctly parser a program:
+context sensitive grammar to correctly parse a program:
 \begin{HaskellLst}
 f x = case x of 
   True  -> 1
@@ -289,7 +289,7 @@ Haskell has the notion of kinds, this is a form of type constructor. This will
 formalize the notion of checking all custom dataypes declared.
 The syntax of kinds is
 \[ \mathtt{K} ::= \mathtt{*}\ |\ \mathtt{K}\  |\ \mathtt{K}_1 \rightarrow \mathtt{K}_2 \] 
-Where \texttt{*} is called type and will match another
+where \texttt{*} is called type and will match another
 \texttt{*}, then \texttt{K} is a kind variable, and $\mathtt{K} \rightarrow \mathtt{K}$ is a type to type constructor.
 Haskell also imposes another constraint that any type variable \texttt{K} 
 be defaulted to \texttt{*} (after kind inference) so as to give a

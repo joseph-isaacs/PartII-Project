@@ -49,7 +49,7 @@ additional flexibility available to the programmer in choice of source language.
 Programs can then be part written in Haskell either in conjunction with already 
 existing source code written in a JVM based language or for a new project
 where languages can be mixed to gain the benefits offered by each respective language.
-The functional inlining also
+The function inlining also
 appeared to provided a benefit in performance and memory usage for certain
 programs. 
 While the JVHC’s initial success has been encouraging, numerous opportunities for improvement are now clear:
@@ -59,7 +59,7 @@ While the JVHC’s initial success has been encouraging, numerous opportunities 
 combined. It would be useful to investigate why this stage takes so long 
 and develop a solution which runs faster.
 
-\item Inlining is not favourable in all instances, as there are disadvantages associated with both inadequate and overzealous implementation of the optimisation.  Functional inlining allows other optimisations, which may deliver performance gains in some cases. However, inlining too frequently could lead to larger code size and possible work duplication. Hence ensuring an optimum degree of inlining is key to efficient compilation of the program. The degree of inlining is dependent on the definition of the heuristics used to define the cost of inlining a given function. As such this compiler would be improved by finding better heuristics to increase the average performance gain from using functional inlining.
+\item Inlining is not favourable in all instances, as there are disadvantages associated with both inadequate and overzealous implementation of the optimisation.  Function inlining allows other optimisations, which may deliver performance gains in some cases. However, inlining too frequently could lead to larger code size and possible work duplication. Hence ensuring an optimum degree of inlining is key to efficient compilation of the program. The degree of inlining is dependent on the definition of the heuristics used to define the cost of inlining a given function. As such this compiler would be improved by finding better heuristics to increase the average performance gain from using functional inlining.
 \end{itemize}
 
 

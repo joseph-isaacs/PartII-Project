@@ -129,9 +129,10 @@
 \begin{document}
 
 The compiler implementation was split up into work packages.
-A work package involved either implementation of a, or part of a pipeline
-stage depending on an estimation of how long each stage would
-take to implement.
+A work package involved the implementation of one, 
+or only a part of a stage, depending on an estimation of how long 
+each stage would take to implement.
+
 
 % Work packages were then formed from these five stages --
 % some weeks contained a whole compiler stage, while other work packages contained
@@ -195,7 +196,7 @@ needed to rewrite large parts of the code generation stage after
 understanding the bytecode semantics. In hindsight a better understanding
 of the JVM bytecode specification would have saved time
 overall. Next time I would allocate extra time, before writing any code, to 
-understanding in more detail the JVM bytecode specification.
+understanding the JVM bytecode specification in more detail.
 
 \subimport{workStages/}{workStageGantt.tex}
 
@@ -346,7 +347,7 @@ valid System F once a full type of every expression is known, which is only know
 % \end{itemize}
 
 Function inlining is based on the idea that it 
-would be better to inline some function, so as
+would be better to inline some functions, so as
 to remove the need for the function call to happen. 
 Also if a function has been inlined, this might allow further
 optimisations to occur, such as constant folding.
@@ -371,9 +372,9 @@ Function inlining is a more interesting problem. The technique I used
 was heavily influenced by the paper \cite{ghc-inliner}, which 
 revolves around deciding when to inline the expression:
 \begin{HaskellLst}
-let x = e in e'
+let x = e' in e
 \end{HaskellLst}
-where \verb|e'| may contain free (unbound) occurences of \verb|x|.
+where \verb|e| may contain free (unbound) occurrences of \verb|x|.
 Lambda functions can be $\beta$-reduced ($(\lambda x.e) e' \rightarrow_\beta e[e'/x] $) 
 to a \verb|let| construct, meaning that
 \begin{HaskellLst}
@@ -467,7 +468,7 @@ only when we apply $()$ to this thunk does the computation take place, this allo
 simulation of call-by-name semantics
 when the program is being run with call-by-value operation semantics. 
 In JVHC this will be implemented by creating a class
-which implements a method \verb|force|, \verb|force| will be called by \verb|get| in the default
+which implements a method \verb|force|, which will be called by \verb|get| in the default
 implementation of a thunk.
 \begin{JavaLst}
 public abstract class Thunk<T> implements Supplier<T> {
@@ -575,7 +576,7 @@ three y = case y of
 \end{tikzpicture}
   }
 \caption{Scope and class hierarchy, blue boxes are classes, and white circles are
-references to variables, then arrows signify a reference to the object
+references to variables. Arrows signify a reference to the object
 being pointed to in the object from which the arrow stems.}
 \label{figure:scope_map}
 \end{figure}
@@ -605,7 +606,7 @@ translated into JVM bytecode:
 \texttt{CharThunk} or an \texttt{IntThunk} containing the value
 of the literal.
 
-\item The \texttt{Var} construct will either be a build in function
+\item The \texttt{Var} construct will either be a built-in function
 (in which case it will be a thunk that when evaluated will return the built in
 value), or a user defined function/datatype.
 
@@ -630,7 +631,7 @@ The {\ttfamily \textit{ty}} will return the Java type {\ttfamily \textit{t}}
 of either the binder \texttt{b} or the expression in the lambda \texttt{e}, and 
 {\ttfamily $\llbracket \textit{e}  \mkern2mu \rrbracket$} is a sequence
 of expression produced by converting {\ttfamily\texttt{e}} to a JVM bytecode.
-The code snipped returned will create a function object for the function
+The code snippet returned will create a function object for the function
 referenced in the \verb|CoreExpr| datatype and then wrap it inside a thunk.
 This is the Java implementation of translation relation $\tlthunk$ above.
 \begin{JavaLst}

@@ -117,17 +117,17 @@ Haskell as Type Classes. JVHC will omit some less crucial elements,
 leave out parts of the standard library, 
 and the compiler will  not support Type classes. While these limitations are trivial I do not feel they compromise the primary goal of the project  
 (implementation of a lazy language (Haskell)
-on the JVM with eager semantics). In the future iterations of the compiler these limitations could be easily overcome, since the features for implementation are available via the JVM.
+on the JVM with eager semantics). In future iterations of the compiler these limitations could be easily overcome, since the features for implementation are available via the JVM.
 Some syntactic background is necessary to appreciate 
-the benefits of Haskell in the context software engineering.
+the benefits of Haskell in the context of software engineering.
 Haskell allows definition of infinite size data structures:
 \begin{HaskellLst}
 nat :: Int -> [Int]
 nat x = x : nat (x+1)
 \end{HaskellLst}
-This defines a function which when given an integer \verb|x| will return 
+This defines a function which when given an integer \verb|x|, will return 
 a list of all the integers starting from \texttt{x}, and going on forever with
-each element the successor of the last.
+each element the successor of the previous element.
 Since this list has no bound on the length it must be the case 
 that values are computed only when required, 
 this is possible due to the lazy nature of Haskell. 
@@ -161,7 +161,7 @@ repTree f x = Node x (map (repTree f) (f x))
 gameTree :: Position -> Node Position
 gameTree x = repTree moves x
 \end{HaskellLst}
-We assume that \verb|Position| is a type define elsewhere in the program 
+We assume that \verb|Position| is a type defined elsewhere in the program 
 which stores a specific state in the game. 
 \verb|moves| will be a function which returns all possible moves given a state.
 Then calling \verb|gameTree startPos| will create
@@ -170,10 +170,10 @@ the entire game. The game could have infinitely many states, but since
 Haskell is a lazy language the next state positions are only computed
 when required. \cref{figure:tictactoeTree} shows the first two level of the game tree.
 The value of each node in the game tree is only computed when required. Noughts and
-crosses has a finite game tree, however this time data structure can represent games 
+crosses has a finite game tree, however this data structure can represent games 
 with infinite states spaces. This example utilises both features
 of Haskell laziness and algebraic datatypes (ADTs), the laziness allows an 
-infinite datatype to be store in memory and values will then only be computed when
+infinite datatype to be stored in memory and values will then only be computed when
 required. ADTs allow concise definitions of the \verb|Tree| datatype.
 \begin{figure}
   \centering
@@ -222,7 +222,7 @@ breadthFirst x = breadthFirst' [x]
 \end{HaskellLst}
 \end{minipage}
 This definition of an infinite length data structure is trivial in 
-Haskell due to the lazy nature of the language - implementing
+Haskell due to the lazy nature of the language -- implementing
 a similar construct in the Java programming language would 
 require the laziness to be explicitly specified, which 
 would obfuscate the intent of the code. 

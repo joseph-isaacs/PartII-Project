@@ -16,6 +16,8 @@
 
 \usepackage{wrapfig,lipsum,booktabs}
 
+\usepackage[utf8]{inputenc}
+
 
 \usepackage{pgfplots}
 \pgfplotsset{compat=newest}
@@ -265,7 +267,9 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
   \label{plot:codeSize}
 \end{figure}
 
-\begin{wraptable}{r}{7.5cm}
+\begin{table}
+  \centering
+  \begin{minipage}{0.55\textwidth}
   \centering
   \begin{tabular}{ c | c c }
     Compiler& $a$ & $b$\\
@@ -276,7 +280,22 @@ was generated using the Matlab function \verb|polyfit(x,y,1)|.
   \end{tabular}
   \caption{Regression values for code size form data in \cref{plot:codeSize} to $y=a x+b$}
   \label{table:codeSize}
-\end{wraptable}
+\end{minipage}\hfill
+\begin{minipage}{0.42\textwidth}
+  \centering
+\begin{tabular}{c | c}
+  & $a$\\
+  \hline 
+  JVHC & $1.13\times 10^{-7}$\\
+  GHC & $9.49\times 10^{-8}$\\
+  Java & $1.62 \times 10^{-9}$
+\end{tabular}
+\caption{Coefficients from fitting the data in \cref{plot:fibTiming} 
+    to the line $y=a\cdot \varphi^n$}
+  \label{table:fibCoef}
+\end{minipage}
+
+\end{table}
 
 \cref{plot:fibTiming} contains a comparison of the runtime of the \texttt{fib}$n$ program where 
 $n$ ranges between $[1,35]$ inclusive, showing that the asymptotic runtime of the code output
@@ -298,19 +317,6 @@ by each compiler has the same asymptotic complexity.
   \label{plot:fibTiming}
 \end{figure}
 
-\begin{wraptable}{r}{7.5cm}
-  \centering
-\begin{tabular}{c | c}
-  & $a$\\
-  \hline 
-  JVHC & $1.13\times 10^{-7}$\\
-  GHC & $9.49\times 10^{-8}$\\
-  Java & $1.62 \times 10^{-9}$
-\end{tabular}
-\caption{Coefficients from fitting the data in \cref{plot:fibTiming} 
-    to the line $y=a\cdot \varphi^n$}
-  \label{table:fibCoef}
-\end{wraptable}
 
 The effect that inlining has on the runtime of some program can be seen from
 \cref{plot:inlinePlot}. 
@@ -340,6 +346,8 @@ fitted to the data. Part I is fit to the first six data points and Part II is fi
 
 \begin{table}
   \centering
+  \begin{minipage}{0.55\textwidth}
+    \centering
 \begin{tabular}{c | c  c}
   & $a$ & $b$\\
   \hline 
@@ -350,17 +358,8 @@ fitted to the data. Part I is fit to the first six data points and Part II is fi
 \caption{Coefficients from fitting the data in \cref{plot:inlinePlot} to 
   a straight line $y=ax+b$}
   \label{table:inlineCoef}
-\end{table}
-
-Factors that effect the qualify of a compiled program include how much memory
-is used throughout execution of a program. Two peformance metrics were collection throughout
-separate runs of the program \texttt{testN}. The maximum call stack size
-shown in \cref{plot:stackSize} and the maximum 
-memory usage in \cref{plot:memUsed}. 
-The maximum call stack height linearly increases with $n$, fitting to a straight line curve
-with the equation $y = a\cdot x + b$ resulting in \cref{table:stackGrowth}.
-This shows a two times reduction in the maximum call stack height. 
-\begin{wraptable}{r}{7.5cm}
+\end{minipage}\hfill
+\begin{minipage}{0.4\textwidth}
   \centering
   \begin{tabular}{ c | c c}
   & $a$ & $b$\\
@@ -371,7 +370,17 @@ This shows a two times reduction in the maximum call stack height.
   \caption{Fitting of the data from \cref{plot:stackSize}  
     to the line $y = a\cdot x + b$.}
   \label{table:stackGrowth}
-\end{wraptable}
+\end{minipage}
+\end{table}
+
+Factors that effect the qualify of a compiled program include how much memory
+is used throughout execution of a program. Two peformance metrics were collected throughout
+separate runs of the program \texttt{testN}. The maximum call stack size
+shown in \cref{plot:stackSize} and the maximum 
+memory usage in \cref{plot:memUsed}. 
+The maximum call stack height linearly increases with $n$, fitting to a straight line curve
+with the equation $y = a\cdot x + b$ resulting in \cref{table:stackGrowth}.
+This shows a two times reduction in the maximum call stack height. 
 There is also a noticeable difference is peak memory usage, 
 showing reduced memory usage when inlining is enabled.
 There is a very high correlation between maximum stack height and memory usage.

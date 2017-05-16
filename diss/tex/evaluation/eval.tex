@@ -156,11 +156,9 @@ To formalise this define \textit{weak head normal form} (WHNF) and
   \begin{flushright} 
     Definition from Haskell wiki \cite{haskell-whnf}.
   \end{flushright}
-  \begin{displayquote}
     An expression is in normal form, if it contains no $\beta$-redexes. 
     A $\beta$-redex is an expression of the form $(\lambda x.e)e'$, 
     this is a possible application that has not been reduced.
-  \end{displayquote}
 Then when benchmarking we want all expression to be reduced to \textit{normal form}. If expressions
 are reduced to normal form then the timing will show how long it takes to evaluate the expression
 without the lazy nature of Haskell. 
@@ -312,8 +310,8 @@ by each compiler has the same asymptotic complexity.
 \begin{figure}
   \centering
   \importMGraph{plotFibRuntime}{0.93\textwidth}{0.4\textwidth}
-  \caption{Comparison between runtime for finding the $n$th Fibonacci number na\"ively as a 
-  function of the $n$, note the double axis.}
+  \caption[Comparison between runtime for finding the $n$th Fibonacci number na\"ively as a function of $n$ ]{Comparison between runtime for finding the $n$th Fibonacci number na\"ively as a 
+  function of $n$, note the double axis.}
   \label{plot:fibTiming}
 \end{figure}
 
@@ -426,7 +424,7 @@ come up with better heuristics that can be used to decide whether to inline a fu
 \begin{figure}
   \centering
   \importMGraph{plotBadInline}{0.96\textwidth}{0.3\textwidth}
-  \caption{\texttt{badProg} as a function of $n$. Comparing the inlined and non-inlined
+  \caption[\texttt{badProg} as a function of $n$]{\texttt{badProg} as a function of $n$. Comparing the inlined and non-inlined
   versions of the compiled program}
     \label{plot:badInline}
 \end{figure}
